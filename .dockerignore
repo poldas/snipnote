@@ -1,0 +1,12 @@
+vendor
+node_modules
+/.git
+/.github
+/.env.local
+/.env.*.local
+/tests
+/.idea
+/.vscode
+/.DS_Store
+/build
+/dist
