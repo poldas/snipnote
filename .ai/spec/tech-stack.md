@@ -2,7 +2,7 @@
 #### Backend
 PHP 8.4+
 Symfony 8.0 (attributes dla routingu, DI, Doctrine)
-Doctrine ORM 3+ (+ doctrine/migrations)
+Doctrine ORM 3.5 (+ doctrine/migrations)
 maker-bundle do scaffoldingu
 PostgreSQL (dev/test/prod)
 
