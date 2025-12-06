@@ -1,0 +1,12 @@
+Przejżyj teraz jeszce raz cały kod, czy zgadza się z wymaganiami zawartymi w prd i jest zgodny z bazą danych i typami, poniżej masz potrzebne informacje odzielone
+
+###### PRD
+@03-artefact-prd.md
+###### migracja DB
+@20251020210525_initialize_db.sql
+###### typy
+@types.ts
+###### DTO
+@07-artefact-DTO-generate.md
+###### technical stack
+@04-artefact-technical-stack.md

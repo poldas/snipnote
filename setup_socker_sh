@@ -1,0 +1,141 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Tworzenie katalogów
+mkdir -p docker/php docker/nginx
+
+################################
+# Dockerfile (php-fpm 8.2)
+################################
+cat <<'EOF' > docker/php/Dockerfile
+FROM php:8.2-fpm-alpine
+
+RUN apk add --no-cache \
+    git \
+    unzip \
+    icu-dev \
+    libpq-dev \
+    oniguruma-dev \
+    bash
+
+RUN docker-php-ext-install \
+    pdo_pgsql \
+    intl \
+    opcache
+
+RUN pecl install apcu && docker-php-ext-enable apcu
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /srv/app
+
+CMD ["php-fpm"]
+EOF
+
+################################
+# Nginx config
+################################
+cat <<'EOF' > docker/nginx/default.conf
+server {
+    listen 80;
+    server_name _;
+
+    root /srv/app/public;
+    index index.php;
+
+    location / {
+        try_files $uri /index.php$is_args$args;
+    }
+
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_pass app:9000;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        fastcgi_param DOCUMENT_ROOT $realpath_root;
+    }
+
+    location ~* \.(jpg|jpeg|png|gif|ico|css|js|woff|woff2|ttf|svg)$ {
+        try_files $uri /index.php$is_args$args;
+        access_log off;
+        expires 30d;
+    }
+}
+EOF
+
+################################
+# docker-compose.yml
+################################
+cat <<'EOF' > docker-compose.yml
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: snipnote_app
+    restart: unless-stopped
+    working_dir: /srv/app
+    environment:
+      APP_ENV: dev
+      APP_DEBUG: "1"
+      APP_SECRET: "change-me"
+      DATABASE_URL: "postgresql://symfony:symfony@db:5432/notes_db?serverVersion=15&charset=utf8"
+    volumes:
+      - .:/srv/app:cached
+    depends_on:
+      - db
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: snipnote_nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/srv/app:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+
+  db:
+    image: postgres:15-alpine
+    container_name: snipnote_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: notes_db
+      POSTGRES_USER: symfony
+      POSTGRES_PASSWORD: symfony
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: snipnote_mailhog
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+
+volumes:
+  db-data:
+EOF
+
+################################
+# run.sh – start aplikacji
+################################
+cat <<'EOF' > run.sh
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Build + start
+docker compose up -d --build
+
+# Instalacja zależności (jeśli potrzeba)
+docker compose exec app composer install --no-interaction
+
+echo "Aplikacja działa pod http://localhost:8080"
+EOF
+
+chmod +x run.sh
+
+echo "Pliki dockera utworzone. Uruchom ./run.sh aby wystartować stack."
