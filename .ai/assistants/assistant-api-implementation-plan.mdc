@@ -1,112 +1,29 @@
 Jesteś doświadczonym architektem oprogramowania, którego zadaniem jest stworzenie szczegółowego planu wdrożenia punktu końcowego REST API. Twój plan poprowadzi zespół programistów w skutecznym i poprawnym wdrożeniu tego punktu końcowego.
 
-Poniżej znajdziesz plan api, plan bazy danych, stack technologiczny i zasady implementacji. Twoim zadaniem jest stworzenie szczegółowego planu implementacji endpontów odpowiedzialnych za notatki Notes.
-Base path: `/api/notes`
+Poniżej znajdziesz plan api, plan bazy danych, stack technologiczny i zasady implementacji. Twoim zadaniem jest stworzenie szczegółowego planu implementacji endpontów odpowiedzialnych za pobieranie i wyszukiwanie notatek.
 
 Zanim zaczniemy, zapoznaj się z poniższymi informacjami:
 
 Route API specification:
 <route_api_specification>
-### Notes
+#### List notes (dashboard — owner)
 
-Base path: `/api/notes`
-
-#### Create note
-
-Method:`POST`
+Method:`GET`
 Path:`/api/notes`
 Auth required:Yes
-Description:Create a new note; server generates `url_token` (UUIDv4) on first save. Default `visibility=private`.
-Request JSON:
-
-```json
-{
-  "title": "My recipe",
-  "description": "Markdown content...",
-  "labels": ["dessert żółć","baking kick"],
-  "visibility": "private"  // optional, allowed: "private","public","draft"
-}
-```
-
-Response 201:
-
-```json
-{
-  "data": {
-    "id": 10,
-    "owner_id": 123,
-    "url_token": "uuid-v4",
-    "title": "...",
-    "description": "...",
-    "labels": ["dessert żółć","baking kick"],
-    "visibility": "private",
-    "created_at": "...",
-    "updated_at": "..."
-  }
-}
-```
-
-Errors:`400` validation (title/description length), `401` unauthorized.
-
-Notes:`url_token` generation must be attempted in transaction; on UUID collision return `409` and retry at application level.
-
-#### Read note (by ID) — owner/collaborator view
-
-Method:`GET`
-Path:`/api/notes/{id}`
-Auth required:Yes (only owners/collaborators)
-Response 200:note object (same as above)
-Errors:`403` forbidden, `404` not found.
-
-#### Public read by token (public notes)
-
-Method:`GET`
-Path:`/api/public/notes/{url_token}`
-Auth required:No
-Description:Returns rendered metadata and full `description` (markdown rendered on client). Only returns content if note `visibility='public'`.
+Query params:`page`, `per_page`, `q`, `label`
+Behavior:Returns notes owned by current user; default sorted by `created_at DESC`. Search `q` runs full-text search against `search_vector_simple` or simple ILIKE fallback. `label` applies `labels && ARRAY[...]` (OR logic). Pagination via offset.
 Response 200:
 
 ```json
 {
-  "data": {
-    "title": "...",
-    "description": "...",
-    "labels": [...],
-    "created_at": "..."
-  }
+  "data": [ { note }, ... ],
+  "meta": { "page": 1, "per_page": 10, "total": 42 }
 }
 ```
 
-Errors:`404` not found or `403` if note exists but not public.
+Errors:`401`.
 
-#### Update note
-
-Method:`PATCH`
-Path:`/api/notes/{id}`
-Auth required:Yes (owner or collaborator)
-Request JSON:any subset of fields:
-
-```json
-{
-  "title": "New title",
-  "description": "updated markdown",
-  "labels": ["a","b"],
-  "visibility": "public"
-}
-```
-
-Behavior:Changes saved only on explicit save. If `url_token` was regenerated client must persist change.
-Response 200:updated note object
-Errors:`400` validation, `403` unauthorized, `404` not found.
-
-#### Delete note
-
-Method:`DELETE`
-Path:`/api/notes/{id}`
-Auth required:Yes (owner only)
-Response:`204 No Content`
-Behavior:DB `ON DELETE CASCADE` ensures `note_collaborators` removed. Application must ensure logging and redirect.
-Errors:`403`, `404`.
 </route_api_specification>
 
 Related database resources:
@@ -168,6 +85,41 @@ CREATE TABLE note_collaborators (
   created_at  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 ```
+
+
+Relacje między tabelami (kardynalność)
+
+* `users (1) — (N) notes`
+  Jeden użytkownik (owner) może mieć wiele notatek. (`notes.owner_id` → `users.id`)
+* `notes (1) — (N) note_collaborators`
+  Jedna notatka może mieć wielu współedytorów. (`note_collaborators.note_id` → `notes.id`)
+* `users (1) — (N) note_collaborators` (opcjonalne powiązanie)
+  `note_collaborators.user_id` wskazuje na `users.id` po rejestracji; powiązanie wiele-do-wielu realizowane przez `note_collaborators` + `notes.owner_id` (bez dodatkowej tabeli).
+
+Kardynalności:
+
+* users ↔ notes: 1:N
+* notes ↔ note_collaborators: 1:N
+* users ↔ note_collaborators (przez user_id): 1:N (opcjonalnie)
+
+DDL pomocnicze: funkcja trigger i trigger do aktualizacji `search_vector_simple`
+
+```sql
+-- Funkcja aktualizująca search_vector_simple używając konfiguracji 'simple'
+CREATE FUNCTION notes_search_vector_update() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  NEW.search_vector_simple := to_tsvector('simple', coalesce(NEW.title,'') || ' ' || coalesce(NEW.description,''));
+  RETURN NEW;
+END
+$$;
+
+-- Trigger
+CREATE TRIGGER trg_notes_search_vector BEFORE INSERT OR UPDATE
+  ON notes FOR EACH ROW EXECUTE FUNCTION notes_search_vector_update();
+```
+
+(Uwaga: alternatywnie można aktualizować `search_vector_simple` w warstwie aplikacji podczas zapisu.)
+
 </related_db_resources>
 
 Tech stack:
@@ -228,7 +180,8 @@ Implementation rules:
 - Implement → Test → Feedback never 50 features then test.
 
 ### Symfony & Doctrine
-Architektura: prosty podział — Entity → Repository → Service (logika domenowa) → Controller (thin). Nie pełne DDD, tylko jawne granice.
+- aplikacja działa w dockerz, ZAWSZE uruchamiaj poprzez 'docker compose <command>'
+- Architektura: prosty podział — Entity → Repository → Service (logika domenowa) → Controller (thin). Nie pełne DDD, tylko jawne granice.
 - Target: Symfony 7.3. Preferuj attributes (routing, DI, Doctrine mapping).
 - Kontrolery: thin — logika w serwisach.
 - DI: wstrzykiwanie zależności, unikaj statycznych helperów.

@@ -34,7 +34,7 @@
 
 ### Widok: Dashboard — lista notatek (z wyszukiwarką)
 
-  **Ścieżka:** `/dashboard` lub `/notes`
+  **Ścieżka:** `/notes`
   **Cel:** Główny hub — przegląd własnych notatek, szybkie wejścia do edycji, tworzenie nowych.
   **Kluczowe informacje:** lista notatek (title, excerpt ≤255, labels, created_at), wyszukiwarka (q, obsługa `label:`), paginacja (10/strona), przycisk „Dodaj notatkę”.
   **Kluczowe komponenty:** topbar (search), sidebar (opcjonalne filtry), note-row (ikonki akcji: edytuj, usuń), paginacja.
@@ -64,7 +64,7 @@
 
 ### Widok: Publiczny odczyt notatki
 
-  **Ścieżka:** `/p/{url_token}` lub `/notes/public/{url_token}`
+  **Ścieżka:** `/notes/public/{url_token}`
   **Cel:** Odwiedzający (anonim lub zalogowany) czytają notatkę (rendered markdown).
   **Kluczowe informacje:** title, rendered description (sanitizowane HTML), labels, created_at, link/CTA do edycji jeśli użytkownik ma uprawnienia.
   **Kluczowe komponenty:** content area z markup-safe container, copy-to-clipboard dla kodu (opcjonalne), CTA do logowania jeśli chcesz edytować.

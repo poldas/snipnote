@@ -6,7 +6,11 @@ namespace App\Repository;
 
 use App\Entity\Note;
 use App\Entity\NoteVisibility;
+use App\Query\Note\ListNotesQuery;
+use App\Repository\Result\PaginatedResult;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\ArrayParameterType;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -33,5 +37,73 @@ class NoteRepository extends ServiceEntityRepository
             ->setParameter('visibility', NoteVisibility::Public)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    public function findPaginatedForOwnerWithFilters(ListNotesQuery $query): PaginatedResult
+    {
+        $em = $this->getEntityManager();
+        $conn = $em->getConnection();
+
+        $search = $query->q !== null ? trim($query->q) : null;
+        $dbalFilters = $conn->createQueryBuilder()
+            ->from('notes', 'n')
+            ->where('n.owner_id = :ownerId')
+            ->setParameter('ownerId', $query->ownerId, Types::INTEGER);
+
+        if ($search !== null && $search !== '') {
+            $dbalFilters
+                ->andWhere("(n.search_vector_simple @@ plainto_tsquery('simple', :q) OR n.title ILIKE :pattern OR n.description ILIKE :pattern)")
+                ->setParameter('q', $search, Types::STRING)
+                ->setParameter('pattern', '%' . $search . '%', Types::STRING);
+        }
+
+        if ($query->labels !== []) {
+            $labelsLiteral = $this->toPgTextArrayLiteral($query->labels);
+            $dbalFilters
+                ->andWhere('n.labels && :labels')
+                ->setParameter('labels', $labelsLiteral, Types::STRING);
+        }
+
+        $totalQb = clone $dbalFilters;
+        $total = (int) $totalQb
+            ->select('COUNT(*)')
+            ->executeQuery()
+            ->fetchOne();
+
+        $idsQb = clone $dbalFilters;
+        $ids = $idsQb
+            ->select('n.id')
+            ->orderBy('n.created_at', 'DESC')
+            ->setMaxResults($query->perPage)
+            ->setFirstResult(($query->page - 1) * $query->perPage)
+            ->executeQuery()
+            ->fetchFirstColumn();
+
+        if ($ids === []) {
+            return new PaginatedResult([], $total);
+        }
+
+        /** @var list<Note> $items */
+        $items = $this->createQueryBuilder('n')
+            ->andWhere('n.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->orderBy('n.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+
+        return new PaginatedResult($items, $total);
+    }
+
+    /**
+     * @param list<string> $labels
+     */
+    private function toPgTextArrayLiteral(array $labels): string
+    {
+        $escaped = array_map(
+            static fn(string $label): string => '"' . str_replace(['\\', '"'], ['\\\\', '\\"'], $label) . '"',
+            $labels
+        );
+
+        return '{' . implode(',', $escaped) . '}';
     }
 }

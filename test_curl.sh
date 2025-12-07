@@ -9,6 +9,7 @@ set -euo pipefail
 BASE_URL=${BASE_URL:-http://localhost:8080}
 USER_IDENTIFIER=${USER_IDENTIFIER:-dany@dany.pl} # email or UUID stored in DB
 EXP_SECONDS=${EXP_SECONDS:-3600}
+CREATED_NOTE_IDS=()
 
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -49,6 +50,19 @@ JWT=${JWT:-$(generate_jwt)}
 echo "JWT: $JWT"
 log() { printf '==> %s\n' "$*"; }
 fail() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
+track_note() { CREATED_NOTE_IDS+=("$1"); }
+cleanup() {
+  set +e
+  if [[ ${#CREATED_NOTE_IDS[@]} -gt 0 ]]; then
+    for id in "${CREATED_NOTE_IDS[@]}"; do
+      status=$(curl -s -o /dev/null -w '%{http_code}' -X DELETE "$BASE_URL/api/notes/$id" -H "Accept: application/json" -H "Authorization: Bearer $JWT")
+      if [[ "$status" == "204" ]]; then
+        log "Cleanup deleted note id=$id"
+      fi
+    done
+  fi
+}
+trap cleanup EXIT
 
 split_response() {
   local raw="$1"
@@ -91,6 +105,7 @@ NOTE_ID=$(echo "$BODY" | jq -r '.data.id')
 URL_TOKEN=$(echo "$BODY" | jq -r '.data.urlToken')
 [[ -n "$NOTE_ID" && "$NOTE_ID" != "null" ]] || fail "Create note: missing id"
 [[ -n "$URL_TOKEN" && "$URL_TOKEN" != "null" ]] || fail "Create note: missing urlToken"
+track_note "$NOTE_ID"
 log "Created note id=$NOTE_ID urlToken=$URL_TOKEN"
 
 # 2) Fetch the note via authenticated endpoint
@@ -113,6 +128,39 @@ assert_jq '.data.title == "Curl note updated"' "Public note"
 split_response "$(auth_request DELETE "$BASE_URL/api/notes/$NOTE_ID")"
 assert_status 204 "$STATUS" "Delete note"
 log "Delete note: success"
+
+# 6) Batch create 5 notes with distinct labels and verify listing
+BATCH_LABEL_BASE="curl-batch-$(date +%s)"
+declare -a BATCH_PAYLOADS=(
+  "{\"title\":\"Batch note 1\",\"description\":\"Batch via curl test1\",\"labels\":[\"$BATCH_LABEL_BASE\",\"batch-1\"],\"visibility\":\"private\"}"
+  "{\"title\":\"Batch note 2\",\"description\":\"Batch via curl test2\",\"labels\":[\"$BATCH_LABEL_BASE\",\"batch-2\"],\"visibility\":\"private\"}"
+  "{\"title\":\"Batch note 3\",\"description\":\"Batch via curl test3\",\"labels\":[\"$BATCH_LABEL_BASE\",\"batch-3\"],\"visibility\":\"draft\"}"
+  "{\"title\":\"Batch note 4\",\"description\":\"Batch via curl test4\",\"labels\":[\"$BATCH_LABEL_BASE\",\"batch-4\"],\"visibility\":\"public\"}"
+  "{\"title\":\"Batch note 5\",\"description\":\"Batch via curl test5\",\"labels\":[\"$BATCH_LABEL_BASE\",\"batch-5\",\"extra\"],\"visibility\":\"private\"}"
+)
+
+BATCH_NOTE_IDS=()
+for payload in "${BATCH_PAYLOADS[@]}"; do
+  split_response "$(auth_request POST "$BASE_URL/api/notes" "$payload")"
+  assert_status 201 "$STATUS" "Create batch note"
+  batch_id=$(echo "$BODY" | jq -r '.data.id')
+  [[ -n "$batch_id" && "$batch_id" != "null" ]] || fail "Batch create: missing id"
+  track_note "$batch_id"
+  BATCH_NOTE_IDS+=("$batch_id")
+done
+log "Created batch notes: ${BATCH_NOTE_IDS[*]}"
+
+split_response "$(auth_request GET "$BASE_URL/api/notes?label=$BATCH_LABEL_BASE&per_page=20")"
+assert_status 200 "$STATUS" "List batch notes"
+assert_jq "([.data[] | select(.labels | index(\"$BATCH_LABEL_BASE\"))] | length) >= 5" "List batch notes filter"
+
+for batch_id in "${BATCH_NOTE_IDS[@]}"; do
+  split_response "$(auth_request DELETE "$BASE_URL/api/notes/$batch_id")"
+  assert_status 204 "$STATUS" "Delete batch note $batch_id"
+done
+
+# All explicit deletions done; prevent cleanup from re-deleting
+CREATED_NOTE_IDS=()
 
 log "All curl checks passed."
 

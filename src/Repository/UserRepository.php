@@ -16,7 +16,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method array<int, User> findAll()
  * @method array<int, User> findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-final class UserRepository extends ServiceEntityRepository
+class UserRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {

@@ -15,7 +15,7 @@
 - Implement → Test → Feedback never 50 features then test.
 
 ### Symfony & Doctrine
-- aplikacja dziala w dockerz, ZAWSZE uruchamiaj poprzez docker compose <komenda>
+- aplikacja działa w dockerz, ZAWSZE uruchamiaj poprzez 'docker compose <command>'
 - Architektura: prosty podział — Entity → Repository → Service (logika domenowa) → Controller (thin). Nie pełne DDD, tylko jawne granice.
 - Target: Symfony 7.3. Preferuj attributes (routing, DI, Doctrine mapping).
 - Kontrolery: thin — logika w serwisach.
