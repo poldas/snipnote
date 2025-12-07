@@ -14,6 +14,7 @@ use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 final class ExceptionListenerTest extends TestCase
@@ -57,6 +58,11 @@ final class ExceptionListenerTest extends TestCase
                 'exception' => new ConflictHttpException(),
                 'expectedStatus' => 409,
                 'expectedError' => 'Conflict',
+            ],
+            'unsupported media type' => [
+                'exception' => new UnsupportedMediaTypeHttpException(),
+                'expectedStatus' => 415,
+                'expectedError' => 'Unsupported Media Type',
             ],
             'internal' => [
                 'exception' => new \RuntimeException('boom'),

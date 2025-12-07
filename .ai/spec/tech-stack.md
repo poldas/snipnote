@@ -9,7 +9,7 @@ PostgreSQL (dev/test/prod)
 #### Frontend
 Twig jako główny templating
 HTMX 2+ do partial refresh / formularzy / list
-Tailwind CSS jako jedyny system styli (opcjonalny prosty build)
+Tailwind CSS jako jedyny system styli (opcjonalny prosty build) + Fluent2
 Minimalny vanilla JS tylko tam, gdzie HTMX nie wystarcza
 
 #### Autoryzacja (PostgreSQL + Symfony)

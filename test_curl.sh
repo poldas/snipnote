@@ -109,17 +109,20 @@ URL_TOKEN=$(echo "$BODY" | jq -r '.data.urlToken')
 [[ -n "$URL_TOKEN" && "$URL_TOKEN" != "null" ]] || fail "Create note: missing urlToken"
 track_note "$NOTE_ID"
 log "Created note id=$NOTE_ID urlToken=$URL_TOKEN"
+log "Create note response: $(echo "$BODY" | jq -c '.data')"
 
 # 2) Fetch the note via authenticated endpoint
 split_response "$(auth_request GET "$BASE_URL/api/notes/$NOTE_ID")"
 assert_status 200 "$STATUS" "Get note"
 assert_jq '.data.title == "Curl note"' "Get note"
+log "Get note response: $(echo "$BODY" | jq -c '.data')"
 
 # 3) Update the note
 UPDATE_PAYLOAD='{"title":"Curl note updated","labels":["curl","demo","updated"]}'
 split_response "$(auth_request PATCH "$BASE_URL/api/notes/$NOTE_ID" "$UPDATE_PAYLOAD")"
 assert_status 200 "$STATUS" "Update note"
 assert_jq '.data.title == "Curl note updated"' "Update note"
+log "Update note response: $(echo "$BODY" | jq -c '.data')"
 
 # 3b) Collaborators: add, duplicate (409), list, remove
 COLLAB_EMAIL="collab+$(date +%s)@example.com"
@@ -128,6 +131,7 @@ ADD_COLLAB_PAYLOAD=$(jq -n --arg email "$COLLAB_EMAIL" '{email:$email}')
 split_response "$(auth_request POST "$BASE_URL/api/notes/$NOTE_ID/collaborators" "$ADD_COLLAB_PAYLOAD")"
 assert_status 201 "$STATUS" "Add collaborator"
 assert_jq '.data.email == "'"$COLLAB_EMAIL"'"' "Add collaborator"
+log "Collaborator added: $(echo "$BODY" | jq -c '{id:.data.id,email:.data.email}')"
 
 split_response "$(auth_request POST "$BASE_URL/api/notes/$NOTE_ID/collaborators" "$ADD_COLLAB_PAYLOAD")"
 assert_status 409 "$STATUS" "Add collaborator duplicate"
@@ -135,6 +139,7 @@ assert_status 409 "$STATUS" "Add collaborator duplicate"
 split_response "$(auth_request GET "$BASE_URL/api/notes/$NOTE_ID/collaborators")"
 assert_status 200 "$STATUS" "List collaborators"
 assert_jq '(.data | length) >= 1' "List collaborators count"
+log "Collaborators list: $(echo "$BODY" | jq -c '.data')"
 
 split_response "$(auth_request DELETE "$BASE_URL/api/notes/$NOTE_ID/collaborators" "")"
 assert_status 400 "$STATUS" "Remove collaborator missing email"
@@ -146,6 +151,29 @@ assert_status 204 "$STATUS" "Remove collaborator by email"
 split_response "$(public_request GET "$BASE_URL/api/public/notes/$URL_TOKEN")"
 assert_status 200 "$STATUS" "Public note"
 assert_jq '.data.title == "Curl note updated"' "Public note"
+log "Public note response: $(echo "$BODY" | jq -c '.data')"
+
+# 4a) Markdown preview endpoint (limit 10k, auth required)
+PREVIEW_PAYLOAD=$(jq -n --arg desc "**bold**" '{description:$desc}')
+split_response "$(auth_request POST "$BASE_URL/api/notes/preview" "$PREVIEW_PAYLOAD")"
+assert_status 200 "$STATUS" "Preview markdown"
+assert_jq '.data.html | contains("<strong>bold</strong>")' "Preview markdown content"
+log "Preview valid html: $(echo "$BODY" | jq -r '.data.html')"
+
+LONG_DESC=$(python3 - <<'PY'
+print("a" * 10001)
+PY
+)
+PREVIEW_TOO_LONG=$(jq -n --arg desc "$LONG_DESC" '{description:$desc}')
+split_response "$(auth_request POST "$BASE_URL/api/notes/preview" "$PREVIEW_TOO_LONG")"
+assert_status 400 "$STATUS" "Preview too long"
+log "Preview too long response: $BODY"
+
+split_response "$(curl -sS -w $'\n%{http_code}' -X POST "$BASE_URL/api/notes/preview" \
+  -H "Accept: application/json" -H "Authorization: Bearer $JWT" -H "Content-Type: text/plain" \
+  --data '**bold**')"
+assert_status 415 "$STATUS" "Preview unsupported media type"
+log "Preview unsupported media response: $BODY"
 
 # 4b) Public catalog listing for the owner (optional)
 if [[ -n "${OWNER_UUID:-}" ]]; then
@@ -153,6 +181,7 @@ if [[ -n "${OWNER_UUID:-}" ]]; then
   assert_status 200 "$STATUS" "Public user notes"
   assert_jq '.meta.page == 1 and .meta.per_page >= 1' "Public user notes meta"
   log "Public user notes fetched for owner $OWNER_UUID"
+  log "Public user notes response: $(echo "$BODY" | jq -c '{meta, count:(.data|length), first:(.data[0]//null)}')"
 else
   log "OWNER_UUID not set, skipping public catalog check"
 fi
@@ -186,6 +215,7 @@ log "Created batch notes: ${BATCH_NOTE_IDS[*]}"
 split_response "$(auth_request GET "$BASE_URL/api/notes?label=$BATCH_LABEL_BASE&per_page=20")"
 assert_status 200 "$STATUS" "List batch notes"
 assert_jq "([.data[] | select(.labels | index(\"$BATCH_LABEL_BASE\"))] | length) >= 5" "List batch notes filter"
+log "Batch list response: $(echo "$BODY" | jq -c '{count:(.data|length), ids:[.data[].id]}')"
 
 for batch_id in "${BATCH_NOTE_IDS[@]}"; do
   split_response "$(auth_request DELETE "$BASE_URL/api/notes/$batch_id")"

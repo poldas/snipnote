@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
@@ -50,6 +51,10 @@ final class ExceptionListener
             $exception instanceof UuidCollisionException => new JsonResponse(
                 ['error' => 'UUID generation failed, please retry'],
                 JsonResponse::HTTP_CONFLICT
+            ),
+            $exception instanceof UnsupportedMediaTypeHttpException => new JsonResponse(
+                ['error' => 'Unsupported Media Type'],
+                JsonResponse::HTTP_UNSUPPORTED_MEDIA_TYPE
             ),
             default => new JsonResponse(
                 ['error' => 'Internal server error'],
