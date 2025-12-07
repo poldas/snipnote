@@ -10,6 +10,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
@@ -41,6 +42,10 @@ final class ExceptionListener
             $exception instanceof NotFoundHttpException => new JsonResponse(
                 ['error' => 'Not found'],
                 JsonResponse::HTTP_NOT_FOUND
+            ),
+            $exception instanceof ConflictHttpException => new JsonResponse(
+                ['error' => 'Conflict'],
+                JsonResponse::HTTP_CONFLICT
             ),
             $exception instanceof UuidCollisionException => new JsonResponse(
                 ['error' => 'UUID generation failed, please retry'],

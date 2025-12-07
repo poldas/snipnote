@@ -21,7 +21,7 @@ class NoteCollaborator
     #[ORM\JoinColumn(name: 'note_id', nullable: false, onDelete: 'CASCADE')]
     private Note $note;
 
-    #[ORM\Column(type: Types::STRING)]
+    #[ORM\Column(type: Types::TEXT)]
     private string $email;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
@@ -34,7 +34,7 @@ class NoteCollaborator
     public function __construct(Note $note, string $email, ?User $user = null)
     {
         $this->note = $note;
-        $this->email = $email;
+        $this->email = $this->sanitizeEmail($email);
         $this->user = $user;
         $this->createdAt = new \DateTimeImmutable();
     }
@@ -54,14 +54,28 @@ class NoteCollaborator
         return $this->email;
     }
 
+    public function setEmail(string $email): void
+    {
+        $this->email = $this->sanitizeEmail($email);
+    }
+
     public function getUser(): ?User
     {
         return $this->user;
+    }
+
+    public function setUser(?User $user): void
+    {
+        $this->user = $user;
     }
 
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
-}
 
+    private function sanitizeEmail(string $email): string
+    {
+        return trim($email);
+    }
+}

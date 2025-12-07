@@ -12,6 +12,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
@@ -51,6 +52,11 @@ final class ExceptionListenerTest extends TestCase
                 'exception' => new UuidCollisionException(),
                 'expectedStatus' => 409,
                 'expectedError' => 'UUID generation failed, please retry',
+            ],
+            'conflict' => [
+                'exception' => new ConflictHttpException(),
+                'expectedStatus' => 409,
+                'expectedError' => 'Conflict',
             ],
             'internal' => [
                 'exception' => new \RuntimeException('boom'),

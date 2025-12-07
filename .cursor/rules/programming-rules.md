@@ -16,6 +16,7 @@
 
 ### Symfony & Doctrine
 - aplikacja działa w dockerz, ZAWSZE uruchamiaj poprzez 'docker compose <command>'
+- na koniec pracy zawsze zamykaj aplikację `docker compose down`
 - Architektura: prosty podział — Entity → Repository → Service (logika domenowa) → Controller (thin). Nie pełne DDD, tylko jawne granice.
 - Target: Symfony 7.3. Preferuj attributes (routing, DI, Doctrine mapping).
 - Kontrolery: thin — logika w serwisach.

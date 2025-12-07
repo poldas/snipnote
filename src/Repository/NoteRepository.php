@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\Note;
+use App\Entity\User;
 use App\Entity\NoteVisibility;
 use App\Query\Note\ListNotesQuery;
 use App\Query\Note\PublicNotesQuery;
@@ -26,6 +27,29 @@ class NoteRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Note::class);
+    }
+
+    public function findOneByIdAndOwner(int $id, User $owner): ?Note
+    {
+        return $this->createQueryBuilder('n')
+            ->andWhere('n.id = :id')
+            ->andWhere('n.owner = :owner')
+            ->setParameter('id', $id)
+            ->setParameter('owner', $owner)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function isOwnedBy(int $noteId, User $owner): bool
+    {
+        return (bool) $this->createQueryBuilder('n')
+            ->select('1')
+            ->andWhere('n.id = :id')
+            ->andWhere('n.owner = :owner')
+            ->setParameter('id', $noteId)
+            ->setParameter('owner', $owner)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     public function findOneByUrlToken(string $token): ?Note

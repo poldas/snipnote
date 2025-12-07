@@ -25,6 +25,53 @@ class NoteCollaboratorRepository extends ServiceEntityRepository
         parent::__construct($registry, NoteCollaborator::class);
     }
 
+    public function findByNoteAndId(int $noteId, int $collaboratorId): ?NoteCollaborator
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.id = :collaboratorId')
+            ->andWhere('IDENTITY(c.note) = :noteId')
+            ->setParameter('collaboratorId', $collaboratorId)
+            ->setParameter('noteId', $noteId)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function findByNoteAndEmail(int $noteId, string $email): ?NoteCollaborator
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('IDENTITY(c.note) = :noteId')
+            ->andWhere('LOWER(c.email) = LOWER(:email)')
+            ->setParameter('noteId', $noteId)
+            ->setParameter('email', trim($email))
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * @return list<NoteCollaborator>
+     */
+    public function findAllByNote(int $noteId): array
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('IDENTITY(c.note) = :noteId')
+            ->setParameter('noteId', $noteId)
+            ->orderBy('c.createdAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function existsForNoteAndEmail(int $noteId, string $email): bool
+    {
+        return (bool) $this->createQueryBuilder('c')
+            ->select('1')
+            ->andWhere('IDENTITY(c.note) = :noteId')
+            ->andWhere('LOWER(c.email) = LOWER(:email)')
+            ->setParameter('noteId', $noteId)
+            ->setParameter('email', trim($email))
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function isCollaborator(Note $note, User $user): bool
     {
         return (bool) $this->createQueryBuilder('c')

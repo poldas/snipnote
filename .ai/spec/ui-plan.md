@@ -14,7 +14,7 @@
 * `GET /api/notes/{id}` — odczyt (właściciel/współedytor).
 * `PATCH /api/notes/{id}` — zapis edycji (tylko po kliknięciu „Zapisz”).
 * `DELETE /api/notes/{id}` — usunięcie (owner only).
-* `POST /api/notes/{id}/url/regenerate` — regeneracja URL (modal confirm → reload).
+* `POST /api/notes/{id}/url/regenerate` — regeneracja URL (modal confirm → reload). NOT IN  MVP, make as last one.
 * `GET /api/public/notes/{url_token}` — publiczny odczyt po tokenie.
 * `GET /api/public/users/{user_uuid}/notes` — publiczny katalog użytkownika.
 * `POST /api/notes/preview` — server-side markdown preview (wywołanie HTMX).
@@ -74,7 +74,7 @@
 
 ### Widok: Publiczny katalog użytkownika
 
-  **Ścieżka:** `/users/{user_uuid}/notes` lub `/u/{uuid}`
+  **Ścieżka:** `/u/{uuid}`
   **Cel:** Przegląd publicznych notatek danego użytkownika.
   **Kluczowe informacje:** lista publicznych notatek (title, excerpt, labels, created_at), paginacja, wyszukiwarka (q + label:).
   **Kluczowe komponenty:** list items, paginacja, search box, empty-state message („Nie ma takiego użytkownika”).
@@ -190,7 +190,7 @@
   **US-06 (Usuwanie notatki)** → Delete action w Dashboard i Edit, modal confirm.
   **US-07 (Dashboard pusty)** → Empty state z CTA.
   **US-08 (Udostępnienie współedytorowi)** → Collaborators Panel w edycji.
-  **US-09 (Publiczny katalog)** → `/users/{uuid}`, public list + search + pagination.
+  **US-09 (Publiczny katalog)** → `/u/{uuid}`, public list + search + pagination.
   **US-10/US-11/US-12 (Rejestracja, Logowanie, Wylogowanie)** → Landing/Login/Register flows + topbar user menu.
   **US-13 (Regeneracja URL)** → Button w edycji → modal → POST `/url/regenerate` → reload.
   **US-14 (Usunięcie własnego dostępu)** → Collaborators Panel → remove self → redirect to dashboard on success.

@@ -39,5 +39,14 @@ class UserRepository extends ServiceEntityRepository
             return null;
         }
     }
+
+    public function findOneByEmailCaseInsensitive(string $email): ?User
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('LOWER(u.email) = LOWER(:email)')
+            ->setParameter('email', trim($email))
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }
 

@@ -121,6 +121,27 @@ split_response "$(auth_request PATCH "$BASE_URL/api/notes/$NOTE_ID" "$UPDATE_PAY
 assert_status 200 "$STATUS" "Update note"
 assert_jq '.data.title == "Curl note updated"' "Update note"
 
+# 3b) Collaborators: add, duplicate (409), list, remove
+COLLAB_EMAIL="collab+$(date +%s)@example.com"
+COLLAB_EMAIL_ENC=$(jq -rn --arg s "$COLLAB_EMAIL" '$s|@uri')
+ADD_COLLAB_PAYLOAD=$(jq -n --arg email "$COLLAB_EMAIL" '{email:$email}')
+split_response "$(auth_request POST "$BASE_URL/api/notes/$NOTE_ID/collaborators" "$ADD_COLLAB_PAYLOAD")"
+assert_status 201 "$STATUS" "Add collaborator"
+assert_jq '.data.email == "'"$COLLAB_EMAIL"'"' "Add collaborator"
+
+split_response "$(auth_request POST "$BASE_URL/api/notes/$NOTE_ID/collaborators" "$ADD_COLLAB_PAYLOAD")"
+assert_status 409 "$STATUS" "Add collaborator duplicate"
+
+split_response "$(auth_request GET "$BASE_URL/api/notes/$NOTE_ID/collaborators")"
+assert_status 200 "$STATUS" "List collaborators"
+assert_jq '(.data | length) >= 1' "List collaborators count"
+
+split_response "$(auth_request DELETE "$BASE_URL/api/notes/$NOTE_ID/collaborators" "")"
+assert_status 400 "$STATUS" "Remove collaborator missing email"
+
+split_response "$(auth_request DELETE "$BASE_URL/api/notes/$NOTE_ID/collaborators?email=$COLLAB_EMAIL_ENC")"
+assert_status 204 "$STATUS" "Remove collaborator by email"
+
 # 4) Fetch the public view
 split_response "$(public_request GET "$BASE_URL/api/public/notes/$URL_TOKEN")"
 assert_status 200 "$STATUS" "Public note"
