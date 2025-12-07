@@ -26,7 +26,8 @@ final class PublicNoteControllerTest extends TestCase
             ->with('uuid')
             ->willReturn($note);
 
-        $controller = new PublicNoteController($service);
+        $mapper = new \App\Mapper\PublicNoteJsonMapper();
+        $controller = new PublicNoteController($service, $mapper);
 
         $response = $controller->getByToken('uuid');
 
@@ -34,5 +35,6 @@ final class PublicNoteControllerTest extends TestCase
         $payload = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('t', $payload['data']['title']);
         self::assertSame(['a'], $payload['data']['labels']);
+        self::assertArrayHasKey('created_at', $payload['data']);
     }
 }

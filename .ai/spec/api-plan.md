@@ -357,8 +357,8 @@ Errors:`404` if user UUID not found (preferred to match PRD).
 
 Method:`GET`
 Path:`/api/search/notes`
-Auth required:Dashboard searches require auth (search limited to user's accessible notes). Catalog search is public.
-Query:`q`, `label`, `page`, `per_page`
+Auth required:Dashboard searches require auth (search limited to user's accessible notes). Catalog search is public limited to user uuid.
+Query:`q`, `label`, `page`, `per_page`, `uuid`
 Implementation:Use `search_vector_simple` GIN index and `to_tsquery` for `q` when available; support `label:` prefix parsing in `q` or accept `label` param. For labels, use `labels && ARRAY[...]` to implement OR behavior.
 Response:paginated list.
 

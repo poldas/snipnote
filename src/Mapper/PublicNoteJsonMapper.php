@@ -6,6 +6,7 @@ namespace App\Mapper;
 
 use App\DTO\Note\PublicNoteListItemDto;
 use App\DTO\Note\PublicNoteListResponseDto;
+use App\DTO\Note\PublicNoteResponseDTO;
 
 final class PublicNoteJsonMapper
 {
@@ -30,6 +31,16 @@ final class PublicNoteJsonMapper
             'labels' => $item->labels,
             'created_at' => $item->createdAt->format(\DateTimeInterface::ATOM),
             'url_token' => $item->urlToken,
+        ];
+    }
+
+    public function mapPublicNote(PublicNoteResponseDTO $dto): array
+    {
+        return [
+            'title' => $dto->title,
+            'description' => $dto->description,
+            'labels' => $dto->labels,
+            'created_at' => $dto->createdAt,
         ];
     }
 }

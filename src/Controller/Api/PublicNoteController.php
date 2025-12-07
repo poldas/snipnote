@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller\Api;
 
 use App\DTO\Note\PublicNoteResponseDTO;
+use App\Mapper\PublicNoteJsonMapper;
 use App\Service\NoteService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -15,6 +16,7 @@ final class PublicNoteController extends AbstractController
 {
     public function __construct(
         private readonly NoteService $noteService,
+        private readonly PublicNoteJsonMapper $mapper,
     ) {}
 
     #[Route('/{urlToken}', name: 'api_public_notes_get', methods: ['GET'])]
@@ -29,6 +31,6 @@ final class PublicNoteController extends AbstractController
             createdAt: $note->getCreatedAt()->format(\DateTimeInterface::ATOM),
         );
 
-        return new JsonResponse(['data' => $dto], JsonResponse::HTTP_OK);
+        return new JsonResponse(['data' => $this->mapper->mapPublicNote($dto)], JsonResponse::HTTP_OK);
     }
 }

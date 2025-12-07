@@ -14,7 +14,7 @@ Endpoint zwraca listę notatek należących do aktualnie uwierzytelnionego użyt
 
 - **Metoda HTTP:** `GET`
 - **URL:** `/api/notes`
-- **Auth:** wymagane poprawne JWT (Supabase Auth → weryfikacja po stronie Symfony, użytkownik dostępny jako `User` w SecurityContext).
+- **Auth:** wymagane poprawne JWT (weryfikacja po stronie Symfony, użytkownik dostępny jako `User` w SecurityContext).
 
 ### Parametry zapytania
 
