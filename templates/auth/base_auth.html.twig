@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ title ?? 'Snipnote' }}{% endblock %}
+
+{% block stylesheets %}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(140deg, #f6f8fb 0%, #eef2ff 50%, #f8fafc 100%);
+            color: #0f172a;
+            font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .glass-surface {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <main class="min-h-screen flex flex-col">
+        <div class="w-full px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto flex-1 flex flex-col py-10">
+            <header class="flex items-center justify-between gap-4 mb-10">
+                <a href="/" class="inline-flex items-center gap-2 text-indigo-700 hover:text-indigo-900 transition-colors">
+                    <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-100 border border-indigo-200 text-lg font-semibold text-indigo-700">S</span>
+                    <div class="leading-tight">
+                        <div class="font-semibold text-indigo-900">Snipnote</div>
+                        <div class="text-xs text-indigo-700/80">Szybkie udostępnianie notatek</div>
+                    </div>
+                </a>
+                <div>
+                    {% block auth_nav %}{% endblock %}
+                </div>
+            </header>
+
+            <div class="grid lg:grid-cols-2 gap-10 items-center flex-1 w-full">
+                <div class="space-y-8">
+                    {% block auth_hero %}{% endblock %}
+                </div>
+
+                <div class="w-full">
+                    {% block auth_card %}
+                        <div class="glass-surface rounded-2xl p-8 border border-slate-800 text-slate-100">
+                            <p class="text-sm text-slate-300">Dodaj tutaj zawartość karty formularza.</p>
+                        </div>
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+    </main>
+{% endblock %}
+

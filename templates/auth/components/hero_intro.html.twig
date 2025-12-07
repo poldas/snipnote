@@ -1,0 +1,34 @@
+{% set headline = hero.headline ?? 'Witaj w Snipnote' %}
+{% set subcopy = hero.subcopy ?? 'Bezpieczne notatki, proste udostępnianie i współpraca.' %}
+{% set ctaPrimary = hero.ctaPrimary ?? null %}
+{% set ctaSecondary = hero.ctaSecondary ?? null %}
+{% set showCtas = showCtas is defined ? showCtas : true %}
+
+<section class="space-y-4">
+    <p class="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-500/80">Snipnote</p>
+    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-semibold text-indigo-950 leading-tight">
+        {{ headline }}
+    </h1>
+    <p class="text-lg text-slate-700 max-w-2xl">
+        {{ subcopy }}
+    </p>
+
+    {% if showCtas %}
+        <div class="flex flex-wrap items-center gap-3 pt-2">
+            {% if ctaPrimary %}
+                <a href="{{ ctaPrimary.href }}"
+                   class="inline-flex items-center justify-center rounded-xl bg-indigo-500 text-white px-5 py-3 font-semibold shadow-lg shadow-indigo-500/20 hover:bg-indigo-400 transition-colors">
+                    {{ ctaPrimary.label }}
+                </a>
+            {% endif %}
+
+            {% if ctaSecondary %}
+                <a href="{{ ctaSecondary.href }}"
+                   class="inline-flex items-center justify-center rounded-xl border border-indigo-200 text-indigo-800 px-5 py-3 font-semibold hover:border-indigo-300 hover:text-indigo-900 transition-colors bg-white">
+                    {{ ctaSecondary.label }}
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+</section>
+

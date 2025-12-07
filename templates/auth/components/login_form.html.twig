@@ -1,0 +1,64 @@
+{% set action = action ?? '/login' %}
+{% set csrfToken = csrfToken ?? csrf_token('authenticate') %}
+{% set errors = errors ?? [] %}
+{% set prefill = prefill ?? {} %}
+{% set pending = pending ?? false %}
+{% set redirect = redirect ?? null %}
+
+{% set emailError = (errors|filter(e => (e.field ?? null) == 'email')|first).message ?? null %}
+{% set passwordError = (errors|filter(e => (e.field ?? null) == 'password')|first).message ?? null %}
+{% set globalErrors = errors|filter(e => e.field is not defined or e.field is null)|map(e => e.message) %}
+
+<form action="{{ action }}" method="post" novalidate class="space-y-4" hx-boost="false">
+    <input type="hidden" name="_csrf_token" value="{{ csrfToken }}">
+    {% if redirect %}
+        <input type="hidden" name="redirect" value="{{ redirect }}">
+    {% endif %}
+
+    {% include 'auth/components/global_error_banner.html.twig' with { messages: globalErrors } %}
+
+    {% include 'auth/components/form_field.html.twig' with {
+        config: {
+            id: 'email',
+            name: 'email',
+            label: 'Email',
+            type: 'email',
+            placeholder: 'you@example.com',
+            autocomplete: 'email',
+            required: true,
+            pattern: '[^@\\s]+@[^@\\s]+\\.[^@\\s]+'
+        },
+        value: prefill.email ?? '',
+        error: emailError,
+        autoFocus: true
+    } %}
+
+    {% include 'auth/components/form_field.html.twig' with {
+        config: {
+            id: 'password',
+            name: 'password',
+            label: 'Hasło',
+            type: 'password',
+            placeholder: '••••••••',
+            autocomplete: 'current-password',
+            required: true
+        },
+        error: passwordError
+    } %}
+
+    <button type="submit"
+            class="w-full inline-flex items-center justify-center rounded-xl bg-indigo-500 text-white px-4 py-2.75 font-semibold shadow-md shadow-indigo-500/15 hover:bg-indigo-450 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+            {% if pending %}disabled{% endif %}
+            hx-disabled-elt="this">
+        {% if pending %}
+            <span class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/60 border-t-transparent"></span>
+        {% endif %}
+        Zaloguj się
+    </button>
+
+    <p class="text-sm text-slate-300 text-center">
+        Nie masz konta?
+        <a href="/register" class="text-indigo-200 hover:text-white font-semibold">Załóż konto</a>
+    </p>
+</form>
+

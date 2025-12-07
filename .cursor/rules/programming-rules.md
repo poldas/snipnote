@@ -16,6 +16,7 @@
 
 ### Symfony & Doctrine
 - aplikacja działa w dockerz, ZAWSZE uruchamiaj poprzez 'docker compose <command>'
+- testy uruchamiaj poprzez `docker compose exec app bash -c "./bin/phpunit --display-phpunit-notice"`
 - na koniec pracy zawsze zamykaj aplikację `docker compose down`
 - Architektura: prosty podział — Entity → Repository → Service (logika domenowa) → Controller (thin). Nie pełne DDD, tylko jawne granice.
 - Target: Symfony 7.3. Preferuj attributes (routing, DI, Doctrine mapping).
@@ -29,7 +30,7 @@
 - Mapowania: PHP attributes preferowane dla Symfony i Doctrine
 - Stosuj gotowe i sprawdzone już rozwiązania i pakiety np. stosujesz gotowe pakiety (Supabase Auth + Storage, Symfony + API Platform/lexik/jwt lub prosty JWT verification),
 
-### Frontend (UI) — reguły (Twig + HTMX 2+ + Tailwind)
+### Frontend (UI) — reguły (Twig + HTMX 2+ + Tailwind + Fluent 2 UI)
 - Komponenty: małe, pojedyncze partiale Twig (max ~200 LOC).
 - Każdy partial ma jasno zdefiniowane wejście (parametry) i nie trzyma logiki domenowej.
 - Interakcje: HTMX tylko dla prostych fragmentów (formularze, listy, podgląd).
@@ -39,6 +40,7 @@
 - Formularze: używaj Symfony Forms → prosty rendering Twig; walidacja zarówno klient + server (server authoritative).
 - Accessibility: pola formularzy powinny mieć label, błędy przy polach, keyboard focus dla modali.
 - Size limit: pliki JS/CSS minimalne; brak bundlera-heavy konfiguracji w MVP — opcjonalny build step dla Tailwind.
+- Używaj komponentów Fluent 2 UI
 
 ### Autoryzacja
 - użyj Supabase Auth dla logowania, Symfony tylko weryfikuje JWT przy żądaniach (biblioteka jwt, middleware), dla operacji serwerowych użyj service key tylko na backendzie, nie pisz auth od zera.
