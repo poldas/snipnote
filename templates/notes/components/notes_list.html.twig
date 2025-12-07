@@ -1,0 +1,11 @@
+{% set notes = notes ?? [] %}
+{% if notes is empty %}
+    {% include 'notes/components/empty_state.html.twig' with { onAddHref: '/notes/new' } %}
+{% else %}
+    <div class="divide-y divide-slate-200">
+        {% for note in notes %}
+            {% include 'notes/components/note_row.html.twig' with { note: note } %}
+        {% endfor %}
+    </div>
+{% endif %}
+

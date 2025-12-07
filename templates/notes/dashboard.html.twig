@@ -1,0 +1,293 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Twoje notatki | Snipnote{% endblock %}
+
+{% block stylesheets %}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(145deg, #f8fafc 0%, #eef2ff 35%, #f8fafc 100%);
+            color: #0f172a;
+            font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        #toast-stack {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 9999;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<main class="min-h-screen text-slate-900">
+    <div aria-live="polite" class="sr-only" data-global-aria-live></div>
+    <div id="toast-stack" aria-live="polite"></div>
+    <div class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4">
+            <header class="flex flex-wrap items-center justify-between gap-4">
+                <a href="/" class="inline-flex items-center gap-2 text-indigo-700 hover:text-indigo-900 transition-colors">
+                    <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-100 border border-indigo-200 text-lg font-semibold text-indigo-700">S</span>
+                    <div class="leading-tight">
+                        <div class="font-semibold text-indigo-900">Snipnote</div>
+                        <div class="text-xs text-indigo-700/80">Twoje notatki</div>
+                    </div>
+                </a>
+                <div class="flex items-center gap-3 text-sm font-semibold text-slate-700">
+                    <a href="/notes/new" class="text-emerald-600 hover:text-emerald-500 text-base font-bold">
+                        + Dodaj notatkę
+                    </a>
+                    <span>{{ app.user.email ?? 'użytkownik' }}</span>
+                    <span class="text-slate-400">|</span>
+                    <a href="/logout" class="text-indigo-600 hover:text-indigo-500">Wyloguj</a>
+                </div>
+            </header>
+            <div>
+                {% include 'notes/components/topbar_search.html.twig' with {
+                    q: view.q,
+                    parsed: view.parsedQ,
+                    isLoading: view.isLoading,
+                    count: view.meta.total|default(0)
+                } %}
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <section class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            {% set parsed = view.parsedQ ?? { labels: [], text: null } %}
+            <div class="p-6">
+                {% include 'notes/components/notes_panel.html.twig' with {
+                    notes: view.notes,
+                    meta: view.meta,
+                    q: view.q,
+                    labels: parsed.labels,
+                    error: view.error,
+                    isLoading: view.isLoading
+                } %}
+            </div>
+        </section>
+    </div>
+</main>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        (function () {
+            const form = document.querySelector('[data-notes-search-form]');
+            if (!form) {
+                return;
+            }
+
+            const submitButton = form.querySelector('[data-search-submit]');
+            const spinner = form.querySelector('[data-search-spinner]');
+
+            form.addEventListener('submit', function () {
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.classList.add('opacity-70', 'cursor-not-allowed');
+                }
+
+                if (spinner) {
+                    spinner.classList.remove('hidden');
+                }
+            });
+
+            const input = form.querySelector('input[name="q"]');
+        })();
+
+        (function () {
+            const modal = document.getElementById('delete-confirm-modal');
+            const titleEl = modal?.querySelector('[data-delete-note-title]');
+            const errorEl = modal?.querySelector('[data-modal-error]');
+            const confirmBtn = modal?.querySelector('[data-modal-confirm]');
+            const cancelBtn = modal?.querySelector('[data-modal-cancel]');
+            const surface = modal?.querySelector('[data-modal-surface]');
+            const spinner = modal?.querySelector('[data-modal-spinner]');
+            const confirmLabel = modal?.querySelector('[data-modal-confirm-label]');
+            const ariaLive = document.querySelector('[data-global-aria-live]');
+            const toastStack = document.getElementById('toast-stack');
+
+            let deleteUrl = null;
+            let lastFocused = null;
+            let focusables = [];
+
+            function getAuthToken() {
+                const local = localStorage.getItem('auth_token');
+                if (local) return local;
+                const match = document.cookie.match(/(?:^|; )auth_token=([^;]+)/);
+                return match ? decodeURIComponent(match[1]) : null;
+            }
+
+            function refreshFocusables() {
+                if (!modal) {
+                    focusables = [];
+                    return;
+                }
+                focusables = Array.from(modal.querySelectorAll('button, [href], [tabindex]:not([tabindex="-1"])'))
+                    .filter(el => !el.hasAttribute('disabled') && !el.classList.contains('hidden'));
+            }
+
+            function openModal(url, title) {
+                if (!modal) {
+                    // fallback: natychmiast potwierdź w oknie dialogowym
+                    if (confirm(`Usunąć notatkę: ${title || ''}?`)) {
+                        performDelete(url);
+                    }
+                    return;
+                }
+                deleteUrl = url;
+                lastFocused = document.activeElement;
+                if (titleEl) {
+                    titleEl.textContent = title || '(Bez tytułu)';
+                }
+                if (errorEl) {
+                    errorEl.classList.add('hidden');
+                    errorEl.textContent = '';
+                }
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                refreshFocusables();
+                confirmBtn?.focus();
+                document.addEventListener('keydown', onKeydown);
+                announce('Potwierdź usunięcie notatki');
+            }
+
+            function closeModal() {
+                deleteUrl = null;
+                modal?.classList.add('hidden');
+                modal?.classList.remove('flex');
+                document.removeEventListener('keydown', onKeydown);
+                if (lastFocused instanceof HTMLElement) {
+                    lastFocused.focus();
+                }
+            }
+
+            function announce(message) {
+                if (!ariaLive) return;
+                ariaLive.textContent = message;
+            }
+
+            function showToast(message, variant = 'info') {
+                if (!toastStack) return;
+                const toast = document.createElement('div');
+                toast.className = 'min-w-[240px] max-w-sm rounded-xl border px-4 py-3 text-sm font-semibold shadow-lg flex items-start gap-2 ' +
+                    (variant === 'success'
+                        ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                        : 'border-red-200 bg-red-50 text-red-800');
+                toast.textContent = message;
+                toastStack.appendChild(toast);
+                setTimeout(() => toast.remove(), 3000);
+            }
+
+
+            function onKeydown(event) {
+                if (event.key === 'Escape') {
+                    event.preventDefault();
+                    closeModal();
+                }
+                if (event.key === 'Tab' && focusables.length > 0) {
+                    const first = focusables[0];
+                    const last = focusables[focusables.length - 1];
+                    if (event.shiftKey && document.activeElement === first) {
+                        event.preventDefault();
+                        last.focus();
+                    } else if (!event.shiftKey && document.activeElement === last) {
+                        event.preventDefault();
+                        first.focus();
+                    }
+                }
+                if (event.key === 'Enter' && document.activeElement === confirmBtn) {
+                    event.preventDefault();
+                    confirmBtn.click();
+                }
+            }
+
+            document.addEventListener('click', function (event) {
+                const target = event.target;
+                if (!(target instanceof HTMLElement)) return;
+                const deleteBtn = target.closest('[data-delete-note]');
+                if (!deleteBtn) return;
+
+                const url = deleteBtn.getAttribute('data-delete-url');
+                const title = deleteBtn.getAttribute('data-note-title');
+                if (!url) return;
+                openModal(url, title);
+            });
+
+            cancelBtn?.addEventListener('click', closeModal);
+            modal?.addEventListener('click', function (event) {
+                if (event.target === modal) {
+                    closeModal();
+                }
+            });
+
+            async function performDelete(url) {
+                const headers = { 'Content-Type': 'application/json' };
+                const token = getAuthToken();
+                if (token) {
+                    headers['Authorization'] = 'Bearer ' + token;
+                }
+
+                try {
+                    const res = await fetch(url, { method: 'DELETE', headers });
+                    if (res.ok) {
+                        announce('Notatka usunięta');
+                        showToast('Notatka usunięta', 'success');
+                        setTimeout(() => window.location.reload(), 400);
+                        return;
+                    }
+                    if (res.status === 401) {
+                        window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+                        return;
+                    }
+                    const message = res.status === 403
+                        ? 'Brak uprawnień do usunięcia tej notatki.'
+                        : res.status === 404
+                            ? 'Notatka nie istnieje.'
+                            : 'Nie udało się usunąć notatki. Spróbuj ponownie.';
+                    if (errorEl) {
+                        errorEl.textContent = message;
+                        errorEl.classList.remove('hidden');
+                    } else {
+                        alert(message);
+                    }
+                    showToast(message, 'error');
+                } catch (e) {
+                    if (errorEl) {
+                        errorEl.textContent = 'Błąd sieci. Spróbuj ponownie.';
+                        errorEl.classList.remove('hidden');
+                    } else {
+                        alert('Błąd sieci. Spróbuj ponownie.');
+                    }
+                    showToast('Błąd sieci. Spróbuj ponownie.', 'error');
+                } finally {
+                    if (confirmBtn) {
+                        confirmBtn.disabled = false;
+                        confirmBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+                    }
+                    spinner?.classList.add('hidden');
+                    if (confirmLabel) confirmLabel.textContent = 'Usuń';
+                }
+            }
+
+            confirmBtn?.addEventListener('click', function () {
+                if (!deleteUrl) return;
+                if (confirmBtn) {
+                    confirmBtn.disabled = true;
+                    confirmBtn.classList.add('opacity-70', 'cursor-not-allowed');
+                }
+                spinner?.classList.remove('hidden');
+                if (confirmLabel) confirmLabel.textContent = 'Usuwanie...';
+                performDelete(deleteUrl);
+            });
+        })();
+    </script>
+{% endblock %}
+

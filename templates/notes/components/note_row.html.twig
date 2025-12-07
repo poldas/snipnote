@@ -1,0 +1,57 @@
+{% set note = note ?? {} %}
+{% set editUrl = note.editUrl ?? '#' %}
+{% set publicUrl = note.publicUrl ?? null %}
+{% set publicHref = publicUrl ? ((publicUrl|slice(0, 4) == 'http') ? publicUrl : app.request.schemeAndHttpHost ~ publicUrl) : null %}
+<article class="flex flex-col sm:flex-row sm:items-center gap-4 px-5 py-4 hover:bg-slate-50 transition-colors">
+    <div class="flex-1 text-left space-y-2 select-text">
+        <div class="flex items-center gap-2 text-xs text-slate-500 uppercase tracking-wide">
+            <span class="font-semibold text-slate-700">ID {{ note.id }}</span>
+            <span class="h-1.5 w-1.5 rounded-full bg-slate-300"></span>
+            {% set isPublic = note.visibility|lower == 'public' %}
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11px] font-semibold border
+                {% if isPublic %}
+                    border-emerald-200 bg-emerald-50 text-emerald-700
+                {% else %}
+                    border-rose-200 bg-rose-50 text-rose-700
+                {% endif %}
+            ">
+                {% if isPublic %}✔{% else %}✖{% endif %} {{ note.visibility|default('private')|capitalize }}
+            </span>
+        </div>
+        <h3 class="text-lg font-semibold text-slate-900">
+            {{ note.title is not empty ? note.title : '(Bez tytułu)' }}
+        </h3>
+        <p class="text-sm text-slate-600 line-clamp-2">{{ note.excerpt }}</p>
+        {% if note.labels is defined and note.labels is not empty %}
+            <div class="flex flex-wrap gap-2">
+                {% for label in note.labels %}
+                    <span class="inline-flex items-center rounded-full bg-slate-100 text-slate-700 px-2.5 py-1 text-xs font-semibold">{{ label }}</span>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <div class="text-xs text-slate-500">
+            Utworzono: {{ note.createdAt|date('d.m.Y') }}
+        </div>
+        {% if publicHref %}
+            <div class="text-xs text-slate-500 break-all">
+                <a href="{{ publicHref }}" class="text-indigo-600 hover:underline" target="_blank" rel="noopener noreferrer">{{ publicHref }}</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="flex items-center gap-2 self-start sm:self-center">
+        <a href="{{ editUrl }}" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-colors" aria-label="Edytuj notatkę">
+            ✏️
+        </a>
+        <button type="button"
+                data-delete-note
+                data-note-id="{{ note.id }}"
+                data-note-title="{{ note.title|default('(Bez tytułu)') }}"
+                data-delete-url="{{ note.deleteUrl }}"
+                class="inline-flex items-center justify-center rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 transition-colors"
+                aria-label="Usuń notatkę">
+            🗑️
+        </button>
+    </div>
+</article>
+

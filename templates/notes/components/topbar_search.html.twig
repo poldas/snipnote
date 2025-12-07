@@ -1,0 +1,37 @@
+{% set value = q ?? '' %}
+{% set count = count ?? null %}
+<form action="/notes" method="get" data-notes-search-form class="flex flex-col gap-3">
+    <div class="flex flex-col sm:flex-row gap-3 sm:items-center">
+        <div class="relative flex-1">
+            <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                🔍
+            </span>
+            <input
+                type="text"
+                name="q"
+                value="{{ value }}"
+                maxlength="200"
+                placeholder="Szukaj notatek lub użyj label:work"
+                class="w-full rounded-xl border border-slate-300 bg-white px-10 py-2.5 text-sm text-slate-800 shadow-inner focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                aria-label="Szukaj notatek"
+                aria-describedby="search-hint"
+            >
+        </div>
+        <button type="submit"
+                data-search-submit
+                class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 text-white px-4 py-2.5 text-sm font-semibold shadow-sm shadow-indigo-500/15 hover:bg-indigo-500 transition-colors">
+            <svg data-search-spinner class="h-4 w-4 animate-spin text-white hidden" viewBox="0 0 24 24" fill="none">
+                <circle class="opacity-30" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-90" d="M4 12a8 8 0 0 1 8-8" stroke="currentColor" stroke-width="4" stroke-linecap="round"></path>
+            </svg>
+            <span>Wyszukaj</span>
+        </button>
+        {% if count is not null %}
+            <span class="text-sm text-slate-500">Wyniki: {{ count }}</span>
+        {% endif %}
+    </div>
+    <p id="search-hint" class="text-sm text-slate-500">
+        Hint: dodaj <code class="px-1 py-0.5 bg-slate-100 border border-slate-200 rounded">label:nazwa1,nazwa2,nazwa3</code> aby filtrować etykiety. Aktywne: {{ parsed.labels|default([])|join(', ') ?: 'brak' }}.
+    </p>
+</form>
+
