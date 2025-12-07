@@ -41,7 +41,7 @@ class PublicNotesCatalogService
         $result = $this->noteRepository->findPublicNotesForOwner($query);
 
         $items = array_map(
-            fn (Note $note): PublicNoteListItemDto => new PublicNoteListItemDto(
+            fn(Note $note): PublicNoteListItemDto => new PublicNoteListItemDto(
                 title: $note->getTitle(),
                 descriptionExcerpt: $this->excerpt($note->getDescription()),
                 labels: $note->getLabels(),
@@ -106,4 +106,3 @@ class PublicNotesCatalogService
         return rtrim(mb_substr($trimmed, 0, self::EXCERPT_LENGTH - 1)) . '…';
     }
 }
-

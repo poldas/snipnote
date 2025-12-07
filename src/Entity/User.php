@@ -119,9 +119,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function removeNote(Note $note): void
     {
-        if ($this->notes->removeElement($note) && $note->getOwner() === $this) {
-            $note->clearOwner();
-        }
+        $this->notes->removeElement($note);
     }
 
     private static function generateUuidV4(): string

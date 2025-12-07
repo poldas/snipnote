@@ -83,11 +83,6 @@ class Note
         $this->owner = $owner;
     }
 
-    public function clearOwner(): void
-    {
-        unset($this->owner);
-    }
-
     public function getUrlToken(): string
     {
         return $this->urlToken;
@@ -167,4 +162,3 @@ class Note
         return $this->collaborators;
     }
 }
-

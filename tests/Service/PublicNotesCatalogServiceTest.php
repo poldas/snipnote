@@ -82,4 +82,3 @@ final class PublicNotesCatalogServiceTest extends TestCase
         $ref->setValue($user, $id);
     }
 }
-
