@@ -359,7 +359,7 @@ Method:`GET`
 Path:`/api/search/notes`
 Auth required:Dashboard searches require auth (search limited to user's accessible notes). Catalog search is public limited to user uuid.
 Query:`q`, `label`, `page`, `per_page`, `uuid`
-Implementation:Use `search_vector_simple` GIN index and `to_tsquery` for `q` when available; support `label:` prefix parsing in `q` or accept `label` param. For labels, use `labels && ARRAY[...]` to implement OR behavior.
+Implementation:Use `search_vector_simple` GIN index and `to_tsquery` for `q` when available; support `label:` prefix parsing in `q` or accept `label` param. For labels, use `labels && ARRAY[...]` to implement OR behavior. UUID is the user uuid pointing user catalog notes list.
 Response:paginated list.
 
 ---

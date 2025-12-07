@@ -1,0 +1,31 @@
+{% set icon = errorCode == 0 ? '⚠️' : (errorCode == 403 ? '🔒' : '🔗') %}
+{% set errorTitle = errorCode == 403 ? 'Notatka niedostępna (prywatna)' : (errorCode == 404 ? 'Notatka niedostępna lub link nieprawidłowy' : 'Problem z połączeniem') %}
+{% set errorDesc = errorCode == 403 ? 'Właściciel ograniczył dostęp do tej notatki.' : (errorCode == 404 ? 'Sprawdź, czy adres URL jest poprawny lub zapytaj właściciela o nowy link.' : 'Nie udało się pobrać danych. Spróbuj ponownie za chwilę.') %}
+
+<div id="public-note-shell" class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div class="flex items-start gap-4 px-6 py-6">
+        <div class="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50 text-indigo-700 text-xl">
+            {{ icon }}
+        </div>
+        <div class="flex flex-col gap-2">
+            <h2 class="text-xl font-semibold text-slate-900">{{ errorTitle }}</h2>
+            <p class="text-slate-600">{{ errorDesc }}</p>
+            <div class="mt-2 flex flex-wrap gap-3">
+                {% if errorCode == 0 %}
+                    <button
+                        type="button"
+                        hx-get="{{ app.request.pathinfo }}"
+                        hx-target="#public-note-shell"
+                        hx-swap="outerHTML"
+                        class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        Spróbuj ponownie
+                    </button>
+                {% endif %}
+                <a href="/" class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                    Wróć na stronę główną
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+

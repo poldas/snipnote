@@ -1,0 +1,11 @@
+{# Simple reusable badge. Props: label (string), variant (string) #}
+{% set variant = variant is defined ? variant : 'indigo' %}
+{% set palette = {
+    'indigo': 'bg-indigo-50 text-indigo-700',
+    'slate': 'bg-slate-100 text-slate-700',
+    'emerald': 'bg-emerald-50 text-emerald-700'
+} %}
+<span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium {{ palette[variant]|default(palette['indigo']) }}">
+    {{ label }}
+</span>
+

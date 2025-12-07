@@ -1,0 +1,351 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ note.title ?? '(Bez tytułu)' }}{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        :root {
+            --pn-surface: #ffffff;
+            --pn-surface-soft: rgba(255, 255, 255, 0.9);
+            --pn-border: #e2e8f0;
+            --pn-ring: #e2e8f0;
+            --pn-primary: #4f46e5;
+            --pn-primary-strong: #4338ca;
+            --pn-muted: #334155;
+            --pn-bg: #0f172a;
+            --pn-bg-accent: #1e293b;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: #0f172a;
+            background: radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.16), transparent 25%),
+                        radial-gradient(circle at 90% 10%, rgba(14, 165, 233, 0.16), transparent 30%),
+                        radial-gradient(circle at 50% 90%, rgba(236, 72, 153, 0.12), transparent 28%),
+                        var(--pn-bg);
+        }
+
+        a {
+            color: inherit;
+        }
+
+        main.public-note {
+            min-height: 100vh;
+            padding: 64px 16px;
+        }
+
+        @media (min-width: 640px) {
+            main.public-note {
+                padding: 80px 24px;
+            }
+        }
+
+        .public-note__container {
+            position: relative;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 8px;
+        }
+
+        @media (min-width: 640px) {
+            .public-note__container {
+                padding: 0 24px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .public-note__container {
+                padding: 0 32px;
+            }
+        }
+
+        #public-note-shell {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            padding: 24px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.04);
+            box-shadow: 0 30px 80px rgba(15, 23, 42, 0.32);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+        }
+
+        @media (min-width: 640px) {
+            #public-note-shell {
+                padding: 28px;
+            }
+        }
+
+        .pn-card {
+            background: var(--pn-surface-soft);
+            border: 1px solid rgba(226, 232, 240, 0.7);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.16), 0 1px 0 rgba(255, 255, 255, 0.5);
+            padding: 24px;
+        }
+
+        @media (min-width: 640px) {
+            .pn-card {
+                padding: 32px;
+            }
+        }
+
+        .pn-meta {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            color: #475569;
+            font-size: 14px;
+        }
+
+        .pn-section-title {
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            font-weight: 700;
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: #eef2ff;
+            color: #4338ca;
+            border: 1px solid #e0e7ff;
+        }
+
+        .pn-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            color: #475569;
+            font-weight: 500;
+        }
+
+        .pn-pill strong {
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        .pn-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: #0f172a;
+            color: #f8fafc;
+            border: 1px solid rgba(15, 23, 42, 0.4);
+            font-weight: 600;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        h1 {
+            margin: 4px 0 0;
+            font-size: 32px;
+            line-height: 1.15;
+            font-weight: 650;
+            color: #0f172a;
+        }
+
+        @media (min-width: 640px) {
+            h1 {
+                font-size: 38px;
+            }
+        }
+
+        .pn-labels {
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .pn-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            background: linear-gradient(120deg, rgba(255, 255, 255, 0.95), rgba(241, 245, 249, 0.88));
+            color: #334155;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+        }
+
+        article.prose {
+            line-height: 1.7;
+            color: #0f172a;
+        }
+
+        article.prose p {
+            margin: 0 0 1em;
+            color: #0f172a;
+        }
+
+        .pn-actions {
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            padding: 18px 20px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+        }
+
+        .pn-actions .hint {
+            margin: 0;
+            color: #0f172a;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .pn-actions .sub {
+            margin: 4px 0 0;
+            color: #475569;
+            font-size: 14px;
+        }
+
+        .pn-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .pn-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 999px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            color: #0f172a;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+        }
+
+        .pn-btn.primary {
+            background: linear-gradient(135deg, #4f46e5, #4338ca);
+            color: #fff;
+            border: none;
+            box-shadow: 0 12px 30px rgba(67, 56, 202, 0.35);
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<main class="public-note">
+    <section class="public-note__container">
+        {% if errorCode is not null %}
+            {% include 'components/public_note_error.html.twig' with { errorCode: errorCode } %}
+        {% elseif note is defined and note %}
+            <div id="public-note-shell">
+                <header class="pn-card">
+                    <div class="flex flex-col gap-3 sm:gap-4">
+                        <div class="pn-meta">
+                            <span class="pn-section-title">Publiczna notatka</span>
+                            <time datetime="{{ note.createdAt|date('c') }}" class="pn-pill">
+                                <span>Utworzono</span>
+                                <strong>{{ note.createdAt|date('d.m.Y') }}</strong>
+                            </time>
+                            {% if note.labels is defined %}
+                                <span class="pn-count">
+                                    {{ note.labels|length }} etykiet
+                                </span>
+                            {% endif %}
+                        </div>
+                        <h1>
+                            {{ note.title is not empty ? note.title : '(Bez tytułu)' }}
+                        </h1>
+                        {% if note.labels|length %}
+                            <div class="pn-labels" aria-label="Etykiety notatki">
+                                {% for label in note.labels %}
+                                    <span class="pn-label">
+                                        {{ label }}
+                                    </span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </header>
+
+                <article class="pn-card prose" data-htmx-target="this">
+                    {% if note.descriptionHtml is not empty %}
+                        {{ note.descriptionHtml|raw }}
+                    {% else %}
+                        <p class="text-slate-500">(Brak treści)</p>
+                    {% endif %}
+                </article>
+
+                <div class="pn-card pn-actions">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex flex-col">
+                            <span class="hint">Edytuj tę notatkę</span>
+                            <span class="sub">Zaloguj się lub przejdź do trybu edycji, jeśli masz uprawnienia.</span>
+                        </div>
+                        <div class="pn-buttons">
+                            {% if note.canEdit %}
+                                <a href="{{ note.editUrl }}" class="pn-btn primary">Edytuj</a>
+                            {% else %}
+                                <a href="{{ note.loginUrl }}" class="pn-btn primary">Zaloguj, aby edytować</a>
+                            {% endif %}
+                            <a href="/" class="pn-btn">Strona główna</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </section>
+</main>
+{% block javascripts %}
+    <script>
+        (function () {
+            const article = document.querySelector('article[data-htmx-target]');
+            if (!article) return;
+            const blocks = article.querySelectorAll('pre > code');
+            blocks.forEach((codeEl) => {
+                const pre = codeEl.parentElement;
+                if (!pre) return;
+                pre.style.position = 'relative';
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.textContent = 'Kopiuj';
+                button.style.position = 'absolute';
+                button.style.right = '12px';
+                button.style.top = '12px';
+                button.style.padding = '6px 10px';
+                button.style.borderRadius = '999px';
+                button.style.border = 'none';
+                button.style.background = '#0f172a';
+                button.style.color = '#fff';
+                button.style.fontSize = '12px';
+                button.style.fontWeight = '600';
+                button.style.boxShadow = '0 6px 18px rgba(15,23,42,0.28)';
+                button.style.cursor = 'pointer';
+                button.addEventListener('click', async () => {
+                    try {
+                        await navigator.clipboard.writeText(codeEl.innerText);
+                        button.textContent = 'Skopiowano';
+                        setTimeout(() => (button.textContent = 'Kopiuj'), 1500);
+                    } catch (e) {
+                        button.textContent = 'Błąd';
+                        setTimeout(() => (button.textContent = 'Kopiuj'), 1500);
+                    }
+                });
+                pre.appendChild(button);
+            });
+        })();
+    </script>
+{% endblock %}
+{% endblock %}
+

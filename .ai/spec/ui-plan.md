@@ -28,7 +28,7 @@
 
   **Ścieżki:** `/` (landing), `/login`, `/register`
   **Cel:** Szybkie zalogowanie/rejestracja i przekierowanie na dashboard.
-  **Kluczowe informacje:** formularz email/hasło, walidacja błędów, CTA „Zarejestruj / Zaloguj”.
+  **Kluczowe informacje:** formularz email/hasło, walidacja błędów, CTA „Zarejestruj / Zaloguj”, krótka informacja o aplikacji Snipnote.
   **Kluczowe komponenty:** formularz z labelami, inline errors, przycisk submit, link do rejestracji/logowania.
   **UX / dostępność / bezpieczeństwo:** focus-first input, aria-labely, komunikaty błędów zrozumiałe, CSRF token dla form, ograniczenie prób logowania (serwer).
 
@@ -64,7 +64,7 @@
 
 ### Widok: Publiczny odczyt notatki
 
-  **Ścieżka:** `/notes/public/{url_token}`
+  **Ścieżka:** `/n/{url_token}`
   **Cel:** Odwiedzający (anonim lub zalogowany) czytają notatkę (rendered markdown).
   **Kluczowe informacje:** title, rendered description (sanitizowane HTML), labels, created_at, link/CTA do edycji jeśli użytkownik ma uprawnienia.
   **Kluczowe komponenty:** content area z markup-safe container, copy-to-clipboard dla kodu (opcjonalne), CTA do logowania jeśli chcesz edytować.
