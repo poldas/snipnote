@@ -7,9 +7,9 @@ namespace App\Repository;
 use App\Entity\Note;
 use App\Entity\NoteVisibility;
 use App\Query\Note\ListNotesQuery;
+use App\Query\Note\PublicNotesQuery;
 use App\Repository\Result\PaginatedResult;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -72,6 +72,61 @@ class NoteRepository extends ServiceEntityRepository
 
         $idsQb = clone $dbalFilters;
         $ids = $idsQb
+            ->select('n.id')
+            ->orderBy('n.created_at', 'DESC')
+            ->setMaxResults($query->perPage)
+            ->setFirstResult(($query->page - 1) * $query->perPage)
+            ->executeQuery()
+            ->fetchFirstColumn();
+
+        if ($ids === []) {
+            return new PaginatedResult([], $total);
+        }
+
+        /** @var list<Note> $items */
+        $items = $this->createQueryBuilder('n')
+            ->andWhere('n.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->orderBy('n.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+
+        return new PaginatedResult($items, $total);
+    }
+
+    public function findPublicNotesForOwner(PublicNotesQuery $query): PaginatedResult
+    {
+        $em = $this->getEntityManager();
+        $conn = $em->getConnection();
+
+        $search = $query->search !== null ? trim($query->search) : null;
+        $filters = $conn->createQueryBuilder()
+            ->from('notes', 'n')
+            ->where('n.owner_id = :ownerId')
+            ->andWhere('n.visibility = :visibility')
+            ->setParameter('ownerId', $query->ownerId, Types::INTEGER)
+            ->setParameter('visibility', NoteVisibility::Public->value, Types::STRING);
+
+        if ($search !== null && $search !== '') {
+            $filters
+                ->andWhere("(n.search_vector_simple @@ plainto_tsquery('simple', :q) OR n.title ILIKE :pattern OR n.description ILIKE :pattern)")
+                ->setParameter('q', $search, Types::STRING)
+                ->setParameter('pattern', '%' . $search . '%', Types::STRING);
+        }
+
+        if ($query->labels !== []) {
+            $labelsLiteral = $this->toPgTextArrayLiteral($query->labels);
+            $filters
+                ->andWhere('n.labels && :labels')
+                ->setParameter('labels', $labelsLiteral, Types::STRING);
+        }
+
+        $total = (int) (clone $filters)
+            ->select('COUNT(*)')
+            ->executeQuery()
+            ->fetchOne();
+
+        $ids = (clone $filters)
             ->select('n.id')
             ->orderBy('n.created_at', 'DESC')
             ->setMaxResults($query->perPage)

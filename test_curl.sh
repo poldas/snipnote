@@ -5,7 +5,9 @@ set -euo pipefail
 # Lightweight curl test suite for the API controllers.
 # Requires: curl, jq, python3, a running app (default http://localhost:8080),
 # an existing user in the database, and a matching JWT secret.
+# Optional: set OWNER_UUID to run public catalog check (must match JWT user).
 
+OWNER_UUID=46532a28-1259-4c43-88f5-eeeeaa4a6d5a
 BASE_URL=${BASE_URL:-http://localhost:8080}
 USER_IDENTIFIER=${USER_IDENTIFIER:-dany@dany.pl} # email or UUID stored in DB
 EXP_SECONDS=${EXP_SECONDS:-3600}
@@ -123,6 +125,16 @@ assert_jq '.data.title == "Curl note updated"' "Update note"
 split_response "$(public_request GET "$BASE_URL/api/public/notes/$URL_TOKEN")"
 assert_status 200 "$STATUS" "Public note"
 assert_jq '.data.title == "Curl note updated"' "Public note"
+
+# 4b) Public catalog listing for the owner (optional)
+if [[ -n "${OWNER_UUID:-}" ]]; then
+  split_response "$(public_request GET "$BASE_URL/api/public/users/$OWNER_UUID/notes")"
+  assert_status 200 "$STATUS" "Public user notes"
+  assert_jq '.meta.page == 1 and .meta.per_page >= 1' "Public user notes meta"
+  log "Public user notes fetched for owner $OWNER_UUID"
+else
+  log "OWNER_UUID not set, skipping public catalog check"
+fi
 
 # 5) Delete the note
 split_response "$(auth_request DELETE "$BASE_URL/api/notes/$NOTE_ID")"

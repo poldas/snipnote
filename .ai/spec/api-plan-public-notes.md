@@ -1,4 +1,3 @@
-````markdown
 # API Endpoint Implementation Plan: GET /api/public/users/{user_uuid}/notes
 
 ## 1. Przegląd punktu końcowego
@@ -131,7 +130,7 @@ Brak wymogu uwierzytelnienia (publiczny katalog). Dane wykorzystywane przez fron
     "total_pages": 3
   }
 }
-````
+```
 
 ### 3.2. Kody statusu
 
@@ -450,5 +449,4 @@ W specyfikacji nie ma tabeli błędów — nie wiem, czy istnieje dedykowana tab
    * Dodać ewentualny rate limiter na ten endpoint.
 
 8. **Monitoring i logowanie**
-
    * Sprawdzić, czy w Monolog są odpowiednie kanały dla API (np. `api`).
