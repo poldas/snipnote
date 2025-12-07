@@ -32,7 +32,7 @@ use Doctrine\Migrations\AbstractMigration;
  *  - CREATE INDEX CONCURRENTLY nie jest użyte, ponieważ Doctrine uruchamia migracje w transakcji. Jeśli chcesz indeksy
  *    tworzone bez blokowania tabel, trzeba oddzielić te polecenia poza transakcję migracji.
  */
-final class Version20251205CreateCoreSchema extends AbstractMigration
+final class Version20251207124224 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -41,12 +41,6 @@ final class Version20251205CreateCoreSchema extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        // Safety: only PostgreSQL
-        $this->abortIf(
-            $this->connection->getDatabasePlatform()->getName() !== 'postgresql',
-            "Migration can only be executed safely on 'postgresql'."
-        );
-
         // -------------------------
         // 1) EXTENSION pgcrypto
         // -------------------------
@@ -262,12 +256,6 @@ final class Version20251205CreateCoreSchema extends AbstractMigration
 
     public function down(Schema $schema): void
     {
-        // Safety: only PostgreSQL
-        $this->abortIf(
-            $this->connection->getDatabasePlatform()->getName() !== 'postgresql',
-            "Migration can only be executed safely on 'postgresql'."
-        );
-
         // WARNING: operacje poniżej są DESTRUKCYJNE — usuwają tabele i dane. Wykonaj backup przed rollbackem.
 
         // -------------------------

@@ -59,6 +59,10 @@ Istniejące narzędzia często:
     - brak weryfikacji email w MVP,
     - logowanie przez email i hasło,
     - możliwość wylogowania.
+17. Odświeżenie tokenu dostępu przy użyciu refresh tokenu:
+    - krótkotrwały access token, dłużej ważny refresh token,
+    - endpoint do wymiany refresh tokenu na nowy access token (bez ponownego logowania),
+    - rotacja refresh tokenów i unieważnianie przy wylogowaniu / podejrzeniu wycieku.
 
 ## 4. Zasady biznesowe (reguły domenowe)
 1. Logika biznesowa powinna być realizowana w warstwie domenowej, niezależnej od szczegółów frameworka i infrastruktury (DDD-friendly).
@@ -83,6 +87,7 @@ Istniejące narzędzia często:
 13. Usunięcie notatki przez właściciela:
     - usuwa wszystkie połączone dane (URL, współedytorów, labele),
     - powoduje utratę dostępu dla wszystkich współedytorów.
+14. Tokeny dostępu są krótkotrwałe; refresh tokeny są rotowane przy odświeżeniu i unieważniane przy wylogowaniu. Odświeżenie wymaga ważnego refresh tokenu, nie wymaga podania hasła; odświeżenie nie daje dodatkowych uprawnień ponad to, co ma użytkownik.
 
 ## 5. Granice produktu (zakres MVP)
 - Brak historii wersji, cofania zmian i diffów.
@@ -323,6 +328,21 @@ Kryteria akceptacji:
 - Po zapisaniu zmian współedytor jest przekierowany na swój dashboard (lista jego notatek).
 - Przy ponownej próbie wejścia na URL edycji notatki użytkownik widzi komunikat o braku dostępu.
 - Właściciel nadal widzi notatkę i może ponownie dodać tego współedytora w przyszłości.
+
+### US-015: Odświeżenie tokenu dostępu
+Tytuł: Pozyskanie nowego access tokenu z refresh tokenu
+
+Opis:
+Jako zalogowany użytkownik z wygasłym lub wygasającym access tokenem
+Chcę otrzymać nowy access token przy użyciu ważnego refresh tokenu
+Aby nie musieć ponownie podawać hasła w trakcie sesji
+
+Kryteria akceptacji:
+- Odświeżenie odbywa się przez dedykowany endpoint, bez podawania emaila i hasła; wymagany jest refresh token.
+- Po poprawnym odświeżeniu użytkownik otrzymuje nowy access token oraz zrotowany refresh token (z nową datą ważności).
+- Jeśli refresh token jest nieważny, wygasły lub zablokowany, użytkownik dostaje komunikat o konieczności ponownego logowania (401) i nie otrzymuje nowych tokenów.
+- Wylogowanie unieważnia refresh token, co uniemożliwia dalsze odświeżanie bez ponownego logowania.
+- Odświeżanie jest ograniczone mechanizmem rate limiting, aby zapobiegać nadużyciom.
 
 ## 7. Metryki sukcesu
 W ramach MVP nie definiuje się szczegółowych metryk biznesowych ani rozbudowanej analityki. Sukces MVP jest rozumiany jako:

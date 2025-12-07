@@ -21,7 +21,7 @@ Common query parameters (where applicable):
 `sort` (string) — allowed values: `created_at.desc` (default)
 
 Authentication:
-Bearer JWT header: `Authorization: Bearer <token>` for authenticated endpoints.
+Bearer JWT header: `Authorization: Bearer <token>` for authenticated endpoints. Short-lived access tokens paired with longer-lived refresh tokens; refresh rotates tokens and may be revoked on logout.
 
 ### Auth (registration / login / logout / refresh)
 
@@ -51,7 +51,9 @@ Response 201:
   },
   "meta": {
     "token": "<jwt>",
-    "expires_in": 3600
+    "expires_in": 3600,
+    "refresh_token": "<refresh-jwt>",
+    "refresh_expires_in": 1209600
   }
 }
 ```
@@ -77,13 +79,50 @@ Response 200:
 ```json
 {
   "data": { "id": 123, "uuid": "...", "email": "user@example.com" },
-  "meta": { "token": "<jwt>", "expires_in": 3600 }
+  "meta": {
+    "token": "<jwt>",
+    "expires_in": 3600,
+    "refresh_token": "<refresh-jwt>",
+    "refresh_expires_in": 1209600
+  }
 }
 ```
 
 Errors:
 
   `401` — invalid credentials.
+  `429` — rate limit.
+
+#### Refresh access token
+
+Method:`POST`
+Path:`/api/auth/refresh`
+Description:Exchange a valid refresh token for a new access token (rotate refresh token). Does not require existing access token.
+Request JSON:
+
+```json
+{ "refresh_token": "<refresh-jwt>" }
+```
+
+Response 200:
+
+```json
+{
+  "data": { "id": 123, "uuid": "...", "email": "user@example.com" },
+  "meta": {
+    "token": "<new-access-jwt>",
+    "expires_in": 3600,
+    "refresh_token": "<new-refresh-jwt>",
+    "refresh_expires_in": 1209600
+  }
+}
+```
+
+Errors:
+
+  `400` — malformed/blacklisted refresh token.
+  `401` — expired or invalid refresh token.
+  `429` — rate limit.
 
 #### Logout
 

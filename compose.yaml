@@ -6,7 +6,10 @@ services:
     environment:
       APP_ENV: dev
       APACHE_DOCUMENT_ROOT: /var/www/html/public
-      DATABASE_URL: postgresql://app:app@database:5432/app?serverVersion=16&charset=utf8
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      PHP_EXTENSION_PGSQL: 1
+      PHP_EXTENSION_PDO_PGSQL: 1
     volumes:
       - .:/var/www/html
     depends_on:
@@ -17,9 +20,9 @@ services:
   database:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: app
-      POSTGRES_USER: app
-      POSTGRES_PASSWORD: app
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - database_data:/var/lib/postgresql/data
     healthcheck:
