@@ -1,0 +1,91 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nowa notatka | Snipnote{% endblock %}
+
+{% block stylesheets %}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(145deg, #f8fafc 0%, #eef2ff 35%, #f8fafc 100%);
+            color: #0f172a;
+            font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        #toast-stack {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 9999;
+        }
+        .sticky-action-bar {
+            position: sticky;
+            bottom: 0;
+            z-index: 30;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<main class="min-h-screen text-slate-900 pb-24">
+    <div aria-live="polite" class="sr-only" data-global-aria-live></div>
+    <div id="toast-stack" aria-live="polite"></div>
+    
+    {# Header #}
+    <div class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <header class="flex flex-wrap items-center justify-between gap-4">
+                <a href="/notes" class="inline-flex items-center gap-2 text-indigo-700 hover:text-indigo-900 transition-colors">
+                    <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-100 border border-indigo-200 text-lg font-semibold text-indigo-700">S</span>
+                    <div class="leading-tight">
+                        <div class="font-semibold text-indigo-900">Snipnote</div>
+                        <div class="text-xs text-indigo-700/80">Nowa notatka</div>
+                    </div>
+                </a>
+                <div class="flex items-center gap-3 text-sm font-semibold text-slate-700">
+                    <a href="/notes" class="text-indigo-600 hover:text-indigo-500">
+                        ← Powrót do listy
+                    </a>
+                    <span class="text-slate-400">|</span>
+                    <span>{{ app.user.email ?? 'użytkownik' }}</span>
+                </div>
+            </header>
+        </div>
+    </div>
+
+    {# Main Content #}
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <div class="px-6 py-5 border-b border-slate-200">
+                <h1 class="text-2xl font-bold text-slate-900">Utwórz nową notatkę</h1>
+                <p class="mt-1 text-sm text-slate-500">Wypełnij poniższy formularz, aby utworzyć nową notatkę.</p>
+            </div>
+            
+            {# Global Alerts Placeholder #}
+            <div id="global-alerts" class="hidden px-6 py-4 bg-red-50 border-b border-red-200">
+                <div role="alert" class="text-sm text-red-800"></div>
+            </div>
+
+            {# Note Form Component #}
+            <div class="p-6">
+                {% include 'notes/components/note_form.html.twig' with {
+                    csrfToken: csrfToken,
+                    initialVisibility: 'private'
+                } %}
+            </div>
+        </div>
+    </div>
+
+    {# Sticky Action Bar #}
+    {% include 'notes/components/sticky_action_bar.html.twig' %}
+</main>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="/js/note_form.js" defer></script>
+{% endblock %}
+

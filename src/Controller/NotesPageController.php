@@ -25,6 +25,18 @@ final class NotesPageController extends AbstractController
         private readonly NotesSearchParser $notesSearchParser,
     ) {}
 
+    #[Route('/notes/new', name: 'notes_new', methods: ['GET'])]
+    public function new(#[CurrentUser] ?User $user): Response
+    {
+        if (!$user instanceof User) {
+            return $this->redirect('/login?redirect=' . rawurlencode('/notes/new'));
+        }
+
+        return $this->render('notes/new.html.twig', [
+            'csrfToken' => $this->generateCsrfToken(),
+        ]);
+    }
+
     #[Route('/notes', name: 'notes_dashboard', methods: ['GET'])]
     public function dashboard(Request $request, #[CurrentUser] ?User $user): Response
     {
@@ -148,5 +160,12 @@ final class NotesPageController extends AbstractController
         }
 
         return rtrim(mb_substr($normalized, 0, 252)) . '...';
+    }
+
+    private function generateCsrfToken(): string
+    {
+        // W MVP używamy prostego tokenu z sesji
+        // W produkcji należy użyć Symfony CSRF Token Manager
+        return bin2hex(random_bytes(32));
     }
 }

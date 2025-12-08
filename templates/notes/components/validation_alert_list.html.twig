@@ -1,0 +1,25 @@
+{#
+  ValidationAlertList Component
+  Displays validation errors in accessible alert format
+#}
+<div 
+    role="alert" 
+    aria-live="assertive"
+    class="bg-red-50 border border-red-200 rounded-lg p-4"
+>
+    <div class="flex items-start gap-3">
+        <span class="text-red-500 text-xl flex-shrink-0">⚠️</span>
+        <div class="flex-1">
+            <h3 class="font-semibold text-red-900 mb-2">
+                Wystąpiły błędy walidacji
+            </h3>
+            <ul 
+                data-error-list
+                class="space-y-1 text-sm text-red-800"
+            >
+                {# Error items will be inserted here dynamically #}
+            </ul>
+        </div>
+    </div>
+</div>
+

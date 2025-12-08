@@ -1,0 +1,65 @@
+{#
+  TagInput Component
+  Input for adding labels/tags with chip display and deduplication
+#}
+<div>
+    <label 
+        for="tag-input" 
+        class="block text-sm font-semibold text-slate-700 mb-2"
+    >
+        Etykiety (opcjonalnie)
+    </label>
+    
+    {# Tags display area #}
+    <div 
+        id="tags-container" 
+        data-tags-container
+        class="flex flex-wrap gap-2 mb-3 min-h-[32px]"
+        role="list"
+        aria-label="Lista etykiet"
+    >
+        {# Tag chips will be inserted here dynamically #}
+    </div>
+
+    {# Input for adding new tags #}
+    <div class="flex gap-2">
+        <input
+            type="text"
+            id="tag-input"
+            data-tag-input
+            maxlength="64"
+            aria-describedby="tag-hint"
+            class="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors text-slate-900 placeholder-slate-400"
+            placeholder="Dodaj etykietę i naciśnij Enter..."
+        >
+        <button
+            type="button"
+            data-add-tag-btn
+            class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-medium text-sm border border-slate-300"
+        >
+            + Dodaj
+        </button>
+    </div>
+    
+    <p id="tag-hint" class="mt-2 text-xs text-slate-500">
+        Oddziel etykiety naciskając Enter lub przecinek. Maksymalnie 64 znaki na etykietę.
+    </p>
+
+    {# Hidden input to store tags as JSON array for form submission #}
+    <input 
+        type="hidden" 
+        name="labels" 
+        data-labels-input
+        value="[]"
+    >
+
+    <div 
+        id="labels-error" 
+        data-labels-error
+        class="hidden mt-2 text-sm text-red-600"
+        role="alert"
+    >
+        {# Error messages will be inserted here by JavaScript #}
+    </div>
+</div>
+
