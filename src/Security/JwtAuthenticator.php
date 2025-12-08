@@ -37,11 +37,7 @@ final class JwtAuthenticator extends AbstractAuthenticator implements Authentica
     public function supports(Request $request): ?bool
     {
         $header = $request->headers->get('Authorization', '');
-        // DEV HACK: wstrzykuj bearer z env jeśli brak nagłówka
-        if ($header === '' && ($_ENV['DEV_JWT_TOKEN'] ?? null)) {
-            $header = 'Bearer ' . $_ENV['DEV_JWT_TOKEN'];
-            $request->headers->set('Authorization', $header);
-        }
+
         return str_starts_with($header, 'Bearer ');
     }
 

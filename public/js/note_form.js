@@ -343,15 +343,6 @@
     }
 
     // ========== API Integration ==========
-    function getAuthToken() {
-        // Try localStorage first
-        const local = localStorage.getItem('auth_token');
-        if (local) return local;
-
-        // Fallback to cookie
-        const match = document.cookie.match(/(?:^|; )auth_token=([^;]+)/);
-        return match ? decodeURIComponent(match[1]) : null;
-    }
 
     function isTokenExpired(token) {
         if (!token) return true;
@@ -383,18 +374,6 @@
     }
 
     async function submitNote() {
-        // Check if token is expired before attempting
-        const token = getAuthToken();
-        if (!token) {
-            redirectToLogin('Brak tokenu autoryzacji. Zaloguj się.');
-            return;
-        }
-
-        if (isTokenExpired(token)) {
-            redirectToLogin('Sesja wygasła. Zaloguj się ponownie.');
-            return;
-        }
-
         // Validate form
         const validation = validateForm();
         if (!validation.valid) {
@@ -426,8 +405,6 @@
             'Content-Type': 'application/json'
         };
 
-        headers['Authorization'] = `Bearer ${token}`;
-
         if (elements.csrfToken) {
             headers['X-CSRF-Token'] = elements.csrfToken.value;
         }
@@ -436,7 +413,8 @@
             const response = await fetch('/api/notes', {
                 method: 'POST',
                 headers,
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload),
+                credentials: 'same-origin'
             });
 
             if (response.ok) {
@@ -491,18 +469,6 @@
     }
 
     async function previewNote() {
-        // Check if token is expired before attempting
-        const token = getAuthToken();
-        if (!token) {
-            redirectToLogin('Brak tokenu autoryzacji. Zaloguj się.');
-            return;
-        }
-
-        if (isTokenExpired(token)) {
-            redirectToLogin('Sesja wygasła. Zaloguj się ponownie.');
-            return;
-        }
-
         // Validate required fields
         const titleErrors = validateField('title', formState.title);
         const descriptionErrors = validateField('description', formState.description);
@@ -532,50 +498,64 @@
             'Content-Type': 'application/json'
         };
 
-        headers['Authorization'] = `Bearer ${token}`;
-
         try {
             const response = await fetch('/api/notes/preview', {
                 method: 'POST',
                 headers,
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload),
+                credentials: 'same-origin'
             });
 
             if (response.ok) {
                 const data = await response.json();
-                if (elements.previewContent && data.html) {
-                    elements.previewContent.innerHTML = data.html;
+                const html = data?.data?.html;
+                if (html) {
+                    renderPreviewHtml(html);
+                    announce('Podgląd wygenerowany');
+                    return;
                 }
-                if (elements.previewSection) {
-                    elements.previewSection.classList.remove('hidden');
-                    elements.previewSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }
-                announce('Podgląd wygenerowany');
+                // Brak HTML w odpowiedzi – pokazujemy lokalny fallback
+                renderLocalPreview('Brak danych podglądu z serwera, użyto wersji lokalnej.');
                 return;
             }
 
-            // Fallback: Local markdown rendering (very basic)
-            if (elements.previewContent) {
-                const basicHtml = escapeHtml(formState.description)
-                    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-                    .replace(/`(.+?)`/g, '<code>$1</code>')
-                    .replace(/\n/g, '<br>');
-                elements.previewContent.innerHTML = `<h2>${escapeHtml(formState.title)}</h2><div>${basicHtml}</div>`;
-            }
-            if (elements.previewSection) {
-                elements.previewSection.classList.remove('hidden');
-                elements.previewSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-            announce('Podgląd wygenerowany (tryb lokalny)');
+            // Nieudana odpowiedź – pokaż komunikat i fallback
+            renderLocalPreview('Nie udało się pobrać podglądu, pokazano wersję lokalną.');
 
         } catch (error) {
             console.error('Preview error:', error);
-            showToast('Nie udało się wygenerować podglądu', 'error');
+            renderLocalPreview('Błąd podglądu, pokazano wersję lokalną.');
         } finally {
             formState.isPreviewing = false;
             updateButtonStates();
         }
+    }
+
+    function renderPreviewHtml(html) {
+        if (elements.previewContent) {
+            elements.previewContent.innerHTML = html;
+        }
+        if (elements.previewSection) {
+            elements.previewSection.classList.remove('hidden');
+            elements.previewSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+
+    function renderLocalPreview(message) {
+        if (elements.previewContent) {
+            const basicHtml = escapeHtml(formState.description)
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/`(.+?)`/g, '<code>$1</code>')
+                .replace(/\n/g, '<br>');
+            elements.previewContent.innerHTML = `<h2>${escapeHtml(formState.title || 'Podgląd')}</h2><div>${basicHtml || '<p class="text-slate-500">(Brak treści)</p>'}</div>`;
+        }
+        if (elements.previewSection) {
+            elements.previewSection.classList.remove('hidden');
+            elements.previewSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        announce(message);
+        showToast(message, 'info');
     }
 
     // ========== UI Updates ==========

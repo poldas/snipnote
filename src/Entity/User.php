@@ -30,6 +30,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'password_hash', type: Types::STRING)]
     private string $passwordHash;
 
+    #[ORM\Column(name: 'is_verified', type: Types::BOOLEAN, options: ['default' => true])]
+    private bool $isVerified;
+
     #[ORM\Column(name: 'created_at', type: Types::DATETIMETZ_IMMUTABLE)]
     private \DateTimeImmutable $createdAt;
 
@@ -40,11 +43,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'owner', targetEntity: Note::class, orphanRemoval: true)]
     private Collection $notes;
 
-    public function __construct(string $email, string $passwordHash, ?string $uuid = null)
+    public function __construct(string $email, string $passwordHash, ?string $uuid = null, bool $isVerified = true)
     {
         $this->email = $email;
         $this->passwordHash = $passwordHash;
         $this->uuid = $uuid ?? self::generateUuidV4();
+        $this->isVerified = $isVerified;
         $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
@@ -69,6 +73,23 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getPassword(): string
     {
         return $this->passwordHash;
+    }
+
+    public function isVerified(): bool
+    {
+        return $this->isVerified;
+    }
+
+    public function markVerified(): void
+    {
+        $this->isVerified = true;
+        $this->touchUpdatedAt();
+    }
+
+    public function markUnverified(): void
+    {
+        $this->isVerified = false;
+        $this->touchUpdatedAt();
     }
 
     public function getUserIdentifier(): string
@@ -131,4 +152,3 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
     }
 }
-

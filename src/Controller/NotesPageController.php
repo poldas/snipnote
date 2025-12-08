@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\DTO\Note\NoteSummaryDto;
 use App\Entity\User;
 use App\Query\Note\ListNotesQuery;
+use App\Service\AuthService;
 use App\Service\NotesQueryService;
 use App\Service\NotesSearchParser;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,6 +22,7 @@ final class NotesPageController extends AbstractController
     private const MAX_SEARCH_LENGTH = 200;
 
     public function __construct(
+        private readonly AuthService $authService,
         private readonly NotesQueryService $notesQueryService,
         private readonly NotesSearchParser $notesSearchParser,
     ) {}

@@ -9,7 +9,7 @@
 {% set passwordConfirmError = (errors|filter(e => (e.field ?? null) == 'passwordConfirm')|first).message ?? null %}
 {% set globalErrors = errors|filter(e => e.field is not defined or e.field is null)|map(e => e.message) %}
 
-<form action="{{ action }}" method="post" class="space-y-4" hx-boost="false">
+<form action="{{ action }}" method="post" class="space-y-4" hx-boost="false" data-turbo="false">
     <input type="hidden" name="_csrf_token" value="{{ csrfToken }}">
 
     {% include 'auth/components/global_error_banner.html.twig' with { messages: globalErrors } %}

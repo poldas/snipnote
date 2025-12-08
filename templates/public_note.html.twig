@@ -253,16 +253,9 @@
                 <header class="pn-card">
                     <div class="flex flex-col gap-3 sm:gap-4">
                         <div class="pn-meta">
-                            <span class="pn-section-title">Publiczna notatka</span>
-                            <time datetime="{{ note.createdAt|date('c') }}" class="pn-pill">
-                                <span>Utworzono</span>
+                            <time datetime="{{ note.createdAt|date('c') }}" class="pn-pildl">
                                 <strong>{{ note.createdAt|date('d.m.Y') }}</strong>
                             </time>
-                            {% if note.labels is defined %}
-                                <span class="pn-count">
-                                    {{ note.labels|length }} etykiet
-                                </span>
-                            {% endif %}
                         </div>
                         <h1>
                             {{ note.title is not empty ? note.title : '(Bez tytułu)' }}
@@ -286,23 +279,6 @@
                         <p class="text-slate-500">(Brak treści)</p>
                     {% endif %}
                 </article>
-
-                <div class="pn-card pn-actions">
-                    <div class="flex flex-wrap items-center justify-between gap-4">
-                        <div class="flex flex-col">
-                            <span class="hint">Edytuj tę notatkę</span>
-                            <span class="sub">Zaloguj się lub przejdź do trybu edycji, jeśli masz uprawnienia.</span>
-                        </div>
-                        <div class="pn-buttons">
-                            {% if note.canEdit %}
-                                <a href="{{ note.editUrl }}" class="pn-btn primary">Edytuj</a>
-                            {% else %}
-                                <a href="{{ note.loginUrl }}" class="pn-btn primary">Zaloguj, aby edytować</a>
-                            {% endif %}
-                            <a href="/" class="pn-btn">Strona główna</a>
-                        </div>
-                    </div>
-                </div>
             </div>
         {% endif %}
     </section>

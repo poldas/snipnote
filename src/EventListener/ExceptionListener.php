@@ -15,6 +15,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
 #[AsEventListener(event: KernelEvents::EXCEPTION)]
 final class ExceptionListener
@@ -35,6 +36,10 @@ final class ExceptionListener
             $exception instanceof ValidationException => new JsonResponse(
                 ['error' => 'Validation failed', 'details' => $exception->getErrors()],
                 JsonResponse::HTTP_BAD_REQUEST
+            ),
+            $exception instanceof AuthenticationException => new JsonResponse(
+                ['error' => 'Unauthorized'],
+                JsonResponse::HTTP_UNAUTHORIZED
             ),
             $exception instanceof AccessDeniedException => new JsonResponse(
                 ['error' => 'Forbidden'],

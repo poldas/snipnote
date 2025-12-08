@@ -44,7 +44,12 @@
                     </a>
                     <span>{{ app.user.email ?? 'użytkownik' }}</span>
                     <span class="text-slate-400">|</span>
-                    <a href="/logout" class="text-indigo-600 hover:text-indigo-500">Wyloguj</a>
+                    <form action="/logout" method="post" class="inline">
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
+                        <button type="submit" class="text-indigo-600 hover:text-indigo-500 bg-transparent border-0 p-0 cursor-pointer">
+                            Wyloguj
+                        </button>
+                    </form>
                 </div>
             </header>
             <div>

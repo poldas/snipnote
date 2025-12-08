@@ -17,7 +17,7 @@ Wbudowany Symfony Security (authenticator-based)
 Użytkownicy i sesje trzymane w PostgreSQL (encje User, tabele auth)
 Password hashing: native password hasher (argon2id / bcrypt)
 JWT: lexik/jwt-authentication-bundle do wystawiania i weryfikacji tokenów
-(Opcjonalnie) refresh tokens: gesdinet/jwt-refresh-token-bundle
+Refresh tokens: gesdinet/jwt-refresh-token-bundle
 Role i uprawnienia przez role hierarchy + Voter dla reguł domenowych
 
 #### API / komunikacja

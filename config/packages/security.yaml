@@ -8,7 +8,7 @@ security:
         app_user_provider:
             entity:
                 class: App\Entity\User
-                property: uuid
+                property: email
 
     firewalls:
         dev:
@@ -16,23 +16,52 @@ security:
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
 
+        api_public:
+            pattern: ^/api/public
+            security: false
+
         api:
             pattern: ^/api
-            stateless: true
+            stateless: false
             provider: app_user_provider
+            context: main
+            user_checker: App\Security\UserChecker
             custom_authenticators:
                 - App\Security\JwtAuthenticator
             entry_point: App\Security\JwtAuthenticator
 
-        # UI routes stay public for now (session/auth flows wired later)
         main:
             lazy: true
-            security: false
+            provider: app_user_provider
+            user_checker: App\Security\UserChecker
+            entry_point: form_login
+            form_login:
+                login_path: app_login_page
+                check_path: app_login_page
+                enable_csrf: true
+                username_parameter: email
+                password_parameter: password
+                csrf_token_id: authenticate
+                default_target_path: /notes
+            logout:
+                path: app_logout
+                target: /
+            remember_me:
+                secret: '%kernel.secret%'
+                lifetime: 1209600
+                path: /
 
     # Note: Only the *first* matching rule is applied
     access_control:
+        - { path: ^/api/auth, roles: PUBLIC_ACCESS }
         - { path: ^/api/public, roles: PUBLIC_ACCESS }
         - { path: ^/api, roles: ROLE_USER }
+        - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/register, roles: PUBLIC_ACCESS }
+        - { path: ^/verify/email, roles: PUBLIC_ACCESS }
+        - { path: ^/forgot-password, roles: PUBLIC_ACCESS }
+        - { path: ^/reset-password, roles: PUBLIC_ACCESS }
+        - { path: ^/notes, roles: ROLE_USER }
 
 when@test:
     security:
