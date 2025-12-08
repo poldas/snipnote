@@ -51,6 +51,46 @@ final class AuthPageController extends AbstractController
         ]);
     }
 
+    #[Route('/forgot-password', name: 'app_forgot_password_page', methods: ['GET'])]
+    public function forgotPassword(): Response
+    {
+        return $this->render('auth/forgot_password.html.twig', [
+            'hero' => [
+                'headline' => 'Odzyskaj dostęp do konta',
+                'subcopy' => 'Podaj email, a wyślemy instrukcje resetu hasła.',
+            ],
+            'navSwitch' => $this->navToLogin(),
+        ]);
+    }
+
+    #[Route('/reset-password/{token}', name: 'app_reset_password_page', methods: ['GET'], defaults: ['token' => null])]
+    public function resetPassword(?string $token = null): Response
+    {
+        return $this->render('auth/reset_password.html.twig', [
+            'token' => $token,
+            'hero' => [
+                'headline' => 'Ustaw nowe hasło',
+                'subcopy' => 'Skorzystaj z linku z maila, aby odzyskać dostęp do konta.',
+            ],
+            'navSwitch' => $this->navToLogin(),
+        ]);
+    }
+
+    #[Route('/verify/email/notice', name: 'app_verify_notice_page', methods: ['GET'])]
+    public function verifyNotice(Request $request): Response
+    {
+        $state = $request->query->get('state', 'pending');
+
+        return $this->render('auth/verify_notice.html.twig', [
+            'state' => $state,
+            'navSwitch' => $this->navToLogin(),
+            'hero' => [
+                'headline' => 'Potwierdź swój adres email',
+                'subcopy' => 'Kliknij w link aktywacyjny, aby dokończyć rejestrację.',
+            ],
+        ]);
+    }
+
     private function navToLogin(): array
     {
         return ['href' => '/login', 'label' => 'Masz już konto? Zaloguj się'];

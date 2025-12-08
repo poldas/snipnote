@@ -133,6 +133,74 @@ Description:Revoke current token / server-side session (if stored). For JWT stat
 Response 204 No Content
 Errors:`401` unauthorized.
 
+#### Forgot password (request reset email)
+
+Method:`POST`
+Path:`/api/auth/forgot-password`
+Description:Accepts email and, if account exists, sends one-time reset token via email. Response is neutral to avoid account enumeration.
+Request JSON:
+
+```json
+{ "email": "user@example.com" }
+```
+
+Response 200:
+
+```json
+{ "data": { "status": "ok" } }
+```
+
+Behavior:
+- Rate-limited (np. per IP/email); repeated calls return the same neutral response.
+- Does not reveal whether email exists.
+- Generates single-use token valid for limited time (np. 30–60 min).
+
+Errors:
+- `400` — invalid email format.
+- `429` — rate limit.
+
+#### Reset password (use token)
+
+Method:`POST`
+Path:`/api/auth/reset-password`
+Description:Sets a new password using a valid, unexpired reset token.
+Request JSON:
+
+```json
+{
+  "token": "reset-token-from-email",
+  "password": "NewP@ssw0rd!"
+}
+```
+
+Response 200 (auto-login variant):
+
+```json
+{
+  "data": {
+    "id": 123,
+    "uuid": "...",
+    "email": "user@example.com"
+  },
+  "meta": {
+    "token": "<jwt>",
+    "expires_in": 3600,
+    "refresh_token": "<refresh-jwt>",
+    "refresh_expires_in": 1209600
+  }
+}
+```
+
+Behavior:
+- Token is single-use; upon success it is invalidated.
+- Tokens expire after configured TTL; expired/invalid tokens return error.
+- Client may choose to redirect to login instead of auto-login; response above assumes auto-login.
+
+Errors:
+- `400` — validation (password too short, malformed token).
+- `401` — token expired/invalid.
+- `429` — rate limit.
+
 ---
 
 ### Notes
@@ -405,7 +473,7 @@ Common HTTP codes:
 
 Chosen mechanism:Symfony Security + JWT (e.g. `lexik/jwt-authentication-bundle`) for stateless API tokens. Passwords hashed with Symfony native password hasher (argon2id or bcrypt) stored in `users.password_hash`. Login issues return `401`.
 
-Why:matches technical stack (PHP 8.2, Symfony 7). JWT provides simple bearer token flow for SPA/HTMX clients and mobile.
+Why:matches technical stack (PHP 8.2, Symfony 8). JWT provides simple bearer token flow for SPA/HTMX clients and mobile.
 
 Session & CSRF:
 

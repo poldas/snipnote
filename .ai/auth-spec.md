@@ -1,108 +1,112 @@
-# Specyfikacja architektury modułu rejestracji, logowania, wylogowania i odświeżania tokenu (Symfony 8 + Supabase Auth)
+# Specyfikacja architektury autentykacji (UI + API)
 
-## Zakres i założenia
-- Obejmuje US-010 (rejestracja), US-011 (logowanie), US-012 (wylogowanie), US-015 (odświeżenie tokenu) z PRD oraz spójność z resztą aplikacji (publiczny podgląd notatki i publiczny katalog dostępne bez logowania).
-- Backend: Symfony 8 (PHP 8.4), Doctrine ORM 3.5, lexik/jwt-authentication-bundle; integracja z Supabase Auth jako zewnętrzny provider tożsamości (IdP). Refresh tokeny rotowane przez Supabase.
-- Frontend: główny templating Twig + HTMX + Tailwind (zgodnie z tech-stack), formularze auth mogą pozostać czysto HTMX/Twig.
-- Brak naruszenia istniejącej logiki dostępu: bez logowania dostępny jest wyłącznie publiczny widok notatki i publiczny katalog użytkownika.
+## Kontekst i cele
+- Zakres: US-010 Rejestracja, US-011 Logowanie, US-012 Wylogowanie; zintegrowane z istniejącym UI (Twig + HTMX) i backendem Symfony 8 + Doctrine/PostgreSQL.
+- UI używa wyłącznie sesji Symfony (cookie + CSRF). JWT używany tylko dla `/api/*`.
+- Wspólne źródło prawdy: encja `User` w PostgreSQL zarządzana przez Doctrine.
+- Maile (verify/reset) współdzielone między UI i API; jedyna zmienna między środowiskami to `MAILER_DSN`.
 
-## 1. Architektura interfejsu użytkownika
+## 1. Architektura interfejsu użytkownika (Twig + HTMX)
 
-### Layouty i nawigacja
-- `base_auth.html.twig`: lekki layout dla stron auth (bez głównego sidebaru/dash). Zawiera logo, nagłówek, linki do logowania/rejestracji, komunikaty flash/błędy. Tailwind dla siatki i typografii.
-- `base_app.html.twig`: używany po zalogowaniu (dashboard, edycja notatek). W nawigacji: widoczny email użytkownika i przycisk `Wyloguj` (POST/HTMX).
-- Widoki publiczne (notatka publiczna, katalog publiczny) pozostają dostępne bez auth; pasek nawigacji pokazuje CTA „Zaloguj / Zarejestruj”.
+### Layouty i tryby
+- **Anon layout**: strony `/login`, `/register`, `/forgot-password`, `/reset-password/{token}`, `/verify/email`. Minimalny topbar (logo + link do logowania/rejestracji), bez sidebaru. Formularze z CSRF.
+- **Auth layout**: widoki aplikacji (`/notes/*`). Menu użytkownika zawiera „Wyloguj” (POST z CSRF).
+- **HTMX**: używane do wstrzykiwania fragmentów z błędami walidacji (hx-target na wrapperze formularza) i ewentualnych toastów; pełne przeładowania dla przejść między widokami.
 
-### Strony / komponenty (Twig + HTMX; opcjonalne wyspy React)
-- `auth/register.html.twig` — formularz rejestracji: pola email, hasło, checkbox zgody (jeśli wymagany). Walidacja: format email, min. długość hasła (≥8). Obsługa błędów: inline pod polem + flash top.
-- `auth/login.html.twig` — formularz logowania: email, hasło. Link „Nie pamiętasz hasła?” kieruje do resetu (Supabase magic link).
-- `auth/reset-request.html.twig` — formularz email do resetu (wysyłka magic link z Supabase).
-- `auth/reset-done.html.twig` — potwierdzenie wysłania maila.
-- Przycisk `Wyloguj` w nav (HTMX POST do `/auth/logout`), po sukcesie redirect na landing.
-- HTMX używany do: asynchroniczna walidacja (opcjonalnie), wyświetlanie błędów bez pełnego przeładowania, zachowanie SSR jako bazowe.
-- Jeżeli używamy React wysp: komponent `AuthForm` (walidacja client-side, maskowanie submitu, spinner), montowany na stronach Astro/Twig; jednak priorytetem jest SSR/HTMX, React jest nieobowiązkowy.
+### Strony i komponenty
+- **Login (`/login`, GET/POST)**: pola email, hasło; checkbox „Zapamiętaj” (remember_me). Po sukcesie redirect na `/notes`. Przy `isVerified=false` zamiast logowania renderowana strona „Sprawdź maila, aby aktywować konto” (bez ujawniania stanu konta innym).
+- **Register (`/register`, GET/POST)**: pola email, hasło (min. 8), checkbox zgody (jeśli wymagane prawnie). Po sukcesie: automatyczne zalogowanie sesyjne, redirect na stronę „Sprawdź maila” (blokada akcji wymagających weryfikacji). Komunikat o wysłaniu maila aktywacyjnego.
+- **Verify email (`/verify/email?signature=...`)**: wynik VerifyEmailBundle (success → redirect do `/notes` lub strony potwierdzenia; failure → komunikat „link wygasł / nieważny” + przycisk „Wyślij ponownie”).
+- **Forgot password (`/forgot-password`, GET/POST)**: pole email; po submit zawsze ten sam komunikat „Jeśli konto istnieje, wysłaliśmy instrukcje”. Brak ujawniania istnienia konta.
+- **Reset password (`/reset-password/{token}`, GET/POST)**: pola nowe hasło + powtórzenie; po sukcesie automatyczne zalogowanie i redirect na `/notes`.
+- **Logout (`/logout`, POST)**: formularz ukryty w menu użytkownika, CSRF.
 
-### Walidacja i komunikaty
+### Walidacja i komunikaty (UI)
 - Email: format RFC, komunikat „Podaj poprawny adres email”.
-- Hasło: min. 8 znaków (zgodnie z PRD), komunikat „Hasło musi mieć co najmniej 8 znaków”.
-- Błędy po stronie IdP (Supabase): mapowane na przyjazne komunikaty (np. duplikat email → „Konto z tym adresem już istnieje”).
-- Przy nieudanym logowaniu: „Nieprawidłowy email lub hasło”.
-- Przy odświeżaniu tokenu i jego wygaśnięciu: redirect do logowania z flash „Sesja wygasła, zaloguj się ponownie”.
+- Hasło: min. 8 znaków (PSR-12 msg), komunikat „Hasło musi mieć min. 8 znaków”.
+- Pole wymagane: „To pole jest wymagane”.
+- Błędy serwera 400: inline pod polem; 401/403: globalny alert „Brak dostępu / konto nieweryfikowane”; 429: alert „Za dużo prób, spróbuj ponownie później”; 5xx: toast „Coś poszło nie tak”.
 
-### Scenariusze kluczowe (UX)
-- Rejestracja: po sukcesie automatyczne zalogowanie, redirect na dashboard (pusty stan US-07).
-- Logowanie: po sukcesie redirect na dashboard; jeśli użytkownik przyszedł z protected strony, redirect na nią.
-- Wylogowanie: unieważnienie sesji + refresh tokenu; redirect na landing (publiczny).
-- Reset hasła: użytkownik podaje email, Supabase wysyła magic link resetu; po kliknięciu w link następuje ustawienie nowego hasła w Supabase i powrót na stronę potwierdzenia/logowania.
+### Scenariusze kluczowe
+- Nowy użytkownik → `/register` → po sukcesie komunikat „Sprawdź maila” → klik link w mailu → `/verify/email` → redirect do `/notes`.
+- Istniejący, niezweryfikowany → próba logowania → komunikat o konieczności weryfikacji + link do ponownego wysłania maila.
+- Zapomniane hasło → `/forgot-password` → otrzymany link → `/reset-password/{token}` → ustawienie nowego hasła → redirect `/notes`.
+- Wylogowanie → POST `/logout` → redirect na landing.
 
-## 2. Logika backendowa (Symfony 8)
+## 2. Logika backendowa
 
-### Endpoints (HTTP)
-- `POST /auth/register` — tworzy konto w Supabase (email+password), tworzy/aktualizuje encję `User` lokalnie (id z Supabase jako external_id), loguje użytkownika (ustawia session cookie + access token). Walidacja: email, hasło.
-- `POST /auth/login` — deleguje do Supabase (email+password), pobiera access + refresh token, zapisuje w sesji/HttpOnly cookies. Synchronizuje profil w DB (email, timestamps).
-- `POST /auth/logout` — wymaga sesji; usuwa sesję Symfony, usuwa ciasteczka tokenów, wywołuje Supabase sign-out (revocation refresh tokenu).
-- `POST /auth/refresh` — wymaga refresh tokenu w HttpOnly cookie; woła Supabase refresh endpoint; ustawia nowy access + refresh (rotacja). Błąd → 401 i czyszczenie cookies.
-- `POST /auth/reset/request` — przyjmuje email, woła Supabase password reset (magic link). Zwraca 200 niezależnie czy konto istnieje (brak informacji o istnieniu).
-- `POST /auth/reset/complete` — obsługiwane po powrocie z magic linku Supabase (URL z tokenem) — endpoint przyjmuje nowy password, przekazuje do Supabase, po sukcesie redirect do loginu.
+### Model danych (Doctrine)
+- Encja `User` (tabela `users`): id (uuid/ulid), email (unikalny, lowercase), `password` (hash), `roles` (JSON), `isVerified` (bool), `createdAt/updatedAt`, opcjonalnie `lastLoginAt`.
+- Provider: Doctrine user provider (email jako identyfikator).
 
-### Kontrolery i serwisy
-- `AuthController` (HTML endpoints) — renderuje widoki, zarządza flashami; akcje register/login/logout/reset.
-- `ApiAuthController` (JSON, jeśli wymagane) — ewentualne API dla SPA/HTMX; w MVP HTML wystarcza.
-- `SupabaseAuthClient` — serwis integrujący się z Supabase REST (admin API key serwerowy): metody `signUp`, `signInWithPassword`, `refreshToken`, `signOut`, `resetPasswordForEmail`, `updateUserPassword`.
-- `UserSynchronizer` — mapuje dane z Supabase do lokalnej encji `User` (external_id, email, timestamps). Tworzy, gdy nie istnieje.
-- `TokenCookieManager` — ustawia/usuwa HttpOnly cookies: `sb-access-token` (krótkie TTL), `sb-refresh-token` (dłuższe TTL), flagi Secure/SameSite=Lax/Strict.
-- `Security/UserProvider` — ładuje użytkownika na podstawie access tokenu (JWT z Supabase), waliduje sygnaturę (jwks z Supabase) i datę ważności. Może korzystać z lexik/jwt jako warstwy weryfikacji podpisu.
-- `AccessDeniedHandler` — przekierowanie na login dla HTML; 401 JSON dla API.
+### Walidacja (Symfony Validator)
+- Email: `Email` + `NotBlank` + `Length(max=180)`.
+- Hasło: `NotBlank`, `Length(min=8, max=4096)`.
+- Verify/Reset tokeny walidowane przez bundlowe constrainty.
+- Błędy mapowane na form errors (HTML) lub JSON `{field: [messages...]}`.
 
-### Walidacja
-- Symfony Validator: `Email`, `Length(min=8)` na haśle; niestandardowy constraint `NotPwned` (opcjonalnie) można dodać później.
-- CSRF: formularze auth zabezpieczone tokenem CSRF (Symfony form/guard).
-- Rate limiting: throttle na `/auth/login`, `/auth/register`, `/auth/reset/request` (Symfony RateLimiter) per IP + email.
+### Endpoints i rozdzielenie warstw
+HTML (sesja, CSRF, Twig):
+- `GET /login` (SecurityController::loginForm) + `POST /login` (Symfony authenticator).
+- `POST /logout` (route only, handled by firewall).
+- `GET|POST /register` (RegistrationController) → tworzy usera, hashuje hasło, wywołuje VerifyEmailHelper → wysyła mail; po sukcesie loguje użytkownika i redirect do „verify notice”.
+- `GET /verify/email` (VerificationController) → VerifyEmailBundle; w razie błędu generuje formularz „wyślij ponownie”.
+- `GET|POST /forgot-password` (ResetPasswordController::request) → ResetPasswordBundle request.
+- `GET|POST /reset-password/{token}` (ResetPasswordController::reset) → ustawia nowe hasło, loguje użytkownika, unieważnia token.
 
-### Obsługa wyjątków
-- Błędy Supabase (duplikat email, złe hasło, nieważny refresh) mapowane na 4xx i komunikaty przyjazne; logowanie po stronie serwera z kodem Supabase.
-- Błędy sieci/IdP → 503 z komunikatem „Serwis logowania chwilowo niedostępny”; nie ujawnia szczegółów.
-- Braki uprawnień na zasobach chronionych → redirect na `/auth/login?next=...` lub 401 JSON.
+API (JWT, bez sesji; JSON):
+- `POST /api/auth/login` → weryfikacja email/hasło + `isVerified`; zwraca `{access_token, refresh_token?, expires_in}` (HS256, `sub`, `exp`, `iat`). 401 na błędne dane lub nieweryfikowane konto (bez różnicowania przyczyny).
+- `POST /api/auth/refresh` (jeśli użyty gesdinet/jwt-refresh-token-bundle) → zwrot zrotowanego refresh + nowy access.
+- `POST /api/auth/logout` → unieważnia refresh (np. usunięcie rekordu) i zwraca 204.
+- Mechanizm reset/verify współdzielony: API może korzystać z tych samych usług (np. event listener wysyłający mail) lub wystawiać dodatkowe JSON endpoints proxy do bundli jeśli potrzebne.
 
-## 3. System autentykacji (Symfony 8 + Supabase Auth)
+### Obsługa wyjątków i bezpieczeństwo informacji
+- Reset hasła: zawsze 200 z identycznym komunikatem, brak sygnalizacji istnienia konta.
+- Verify email: błędy podpisu/wygaszenia → komunikat ogólny + opcja ponownego wysłania.
+- Logowanie: odpowiedź 401 bez potwierdzenia, czy email istnieje lub czy konto zweryfikowane (dla API); dla UI komunikat o weryfikacji, ale bez potwierdzenia istnienia adresu.
+- Rate limiting: na `/login` i `/api/auth/login` (np. `LoginRateLimiter`).
 
-### Model danych
-- `User` (Doctrine): `id` (UUID lokalny), `externalId` (Supabase user id UUID), `email` (unique), `createdAt`, `updatedAt`, ewentualnie `lastLoginAt`. Hasło nie jest przechowywane lokalnie (delegacja do Supabase).
-- Brak ról rozbudowanych w MVP; rola domyślna `ROLE_USER`. Uprawnienia do notatek realizowane istniejącymi Voterami/domeną.
+### Integracja e-mail (VerifyEmailBundle, ResetPasswordBundle)
+- Wspólny `MailerInterface` + `EMAIL_FROM` (konfiguracja parameters.yaml). Szablony Twig dla maili (verify/reset) dostępne zarówno dla UI, jak i API wywołujące te same serwisy.
+- Konfiguracja środowisk:
+  - DEV: `MAILER_DSN=smtp://mailpit:1025` (kontener `axllent/mailpit`).
+  - PROD: `MAILER_DSN` na zewnętrzny SMTP (Mailgun/SendGrid/AWS SES lub firmowy).
+- Kod nie zależy od środowiska; różni się wyłącznie wartość `MAILER_DSN`.
 
-### Przepływy tokenów
-- Supabase wydaje `access_token` (krótki) i `refresh_token` (dłuższy). Oba trzymane w HttpOnly Secure cookies.
-- Przy każdym żądaniu chronionym: middleware/guard odczytuje access token z cookie, waliduje podpis (JWKS), datę, audience. Po sukcesie ładuje `User` z repo przez `externalId`.
-- Przy wygaśnięciu access tokenu: front (HTMX) może wykonać `POST /auth/refresh` (np. przez polling przed ważnymi akcjami) lub serwer może zainicjować 401 i klient reaguje redirectem do loginu jeśli refresh zawiedzie.
-- Rotacja refresh tokenów: każda udana wymiana wydaje nowy refresh; poprzedni jest unieważniany przez Supabase. Logout unieważnia refresh.
+## 3. System autentykacji i autoryzacji
 
-### Wylogowanie
-- `POST /auth/logout`:
-  - usuwa sesję Symfony;
-  - usuwa cookies `sb-access-token`, `sb-refresh-token`;
-  - wywołuje Supabase `signOut` (revocation refresh tokenu) z aktualnym refresh tokenem;
-  - redirect 302 na stronę publiczną (landing/publiczny katalog).
+### Symfony Security
+- Firewalle:
+  - `main` (UI): form_login authenticator + remember_me, session storage, CSRF w formach, access_control wymuszający auth na `/notes/**`, `/collaborators/**`, itp.
+  - `api` (stateless): `JwtAuthenticator` (LexikJWT), bez sesji/CSRF, ścieżki `/api/**`.
+- Access control:
+  - Public: `/`, `/login`, `/register`, `/verify/email`, `/forgot-password`, `/reset-password/*`, `/p/*`, `/u/*`.
+  - Auth required: `/notes/**` itp.; dodatkowo `isVerified()` voter/constraint blokuje nieweryfikowanych.
+- Password hashing: `UserPasswordHasherInterface` (argon2id/bcrypt per Symfony defaults).
+- `isVerified` enforced:
+  - UI: po form_login, jeżeli `!user.isVerified`, następuje wylogowanie + redirect do „verify notice”.
+  - API: login/refresh odrzuca nieweryfikowane konto (401).
 
-### Odzyskiwanie / reset hasła
-- `POST /auth/reset/request`: deleguje do Supabase `resetPasswordForEmail`. Odpowiedź 200 niezależnie od istnienia konta.
-- Użytkownik klika w magic link od Supabase (zawiera oobCode/token); trafia na front (route `auth/reset/complete`). Front przesyła token + nowe hasło do backendu, backend woła Supabase `updateUserPassword`. Po sukcesie flash „Hasło zmienione, zaloguj się” i redirect na login.
-- Bezpieczeństwo: link jednorazowy, ograniczony czasowo, weryfikacja po stronie Supabase.
+### JWT (tylko API)
+- Format: HS256; payload minimalnie `sub` (user id/email), `exp`, `iat`, opcjonalnie `roles`.
+- Generacja: na `POST /api/auth/login`; czas życia krótki (np. 15m). Refresh token dłuższy (DB-backed, rotowany).
+- Weryfikacja: `JwtAuthenticator` + `UserProvider` (Doctrine). Brak użycia JWT w UI/HTML.
 
-### Zgodność z istniejącymi funkcjami aplikacji
-- Publiczne ścieżki (widok notatki po URL, katalog publiczny użytkownika) nie wymagają auth; middleware pomija wymóg tokenu.
-- Chronione ścieżki (dashboard, edycja notatki, zmiana widoczności, współdzielenie) wymagają ważnego access tokenu; brak tokenu → redirect do loginu.
-- Reguły domenowe notatek pozostają bez zmian; auth dostarcza tożsamość i id użytkownika (externalId) do istniejących Voterów/serwisów domenowych.
+### Autoryzacja domenowa
+- Votery (np. `NoteVoter`): sprawdzają owner/współedytor; wykorzystywane w kontrolerach UI i API.
+- Role hierarchy minimalna (`ROLE_USER` domyślna).
 
-### Monitorowanie i diagnostyka
-- Logowanie zdarzeń auth (rejestracja, logowanie, odświeżenie, błędy) do Monolog z kontekstem `externalId`, `email`, kodem Supabase.
-- Opcjonalnie middleware mierzący czasy odpowiedzi Supabase do obserwowalności.
+### Dodatkowe mechanizmy bezpieczeństwa
+- CSRF w formularzach HTML (login, register, forgot, reset, logout).
+- HSTS/secure cookies w prod, `SameSite=Lax`, `HttpOnly`.
+- Audit/logi: zdarzenia auth (successful/failed login, password reset, verify) logowane przez Monolog.
 
-## Kluczowe kontrakty / moduły
-- Serwis: `SupabaseAuthClient` (HTTP client + DTO odpowiedzi).
-- Serwis: `TokenCookieManager` (ustawianie/rotacja HttpOnly cookies).
-- Serwis: `UserSynchronizer` (sync profilu).
-- Guard/middleware: `SupabaseJwtAuthenticator` (weryfikacja access tokenu, ładowanie użytkownika).
-- Kontrolery: `AuthController` (HTML), `ApiAuthController` (JSON opcjonalnie).
-- Walidatory: `Email`, `Length` dla hasła, `CsrfTokenManager`, `RateLimiter`.
-- Szablony: `base_auth.html.twig`, `auth/register.html.twig`, `auth/login.html.twig`, `auth/reset-request.html.twig`, `auth/reset-done.html.twig`; komponenty HTMX/React wyspy (opcjonalnie) `AuthForm`.
+## 4. Kontrakty UI ↔ backend (streszczenie)
+- Formularze HTML wysyłają standardowe POST (nie XHR) z CSRF, otrzymują redirecty + flash messages; HTMX używany tylko do fragmentów z błędami w miejscu.
+- API przyjmuje/zwra­ca JSON; kody: 200/201 na sukces, 204 na logout, 400 na walidację, 401 na auth/verify fail, 429 na rate-limit, 500 na błąd serwera.
+- Brak CORS wymaganego dla UI (ten sam origin). API może wymagać CORS wyłącznie dla klientów zewnętrznych (out of MVP).
+
+## 5. Testowalność i nieinwazyjność
+- Architektura nie zmienia istniejących widoków notatek; dodaje wyłącznie nowe ścieżki auth i sprawdzenie `isVerified`.
+- Weryfikacja: e2e ścieżki register→verify→login, login fail (bad credentials), login fail (unverified), forgot/reset flow, JWT login/refresh, logout (sesja i refresh).
 

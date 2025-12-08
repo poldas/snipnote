@@ -1,96 +1,99 @@
+# Mermaid Diagram - UI Components
 
-# Mermaid Diagram - Auth Architecture
+Jesteś doświadczonym architektem oprogramowania, którego zadaniem jest utworzenie diagramu Mermaid w celu wizualizacji architektury stron Symfony8 i Twig / HTMX dla modułu logowania i rejestracji. Diagram powinien zostać utworzony w następującym pliku: .ai/diagrams/ui.md
 
-Jesteś specjalistą ds. bezpieczeństwa, którego zadaniem jest utworzenie diagramu Mermaid w celu wizualizacji przepływu autentykacji dla modułu logowania i rejestracji. Diagram powinien zostać utworzony w następującym pliku: DESTINATION
-
-Będziesz musiał odnieść się do następujących plików w celu poznania istniejących wymagań:
+Będziesz musiał odnieść się do następujących plików w celu poznania istniejących komponentów:
 
 <file_references>
-[project-prd.md](mdc:docs/artefacts/03-artefact-prd.md)
+[PRD] @.ai/spec/prd.md 
+[UI-PLAN] @.ai/spec/ui-plan.md 
+[AUTH-SPEC] @.ai/auth-symfony-spec.md 
+[TECH-STACK] @.ai/spec/tech-stack.md 
 </file_references>
 
-<destination>
-.ai/diagrams/auth.md
-</destination>
+Twoim zadaniem jest analiza specyfikacji modułu logowania i rejestracji oraz utworzenie kompleksowego diagramu Mermaid, który dokładnie przedstawia architekturę systemu. Diagram powinien być w języku polskim.
 
-Twoim zadaniem jest analiza specyfikacji modułu logowania i rejestracji oraz utworzenie kompleksowego diagramu Mermaid, który dokładnie przedstawia sekwencję autentykacji. Diagram powinien być w języku polskim.
+Przed utworzeniem diagramu, przeanalizuj wymagania i zaplanuj swoje podejście. Umieść swoją analizę wewnątrz tagów <architecture_analysis>. W tej analizie:
 
-Przed utworzeniem diagramu, przeanalizuj wymagania i zaplanuj swoje podejście. Umieść swoją analizę wewnątrz tagów <authentication_analysis>. W tej analizie:
-
-1. Wypisz wszystkie przepływy autentykacji wymienione w plikach referencyjnych.
-2. Zidentyfikuj głównych aktorów i ich interakcje.
-3. Określ procesy weryfikacji i odświeżania tokenów.
-4. Dostarcz krótki opis każdego kroku autentykacji.
+1. Wypisz wszystkie komponenty wymienione w plikach referencyjnych.
+2. Zidentyfikuj główne strony i ich odpowiadające komponenty.
+3. Określ przepływ danych między komponentami.
+4. Dostarcz krótki opis funkcjonalności każdego komponentu.
 
 Kiedy będziesz gotowy do utworzenia diagramu, postępuj zgodnie z poniższymi wytycznymi:
 
 1. Rozpocznij diagram od następującej składni:
 
    ```mermaid
-   sequenceDiagram
+   flowchart TD
    ```
 
 2. Uwzględnij następujące elementy w swoim diagramie:
 
-   - Pełny cykl życia procesu autentykacji w nowoczesnej aplikacji używającej React, Astro i Supabase Auth
-   - Komunikacja między aktorami: 1) Przeglądarka 2) Middleware 3) Astro API 4) Supabase Auth
-   - Wyraźne punkty, w których następuje przekierowanie użytkownika lub weryfikacja tokenu
-   - Przepływ danych po wdrożeniu nowych wymagań autentykacji
-   - Jak działa sesja użytkownika po zalogowaniu i jak system reaguje na wygaśnięcie tokenu
-   - Proces odświeżania tokenu i ochrona przed nieautoryzowanym dostępem
+   - Zaktualizowaną strukturę UI po wdrożeniu nowych wymagań
+   - Layouts, server pages i aktualizacje istniejących komponentów
+   - Grupowanie elementów według funkcjonalności
+   - Kierunek przepływu danych między komponentami
+   - Moduły odpowiedzialne za stan aplikacji
+   - Podział na komponenty współdzielone i komponenty specyficzne dla stron
+   - Zależności między komponentami związanymi z autentykacją a resztą aplikacji
+   - Wyróżnij komponenty, które wymagały aktualizacji ze względu na nowe wymagania
 
 3. Przestrzegaj tych zasad składni Mermaid:
 
-   - Używaj atrybutu `autonumber` dla przejrzystości sekwencji kroków
-   - Utrzymuj spójne odstępy między elementami dla czytelności diagramu
-   - Zawsze używaj `participant` do deklarowania aktorów przed rozpoczęciem sekwencji
-   - Pamiętaj o poprawnej kolejności elementów w sekwencji (nadawca, strzałka, odbiorca)
-   - Używaj właściwego cyklu aktywacji i dezaktywacji elementów diagramu
-   - Używaj odpowiednich typów strzałek:
-     - `->` dla zwykłych strzałek (np. `Browser->API`)
-     - `-->` dla przerywanych strzałek (np. `API-->Browser: Token expired`)
-     - `->>` dla strzałek z pustymi grotami (np. `Browser->>Auth: Login request`)
-     - `-->>` dla przerywanych strzałek z pustymi grotami
-   - Dla bloków aktywacji, poprawnie używaj `activate` i `deactivate`:
+   - Używaj spójnego formatowania ID węzłów:
      ```
-     activate Browser
-     Browser->>API: Request data
-     deactivate Browser
+     A[Panel Główny] --> B[Formularz Logowania]
+     B --> C[Walidacja Danych]
      ```
-   - Używaj `alt`/`else`/`end` dla ścieżek warunkowych:
+   - Pamiętaj, że ID węzłów rozróżniają wielkość liter i muszą być unikalne
+   - Używaj poprawnych kształtów węzłów:
+     - `[Tekst]` dla prostokątów
+     - `(Tekst)` dla zaokrąglonych prostokątów
+     - `((Tekst))` dla okręgów
+     - `{Tekst}` dla rombów
+     - `>Tekst]` dla flag
+     - `[[Tekst]]` dla podprogramów
+   - Grupuj powiązane elementy za pomocą subgrafów:
      ```
-     alt Authentication successful
-       Browser->>Dashboard: Redirect to dashboard
-     else Authentication failed
-       Browser->>LoginPage: Show error message
+     subgraph "Moduł Autentykacji"
+       A[Formularz Logowania]
+       B[Walidacja Danych]
+       C[Zarządzanie Sesją]
      end
      ```
-   - Dla działań równoległych, używaj `par`/`and`/`end`:
-     ```
-     par Send confirmation email
-       API->>EmailService: Send verification
-     and Update user status
-       API->>Database: Update status
-     end
-     ```
-   - Dla wieloliniowych notatek, używaj poprawnej składni:
-     ```
-     Note over Browser,API: Ten tekst pojawi się
-     w notatce obejmującej oba elementy
-     ```
-   - NIE przekraczaj 80 znaków w pojedynczej linii kodu Mermaid
-   - NIE umieszczaj adresów URL, adresów endpointów, nawiasów, długich nazw funkcji ani złożonych wyrażeń w nazwach diagramu:
-     ŹLE: [Strona Główna<br/>(Kreator Reguł)]
-     DOBRZE: [Kreator Reguł]
+   - Używaj węzłów pośrednich dla złożonych relacji zamiast skomplikowanych połączeń
+   - Preferuj układ pionowy dla hierarchii i poziomy dla przepływu procesu
+   - Używaj poprawnych typów połączeń:
+     - `-->` dla standardowych strzałek
+     - `---` dla linii bez strzałek
+     - `-.->` dla linii kropkowanych ze strzałkami
+     - `==>` dla grubych linii ze strzałkami
+     - `--Tekst-->` dla strzałek z etykietami
+   - Unikaj używania adresów URL, adresów endpointów, nawiasów, długich nazw funkcji lub złożonych wyrażeń w nazwach węzłów
    - Używaj spójnego nazewnictwa w całym dokumencie
+   - Unikaj długich etykiet, które mogą powodować problemy z renderowaniem
+   - Używaj cudzysłowów dla tekstu zawierającego spacje:
+     ```
+     A["Komponent Autentykacji"] --> B["Zarządzanie Stanem"]
+     ```
+   - Dla stylizacji węzłów, używaj poprawnej składni:
+     ```
+     A:::styleClass --> B
+     ```
+     z definicją klasy:
+     ```
+     classDef styleClass fill:#f96,stroke:#333,stroke-width:2px;
+     ```
 
 4. Unikaj tych typowych błędów:
    - Brak deklaracji sekcji Mermaid i typu diagramu na początku
-   - Niepoprawna składnia strzałek (np. -> zamiast ->>)
-   - Używanie niedozwolonych znaków w identyfikatorach bez umieszczania ich w cudzysłowach
-   - Niezbalansowane bloki kodu (brakujące end dla rozpoczętych bloków)
-   - Przekraczanie limitów długości linii
-   - Niepoprawne zagnieżdżanie bloków warunkowych
+   - Nieprawidłowe ID węzłów (zawierające niedozwolone znaki)
+   - Niezamknięte subgrafy (brakujący "end" dla rozpoczętego "subgraph")
+   - Niezamknięte nawiasy kwadratowe w opisach węzłów
+   - Niespójne kierunki przepływu (mieszanie TD i LR bez uzasadnienia)
+   - Zbyt złożone diagramy bez odpowiedniego grupowania
+   - Nakładające się etykiety i połączenia
 
 Po utworzeniu diagramu, przejrzyj go dokładnie, aby upewnić się, że nie ma błędów składniowych ani problemów z renderowaniem. Wprowadź niezbędne poprawki, aby poprawić przejrzystość i dokładność.
 

@@ -1,16 +1,14 @@
 # Mermaid Diagram - UI Components
 
-Jesteś doświadczonym architektem oprogramowania, którego zadaniem jest utworzenie diagramu Mermaid w celu wizualizacji architektury stron Astro i komponentów React dla modułu logowania i rejestracji. Diagram powinien zostać utworzony w następującym pliku: DESTINATION
+Jesteś doświadczonym architektem oprogramowania, którego zadaniem jest utworzenie diagramu Mermaid w celu wizualizacji architektury stron Symfony8 i Twig / HTMX dla modułu logowania i rejestracji. Diagram powinien zostać utworzony w następującym pliku: .ai/diagrams/ui.md
 
 Będziesz musiał odnieść się do następujących plików w celu poznania istniejących komponentów:
 
 <file_references>
-[project-prd.md](mdc:docs/artefacts/03-artefact-prd.md)
+[PRD] @.ai/spec/prd.md 
+[UI-PLAN] @.ai/spec/ui-plan.md 
+[TECH-STACK] @.ai/spec/tech-stack.md 
 </file_references>
-
-<destination>
-.ai/diagrams/ui.md
-</destination>
 
 Twoim zadaniem jest analiza specyfikacji modułu logowania i rejestracji oraz utworzenie kompleksowego diagramu Mermaid, który dokładnie przedstawia architekturę systemu. Diagram powinien być w języku polskim.
 

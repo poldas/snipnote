@@ -15,13 +15,19 @@ security:
             # Ensure dev tools and static assets are always allowed
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
-        main:
-            lazy: true
+
+        api:
+            pattern: ^/api
             stateless: true
             provider: app_user_provider
             custom_authenticators:
                 - App\Security\JwtAuthenticator
             entry_point: App\Security\JwtAuthenticator
+
+        # UI routes stay public for now (session/auth flows wired later)
+        main:
+            lazy: true
+            security: false
 
     # Note: Only the *first* matching rule is applied
     access_control:

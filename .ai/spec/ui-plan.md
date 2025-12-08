@@ -9,6 +9,8 @@
 * `POST /api/auth/register` — rejestracja i automatyczne logowanie.
 * `POST /api/auth/login` — logowanie (session cookie dla UI).
 * `POST /api/auth/logout` — wylogowanie.
+* `POST /api/auth/forgot-password` — wysłanie maila z linkiem resetu.
+* `POST /api/auth/reset-password` — ustawienie nowego hasła na podstawie tokenu.
 * `GET /api/notes` — lista notatek właściciela (dashboard, z paginacją/q/label).
 * `POST /api/notes` — tworzenie notatki.
 * `GET /api/notes/{id}` — odczyt (właściciel/współedytor).
@@ -28,9 +30,25 @@
 
   **Ścieżki:** `/` (landing), `/login`, `/register`
   **Cel:** Szybkie zalogowanie/rejestracja i przekierowanie na dashboard.
-  **Kluczowe informacje:** formularz email/hasło, walidacja błędów, CTA „Zarejestruj / Zaloguj”, krótka informacja o aplikacji Snipnote.
-  **Kluczowe komponenty:** formularz z labelami, inline errors, przycisk submit, link do rejestracji/logowania.
+  **Kluczowe informacje:** formularz email/hasło, walidacja błędów, CTA „Zarejestruj / Zaloguj”, krótka informacja o aplikacji Snipnote, link „Nie pamiętasz hasła?” prowadzący do resetu.
+  **Kluczowe komponenty:** formularz z labelami, inline errors, przycisk submit, link do rejestracji/logowania/resetu hasła.
   **UX / dostępność / bezpieczeństwo:** focus-first input, aria-labely, komunikaty błędów zrozumiałe, CSRF token dla form, ograniczenie prób logowania (serwer).
+
+### Widok: Zapomniane hasło (wysłanie linku)
+
+  **Ścieżka:** `/forgot-password`
+  **Cel:** Umożliwienie użytkownikowi zamówienia linku resetu hasła.
+  **Kluczowe informacje:** pojedyncze pole email, komunikat o wysłaniu instrukcji niezależnie od istnienia konta.
+  **Kluczowe komponenty:** formularz email, inline validation, komunikat sukcesu neutralny, link powrotu do logowania.
+  **UX / dostępność / bezpieczeństwo:** brak ujawniania istnienia konta, CSRF dla formularza, rate limit po stronie API sygnalizowany w UI (toast/inline), focus na polu email.
+
+### Widok: Reset hasła (ustawienie nowego)
+
+  **Ścieżka:** `/reset-password?token=...`
+  **Cel:** Ustawienie nowego hasła na podstawie tokenu z emaila.
+  **Kluczowe informacje:** pola: nowe hasło (+ opcjonalne potwierdzenie), ukryty token lub query param, komunikaty o nieważnym/wyczerpanym tokenie.
+  **Kluczowe komponenty:** formularz z hasłem, przycisk „Zapisz”, komunikat sukcesu, link do logowania po sukcesie.
+  **UX / dostępność / bezpieczeństwo:** walidacja długości hasła, maskowanie wejścia, CSRF, jasny komunikat gdy token nieważny/zużyty, focus management na błędach.
 
 ### Widok: Dashboard — lista notatek (z wyszukiwarką)
 
@@ -194,6 +212,8 @@
   **US-10/US-11/US-12 (Rejestracja, Logowanie, Wylogowanie)** → Landing/Login/Register flows + topbar user menu.
   **US-13 (Regeneracja URL)** → Button w edycji → modal → POST `/url/regenerate` → reload.
   **US-14 (Usunięcie własnego dostępu)** → Collaborators Panel → remove self → redirect to dashboard on success.
+  **US-16 (Przypomnienie hasła)** → link z login/register → `/forgot-password` → POST `/api/auth/forgot-password`.
+  **US-17 (Reset hasła)** → `/reset-password?token=...` → POST `/api/auth/reset-password`.
 
 
 

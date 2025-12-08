@@ -1,0 +1,47 @@
+{% set action = action ?? '/verify/email/resend' %}
+{% set csrfToken = csrfToken ?? csrf_token('verify_email_resend') %}
+{% set errors = errors ?? [] %}
+{% set prefill = prefill ?? {} %}
+{% set pending = pending ?? false %}
+
+{% set emailError = (errors|filter(e => (e.field ?? null) == 'email')|first).message ?? null %}
+{% set globalErrors = errors|filter(e => e.field is not defined or e.field is null)|map(e => e.message) %}
+
+<form action="{{ action }}" method="post" class="space-y-3" hx-boost="false">
+    <input type="hidden" name="_csrf_token" value="{{ csrfToken }}">
+
+    {% include 'auth/components/global_error_banner.html.twig' with { messages: globalErrors } %}
+
+    {% include 'auth/components/form_field.html.twig' with {
+        config: {
+            id: 'verify-email',
+            name: 'email',
+            label: 'Email do weryfikacji',
+            type: 'email',
+            placeholder: 'you@example.com',
+            autocomplete: 'email',
+            required: true,
+            pattern: '[^@\\s]+@[^@\\s]+\\.[^@\\s]+',
+            maxLength: 180
+        },
+        value: prefill.email ?? '',
+        error: emailError,
+        autoFocus: true
+    } %}
+
+    <div class="flex items-center justify-between gap-3 flex-wrap">
+        <button type="submit"
+                class="inline-flex items-center justify-center rounded-xl bg-indigo-500 text-white px-4 py-2.5 font-semibold shadow-md shadow-indigo-500/15 hover:bg-indigo-450 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                {% if pending %}disabled{% endif %}
+                hx-disabled-elt="this">
+            {% if pending %}
+                <span class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/60 border-t-transparent"></span>
+            {% endif %}
+            Wyślij ponownie link
+        </button>
+
+        <a href="/login" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800 underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-300 transition-colors">Wróć do logowania</a>
+    </div>
+</form>
+
+

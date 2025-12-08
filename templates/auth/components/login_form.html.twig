@@ -9,7 +9,7 @@
 {% set passwordError = (errors|filter(e => (e.field ?? null) == 'password')|first).message ?? null %}
 {% set globalErrors = errors|filter(e => e.field is not defined or e.field is null)|map(e => e.message) %}
 
-<form action="{{ action }}" method="post" novalidate class="space-y-4" hx-boost="false">
+<form action="{{ action }}" method="post" class="space-y-4" hx-boost="false">
     <input type="hidden" name="_csrf_token" value="{{ csrfToken }}">
     {% if redirect %}
         <input type="hidden" name="redirect" value="{{ redirect }}">
@@ -26,7 +26,8 @@
             placeholder: 'you@example.com',
             autocomplete: 'email',
             required: true,
-            pattern: '[^@\\s]+@[^@\\s]+\\.[^@\\s]+'
+            pattern: '[^@\\s]+@[^@\\s]+\\.[^@\\s]+',
+            maxLength: 180
         },
         value: prefill.email ?? '',
         error: emailError,
@@ -41,7 +42,9 @@
             type: 'password',
             placeholder: '••••••••',
             autocomplete: 'current-password',
-            required: true
+            required: true,
+            minLength: 8,
+            maxLength: 4096
         },
         error: passwordError
     } %}
@@ -56,9 +59,14 @@
         Zaloguj się
     </button>
 
-    <p class="text-sm text-slate-300 text-center">
-        Nie masz konta?
-        <a href="/register" class="text-indigo-200 hover:text-white font-semibold">Załóż konto</a>
-    </p>
+    <div class="text-sm text-slate-700 text-center space-y-1">
+        <p>
+            Nie masz konta?
+            <a href="/register" class="text-indigo-600 hover:text-indigo-800 font-semibold underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-300 transition-colors">Załóż konto</a>
+        </p>
+        <p>
+            <a href="/forgot-password" class="text-indigo-600 hover:text-indigo-800 font-semibold underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-300 transition-colors">Nie pamiętasz hasła?</a>
+        </p>
+    </div>
 </form>
 

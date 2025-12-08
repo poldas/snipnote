@@ -56,13 +56,18 @@ Istniejące narzędzia często:
     - labele, współedytorów, URL, wpis w katalogu publicznym.
 16. Logowanie i rejestracja:
     - rejestracja przez email i hasło,
-    - brak weryfikacji email w MVP,
+    - weryfikacja email w MVP,
     - logowanie przez email i hasło,
     - możliwość wylogowania.
 17. Odświeżenie tokenu dostępu przy użyciu refresh tokenu:
     - krótkotrwały access token, dłużej ważny refresh token,
     - endpoint do wymiany refresh tokenu na nowy access token (bez ponownego logowania),
     - rotacja refresh tokenów i unieważnianie przy wylogowaniu / podejrzeniu wycieku.
+18. Przypomnienie i reset hasła:
+    - formularz „Nie pamiętasz hasła?” przyjmuje email i zwraca informację o wysłaniu instrukcji,
+    - email resetujący zawiera jednorazowy token ważny przez ograniczony czas (np. 30–60 min),
+    - formularz resetu pozwala ustawić nowe hasło po poprawnym tokenie,
+    - token jest jednokrotnego użytku; po użyciu lub wygaśnięciu jest unieważniany.
 
 ## 4. Zasady biznesowe (reguły domenowe)
 1. Logika biznesowa powinna być realizowana w warstwie domenowej, niezależnej od szczegółów frameworka i infrastruktury (DDD-friendly).
@@ -267,7 +272,7 @@ Kryteria akceptacji:
 - Jeśli email jest już zarejestrowany, użytkownik otrzymuje komunikat o duplikacie.
 - Po poprawnej rejestracji użytkownik jest automatycznie zalogowany.
 - Po rejestracji użytkownik trafia na dashboard (listę swoich notatek; na początku pustą).
-- W MVP brak weryfikacji emaila poprzez link aktywacyjny.
+- Weryfikacja realizowana jest poprzez link aktywacyjny wysyłany mailem.
 
 ### US-011: Logowanie użytkownika
 Tytuł: Logowanie istniejącego użytkownika
@@ -343,6 +348,36 @@ Kryteria akceptacji:
 - Jeśli refresh token jest nieważny, wygasły lub zablokowany, użytkownik dostaje komunikat o konieczności ponownego logowania (401) i nie otrzymuje nowych tokenów.
 - Wylogowanie unieważnia refresh token, co uniemożliwia dalsze odświeżanie bez ponownego logowania.
 - Odświeżanie jest ograniczone mechanizmem rate limiting, aby zapobiegać nadużyciom.
+
+### US-016: Przypomnienie hasła
+Tytuł: Wysłanie linku resetu hasła
+
+Opis:
+Jako użytkownik, który nie pamięta hasła
+Chcę otrzymać email z linkiem do jego zresetowania
+Aby móc odzyskać dostęp do konta
+
+Kryteria akceptacji:
+- Na stronach logowania/rejestracji dostępny jest link „Nie pamiętasz hasła?” prowadzący do formularza z polem email.
+- Podanie poprawnego emaila (niezależnie od istnienia konta) zwraca komunikat o wysłaniu instrukcji, bez ujawniania statusu konta.
+- Podanie niepoprawnego formatu emaila zwraca komunikat walidacyjny.
+- Wysłany email zawiera jednorazowy token resetu ważny ograniczony czas (np. 30–60 min).
+- Wielokrotne żądania resetu mogą być ograniczane mechanizmem rate limiting.
+
+### US-017: Reset hasła po tokenie
+Tytuł: Ustawienie nowego hasła po otrzymanym linku
+
+Opis:
+Jako użytkownik, który otrzymał link resetu
+Chcę ustawić nowe hasło
+Aby ponownie móc się zalogować
+
+Kryteria akceptacji:
+- Wejście na link z tokenem resetu wyświetla formularz z polami: nowe hasło, potwierdzenie hasła (opcjonalnie), przycisk „Zapisz”.
+- Token jest jednorazowy i ma ograniczoną ważność; próba użycia nieważnego/zużytego tokenu zwraca komunikat o konieczności ponownego wygenerowania.
+- Nowe hasło musi spełniać minimalne wymagania (np. min. 8 znaków); błędy walidacji są wyświetlane.
+- Po pomyślnym resecie użytkownik jest automatycznie logowany lub przekierowany do logowania z informacją o sukcesie (decyzja techniczna).
+- Po użyciu token staje się nieważny.
 
 ## 7. Metryki sukcesu
 W ramach MVP nie definiuje się szczegółowych metryk biznesowych ani rozbudowanej analityki. Sukces MVP jest rozumiany jako:

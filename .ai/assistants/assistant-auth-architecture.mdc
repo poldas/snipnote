@@ -1,21 +1,50 @@
 Jesteś doświadczonym programistą frameworka Symfony 8 i full-stack web developerem specjalizującym się we wdrażaniu modułu rejestracji, logowania i odzyskiwania hasła użytkowników. Opracuj szczegółową architekturę tej funkcjonalności na podstawie wymagań z pliku @project-prd.md (US-010, US-011, US-012) oraz stacku z @techstack.md.
 
-Zadbaj o zgodność z pozostałymi wymaganiami - nie możesz naruszyć istniejącego działania aplikacji opisanego w dokumentacji.
+Zadbaj o zgodność z pozostałymi wymaganiami — **nie możesz naruszyć istniejącego działania aplikacji opisanego w dokumentacji**.
 
 Specyfikacja powinna zawierać następujące elementy:
 
-1. ARCHITEKTURA INTERFEJSU UŻYTKOWNIKA
-- Dokładny opis zmian w warstwie frontendu (stron, komponentów i layoutów w trybie auth i non-auth), w tym opis nowych elementów oraz tych do rozszerzenia o wymagania autentykacji
-- Dokładne rozdzielenie odpowiedzialności pomiędzy formularze i komponenty client-side React a strony Astro, biorąc pod uwagę ich integrację z backendem autentykacji oraz nawigacją i akcjami użytkownika
-- Opis przypadków walidacji i komunikatów błędów
-- Obsługę najważniejszych scenariuszy
+1. **ARCHITEKTURA INTERFEJSU UŻYTKOWNIKA**
+* Dokładny opis zmian w warstwie frontendu (stron, komponentów i layoutów w trybie auth i non-auth), w tym opis nowych elementów oraz tych do rozszerzenia o wymagania autentykacji.
+* Dokładne rozdzielenie odpowiedzialności pomiędzy formularze i komponenty, biorąc pod uwagę ich integrację z backendem autentykacji oraz nawigacją i akcjami użytkownika.
+* Opis przypadków walidacji i komunikatów błędów.
+* Obsługę najważniejszych scenariuszy.
+* Uwzględnienie, że UI **korzysta z klasycznych sesji Symfony (cookie)**, a **nie z JWT**, z zachowaniem CSRF i bez konieczności konfiguracji CORS.
+* Widoki i requesty są oparte o **Twig + HTMX** zgodnie z projektem UI.
 
-2. LOGIKA BACKENDOWA
-- Struktura endpointów API i modeli danych zgodnych z nowymi elementami interfejsu użytkownika
-- Mechanizm walidacji danych wejściowych
-- Obsługa wyjątków
+2. **LOGIKA BACKENDOWA**
+* Struktura endpointów API i modeli danych zgodnych z nowymi elementami interfejsu użytkownika oraz z UI-planem (z rozróżnieniem `/api/*` oraz widoków HTML).
+* Mechanizm walidacji danych wejściowych (Symfony Validator + komunikaty dla UI).
+* Obsługa wyjątków (bez wyciekania informacji o istnieniu konta dla resetu hasła).
+* Uporządkowane rozdzielenie:
+  * endpointów HTML (sesje),
+  * endpointów API (JWT),
+  * mechanizmu resetu i weryfikacji maila (ma być wspólny dla UI i API).
+* Jasne założenie: **User jest jeden i jest zarządzany przez Doctrine + PostgreSQL (singular source of truth).**
 
-3. SYSTEM AUTENTYKACJI
-- Wykorzystanie Supabase Auth do realizacji funkcjonalności rejestracji, logowania, wylogowywania i odzyskiwania konta w połączeniu z Symfony8
+3. **SYSTEM AUTENTYKACJI**
+* Wykorzystanie wbudowanego mechanizmu **Symfony Security** z logowaniem po e-mailu i haśle (sesja + CSRF) dla widoku/UI.
+* Rejestracja i potwierdzanie adresu e-mail realizowane przy użyciu **VerifyEmailBundle** (podpisane linki aktywacyjne + weryfikacja konta).
+* Odzyskiwanie dostępu do konta poprzez **ResetPasswordBundle** (token jednorazowy, e-mail z linkiem resetu, nowe hasło).
+* **Oddzielna obsługa API zabezpieczona tokenami JWT (HS256)**:
+  * Generowanie w momencie logowania,
+  * Weryfikacja przez dedykowany `JwtAuthenticator`,
+  * JWT nie zastępuje sesji w UI — dotyczy tylko `/api/*`.
+* Kontrola dostępu do zasobów domenowych oparta o **Symfony Security + Voter** (autoryzacja właściciel/współedytor).
+**Kontekst wysyłki e-maili (WYMAGANE DLA ARCHITEKTURY)**
+* System e-mail musi być niezależny od UI i API, współdzielony przez VerifyEmailBundle i ResetPasswordBundle.
+* Należy przewidzieć **konfigurację odmienną dla środowisk**:
+  * **DEV:** `MAILER_DSN=smtp://mailpit:1025` przy użyciu kontenera `axllent/mailpit`.
+  * **PROD:** `MAILER_DSN` wskazuje na zewnętrzny SMTP (np. Mailgun/SendGrid/AWS SES lub firmowy SMTP).
+* Architektura musi przewidzieć, że jedyną zmienną między środowiskami jest **MAILER_DSN**, a kod pozostaje identyczny.
 
-Przedstaw kluczowe wnioski w formie opisowej technicznej specyfikacji w języku polskim - bez docelowej implementacji, ale ze wskazaniem poszczególnych komponentów, modułów, serwisów i kontraktów. Po ukończeniu zadania, utwórz plik .ai/auth-spec.md i dodaj tam całą specyfikację.
+**Wymagania bezpieczeństwa (NIE WOLNO POMINĄĆ)**
+* Hasła hashowane przez **UserPasswordHasherInterface**.
+* brak ujawniania, czy e-mail istnieje w systemie podczas resetu (zawsze ten sam komunikat).
+* `VerifyEmailBundle` linki muszą być **jednorazowe i podpisane**.
+* JWT musi zawierać minimalnie `sub` oraz `exp` w UNIX timestamp.
+* JWT nie może być używany w UI ani do widoków HTML — tylko API.
+* `isVerified == false` musi być respektowane podczas logowania (wg wymagań PRD).
+
+**Wynik końcowy**
+Po ukończeniu zadania, utwórz plik `.ai/auth-spec.md` i dodaj tam całą specyfikację (techniczny dokument — opis komponentów, kontraktów, kontroli dostępu, bez implementacji).

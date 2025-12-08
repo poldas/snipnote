@@ -8,6 +8,7 @@
 {% set pattern = cfg.pattern ?? null %}
 {% set required = cfg.required ?? false %}
 {% set minLength = cfg.minLength ?? null %}
+{% set maxLength = cfg.maxLength ?? null %}
 {% set autoFocus = autoFocus ?? false %}
 {% set errorMessage = error ?? null %}
 {% set value = value ?? '' %}
@@ -24,6 +25,7 @@
         {% if pattern %}pattern="{{ pattern }}"{% endif %}
         {% if required %}required{% endif %}
         {% if minLength %}minlength="{{ minLength }}"{% endif %}
+        {% if maxLength %}maxlength="{{ maxLength }}"{% endif %}
         {% if autoFocus %}autofocus{% endif %}
         value="{{ value }}"
         aria-invalid="{{ errorMessage ? 'true' : 'false' }}"
