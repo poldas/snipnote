@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ "rc" ]
+    branches: [ "rc" , "deploy"]
 
 jobs:
   php-lint:

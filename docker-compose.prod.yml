@@ -23,7 +23,7 @@ services:
     restart: unless-stopped
 
   app:
-    image: ${APP_IMAGE:-ghcr.io/poldas/snipnote:prod}
+    image: ${APP_IMAGE:-ghcr.io/poldas/snipnote}:${APP_IMAGE_TAG:-prod}
     environment:
       APP_ENV: prod
       APP_DEBUG: 0

@@ -38,7 +38,7 @@ Cel: zastąpić ręczne TLS/nginx prostą warstwą Traefik działającą w tym s
 ### Status prac (zrobione)
 - Dodany `Dockerfile.prod` (Apache, opcache, healthcheck).
 - Dodany `docker-compose.prod.yml` z Traefik v3.1, siecią `proxy`, wolumenem `traefik-letsencrypt`, Postgres bez otwartych portów, labelki hosta `snipnote.pl`.
-- Dodany `env.prod.example` z wymaganymi zmiennymi (`TRAEFIK_DOMAIN=snipnote.pl`, `TRAEFIK_ACME_EMAIL=dany@dany.com`, sekrety JWT/APP/VERIFY, DB, APP_IMAGE) oraz zawężonym `TRUSTED_PROXIES=172.16.0.0/12`.
+- Dodany `env.prod.example` z wymaganymi zmiennymi (`TRAEFIK_DOMAIN=snipnote.pl`, `TRAEFIK_ACME_EMAIL=dany@dany.com`, sekrety JWT/APP/VERIFY, DB, APP_IMAGE+APP_IMAGE_TAG) oraz zawężonym `TRUSTED_PROXIES=172.16.0.0/12`.
 - Dodany workflow `.github/workflows/build-prod-image.yml` do build & push obrazu na GHCR (`prod` + `sha-<short>`).
 
 ### Komendy (gdzie wykonać)
@@ -64,7 +64,7 @@ Cel: zastąpić ręczne TLS/nginx prostą warstwą Traefik działającą w tym s
 
 ### Instrukcja krok po kroku (prod na VPS)
 1. DNS: ustaw A/AAAA `snipnote.pl` na IP VPS; otwórz porty 80/443 w firewallu.
-2. Sekrety: skopiuj `env.prod.example` → `env.prod` na VPS, uzupełnij `APP_SECRET`, `JWT_SECRET`, `VERIFY_EMAIL_SECRET`, dane DB, `APP_IMAGE=ghcr.io/poldas/snipnote:prod`, `TRAEFIK_ACME_EMAIL=dany@dany.com`.
+2. Sekrety: skopiuj `env.prod.example` → `env.prod` na VPS, uzupełnij `APP_SECRET`, `JWT_SECRET`, `VERIFY_EMAIL_SECRET`, dane DB, `APP_IMAGE=ghcr.io/poldas/snipnote`, `APP_IMAGE_TAG=prod` (lub `sha-<short>` z GHCR), `TRAEFIK_ACME_EMAIL=dany@dany.com`.
 3. (Jeśli prywatny obraz) `docker login ghcr.io` na VPS z PAT posiadającym packages:read.
 4. Na VPS: `docker compose --env-file env.prod -f docker-compose.prod.yml pull`.
 5. Uruchom: `docker compose --env-file env.prod -f docker-compose.prod.yml up -d traefik database app`.
