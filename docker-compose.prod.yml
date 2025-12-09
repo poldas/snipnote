@@ -36,6 +36,8 @@ services:
       DEFAULT_URI: https://${TRAEFIK_DOMAIN}
       TRUSTED_PROXIES: ${TRUSTED_PROXIES}
       TRUSTED_HOSTS: ${TRAEFIK_DOMAIN}
+      REFRESH_TOKEN_TTL_SECONDS: ${REFRESH_TOKEN_TTL_SECONDS}
+      MESSENGER_TRANSPORT_DSN: ${MESSENGER_TRANSPORT_DSN}
     labels:
       traefik.enable: "true"
       traefik.http.routers.snipnote.rule: Host(`${TRAEFIK_DOMAIN}`)
@@ -50,6 +52,7 @@ services:
         condition: service_healthy
     networks:
       - proxy
+      - backend
     restart: unless-stopped
 
   database:
@@ -66,9 +69,13 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    networks:
+      - backend
 
 networks:
   proxy:
+    driver: bridge
+  backend:
     driver: bridge
 
 volumes:

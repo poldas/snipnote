@@ -31,7 +31,9 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 FROM base AS builder
 COPY . .
 RUN --mount=type=cache,target=/tmp/composer-cache \
-    composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader --no-scripts
+    composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader --no-scripts \
+ && php bin/console importmap:install --no-interaction --env=prod \
+ && php bin/console asset-map:compile --env=prod
 # Uncomment if you want compiled env for prod
 # RUN composer dump-env prod
 # Uncomment if assets should be built
