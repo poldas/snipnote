@@ -98,3 +98,20 @@ Out of scope for MVP: version history/undo, rich profiles, global user search, s
 - Markdown & presentation (`src/Service/MarkdownPreviewService`, Twig templates in `templates/`, frontend assets in `assets/` with Tailwind/HTMX/Stimulus controllers).
 - Testing (`tests/` for PHPUnit, `e2e/` for Playwright specs and page objects).
 
+## 9. Deployment / runbook (prod-ish)
+- Expected host/ports: app serves HTTP on port 80 inside the container; typical host binding is `8080:80` (see `compose.yaml`). Place a reverse proxy/HTTPS terminator in front of it for production.
+- Minimal env vars to set (override dev defaults):  
+  - `APP_ENV=prod`, `APP_DEBUG=0`, `APP_SECRET` (strong, random)  
+  - `DATABASE_URL` (e.g., `postgresql://user:pass@host:5432/db?serverVersion=16&charset=utf8`)  
+  - `JWT_SECRET` (HS256 signing key), `VERIFY_EMAIL_SECRET` (link signing)  
+  - `MAILER_DSN` for your SMTP provider, `MAILER_FROM` sender address  
+  - `DEFAULT_URI` base URL users reach (e.g., `https://app.example.com`)  
+  - `REFRESH_TOKEN_TTL_SECONDS` as desired; `MESSENGER_TRANSPORT_DSN` if using async queue
+- One-time DB prep: run migrations before serving traffic  
+  ```bash
+  php bin/console doctrine:migrations:migrate --no-interaction --env=prod
+  ```
+- Container image/runtime: `thecodingmachine/php:8.4.3-v4-apache` (PHP 8.4 + Apache). Mount app at `/var/www/html` with `APACHE_DOCUMENT_ROOT=/var/www/html/public`.
+- Health/verification: a basic smoke check is `GET /` (redirects to landing/login). Auth APIs live under `/api/auth/*`; protected APIs under `/api/*` require JWT.
+- Logs: PHP/Apache logs to stdout/stderr in the container; surface via your orchestrator. Symfony app logs under `var/log` if persisted to a volume.
+
