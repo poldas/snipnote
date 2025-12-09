@@ -78,10 +78,8 @@ class NoteCollaboratorRepository extends ServiceEntityRepository
             ->select('1')
             ->where('c.note = :note')
             ->andWhere('c.user = :user')
-            ->setParameters([
-                'note' => $note,
-                'user' => $user,
-            ])
+            ->setParameter('note', $note)
+            ->setParameter('user', $user)
             ->getQuery()
             ->getOneOrNullResult();
     }

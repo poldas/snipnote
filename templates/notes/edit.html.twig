@@ -1,0 +1,142 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edytuj notatkę | Snipnote{% endblock %}
+
+{% block stylesheets %}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(145deg, #f8fafc 0%, #eef2ff 35%, #f8fafc 100%);
+            color: #0f172a;
+            font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        #toast-stack {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            z-index: 9999;
+        }
+        .sticky-action-bar {
+            position: sticky;
+            bottom: 0;
+            z-index: 30;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<main class="min-h-screen text-slate-900 pb-24">
+    <div aria-live="polite" class="sr-only" data-global-aria-live></div>
+    <div id="toast-stack" aria-live="polite"></div>
+
+    <div class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <header class="flex flex-wrap items-center justify-between gap-4">
+                <a href="/notes" class="inline-flex items-center gap-2 text-indigo-700 hover:text-indigo-900 transition-colors">
+                    <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-100 border border-indigo-200 text-lg font-semibold text-indigo-700">S</span>
+                    <div class="leading-tight">
+                        <div class="font-semibold text-indigo-900">Snipnote</div>
+                        <div class="text-xs text-indigo-700/80">Edycja notatki</div>
+                    </div>
+                </a>
+                <div class="flex items-center gap-3 text-sm font-semibold text-slate-700">
+                    <a href="{{ view.dashboardUrl ?? '/notes' }}" class="text-indigo-600 hover:text-indigo-500">
+                        ← Powrót do listy
+                    </a>
+                    <span class="text-slate-400">|</span>
+                    <span>{{ app.user.email ?? 'użytkownik' }}</span>
+                </div>
+            </header>
+        </div>
+    </div>
+
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        {% if view.error is defined %}
+            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6" role="alert" aria-live="assertive">
+                <h1 class="text-2xl font-bold text-slate-900 mb-2">Notatka niedostępna</h1>
+                <p class="text-sm text-slate-600 mb-4">{{ view.error }}</p>
+                <a href="{{ view.dashboardUrl ?? '/notes' }}" class="inline-flex items-center gap-2 text-indigo-700 hover:text-indigo-900 font-semibold">
+                    ← Wróć do listy notatek
+                </a>
+            </div>
+        {% else %}
+            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                <div class="px-6 py-5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-900">Edytuj notatkę</h1>
+                        <p class="mt-1 text-sm text-slate-500">Aktualizuj treść, widoczność i współedytorów.</p>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-slate-500">
+                        <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 border border-slate-200 font-semibold">
+                            ID: {{ view.noteId }}
+                        </span>
+                        <span class="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-3 py-1 border border-indigo-200 font-semibold text-indigo-700">
+                            {{ view.initialVisibility|capitalize }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="p-6 space-y-6">
+                    {% include 'notes/components/note_form.html.twig' with {
+                        csrfToken: view.csrfToken,
+                        initialTitle: view.initialTitle,
+                        initialDescription: view.initialDescription,
+                        initialLabels: view.initialLabels,
+                        initialVisibility: view.initialVisibility,
+                        noteId: view.noteId,
+                        submitUrl: view.patchUrl,
+                        redirectUrl: view.dashboardUrl,
+                        previewUrl: view.previewUrl,
+                        mode: 'edit'
+                    } %}
+
+                    {% if view.initialVisibility == 'public' and view.urlToken is not empty %}
+                        {% include 'notes/components/public_link_info.html.twig' with {
+                            publicUrl: view.publicUrl,
+                            visibility: view.initialVisibility
+                        } %}
+                    {% endif %}
+
+                    {% include 'notes/components/collaborators_panel.html.twig' with {
+                        noteId: view.noteId,
+                        items: view.collaborators,
+                        isOwner: view.isOwner,
+                        canEdit: view.canEdit,
+                        addUrl: '/api/notes/' ~ view.noteId ~ '/collaborators',
+                        redirectUrlOnSelfRemove: view.dashboardUrl,
+                        currentUserEmail: view.currentUserEmail
+                    } %}
+
+                    {% if view.isOwner %}
+                        {% include 'notes/components/danger_zone.html.twig' with {
+                            deleteUrl: view.deleteUrl,
+                            regenerateUrl: view.regenerateUrl,
+                            redirectUrl: view.dashboardUrl
+                        } %}
+                    {% endif %}
+                </div>
+            </div>
+
+            {% include 'notes/components/confirm_modal.html.twig' %}
+            {% include 'notes/components/sticky_action_bar.html.twig' with {
+                saveLabel: '💾 Zapisz zmiany'
+            } %}
+        {% endif %}
+    </div>
+</main>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="/js/edit_note.js" defer></script>
+    <script src="/js/note_form.js" defer></script>
+{% endblock %}
+
+

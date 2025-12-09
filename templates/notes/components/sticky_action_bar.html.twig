@@ -1,7 +1,12 @@
 {#
   StickyActionBar Component
   Bottom sticky bar with Preview and Save actions
+  Props:
+    - previewLabel (string, optional)
+    - saveLabel (string, optional)
 #}
+{% set previewLabel = previewLabel ?? '👁️ Podgląd' %}
+{% set saveLabel = saveLabel ?? '💾 Zapisz notatkę' %}
 <div class="sticky-action-bar bg-white/95 backdrop-blur border-t border-slate-200 shadow-lg">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div class="flex flex-wrap items-center justify-between gap-4">
@@ -31,14 +36,14 @@
                     data-preview-btn
                     class="px-5 py-2.5 text-sm font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    👁️ Podgląd
+                    {{ previewLabel }}
                 </button>
                 <button
                     type="button"
                     data-submit-btn
                     class="px-6 py-2.5 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                 >
-                    💾 Zapisz notatkę
+                    {{ saveLabel }}
                 </button>
             </div>
         </div>

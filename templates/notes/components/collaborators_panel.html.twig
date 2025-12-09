@@ -1,0 +1,101 @@
+{#
+  CollaboratorsPanel Component
+  Props:
+    - noteId (int)
+    - items: list of { id?, email, isOwner, isSelf, userId?, removeUrl? }
+    - isOwner (bool)
+    - canEdit (bool)
+    - addUrl (string)
+    - redirectUrlOnSelfRemove (string)
+    - currentUserEmail (string)
+#}
+<section 
+    class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4"
+    data-collaborators-panel
+    data-note-id="{{ noteId }}"
+    data-add-url="{{ addUrl }}"
+    data-redirect-url="{{ redirectUrlOnSelfRemove }}"
+    data-current-user-email="{{ currentUserEmail }}"
+    data-owner-email="{{ items is not empty and items[0].isOwner ? items[0].email : '' }}"
+    data-can-edit="{{ canEdit ? 'true' : 'false' }}"
+>
+    <div class="flex items-center justify-between gap-3">
+        <div>
+            <h2 class="text-lg font-semibold text-slate-900">Współedytorzy</h2>
+            <p class="text-sm text-slate-500">Osoby z dostępem do edycji tej notatki.</p>
+        </div>
+        {% if canEdit %}
+            <span class="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-3 py-1">
+                Dostęp do edycji
+            </span>
+        {% endif %}
+    </div>
+
+    <div data-collaborators-message class="hidden rounded-lg border px-3 py-2 text-sm flex items-start gap-2">
+        <span data-collaborators-message-text class="flex-1"></span>
+        <button type="button" data-collaborators-message-close aria-label="Zamknij komunikat" class="text-sm font-semibold text-slate-500 hover:text-slate-800">✕</button>
+    </div>
+
+    {% if canEdit %}
+        <form class="flex flex-col sm:flex-row gap-3" data-collaborator-add-form>
+            <div class="flex-1">
+                <label for="collaborator-email" class="sr-only">Email współedytora</label>
+                <input 
+                    type="email" 
+                    id="collaborator-email" 
+                    name="email"
+                    required
+                    data-collaborator-email
+                    class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-900 placeholder-slate-400"
+                    placeholder="email@przyklad.com"
+                >
+            </div>
+            <button
+                type="submit"
+                data-collaborator-add
+                class="inline-flex items-center justify-center px-4 py-2.5 bg-indigo-600 text-white rounded-lg font-semibold text-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors"
+            >
+                ➕ Dodaj współedytora
+            </button>
+        </form>
+        <p class="text-xs text-slate-500">Podaj email zalogowanego użytkownika, który ma otrzymać dostęp.</p>
+    {% endif %}
+
+    <div class="border border-slate-200 rounded-lg divide-y divide-slate-200" data-collaborators-list>
+        {% if items is empty %}
+            <div class="px-4 py-3 text-sm text-slate-500" data-collaborators-empty>Brak współedytorów.</div>
+        {% else %}
+            {% for collaborator in items %}
+                <div class="px-4 py-3 flex flex-wrap items-center justify-between gap-3" data-collaborator-row data-collaborator-id="{{ collaborator.id ?? 'owner' }}" data-collaborator-email="{{ collaborator.email|lower }}">
+                    <div class="space-y-0.5">
+                        <p class="font-semibold text-slate-900">{{ collaborator.email }}</p>
+                        <p class="text-xs text-slate-500">
+                            {% if collaborator.isOwner %}
+                                Właściciel
+                            {% elseif collaborator.isSelf %}
+                                Ty
+                            {% else %}
+                                Współedytor
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% if canEdit and not collaborator.isOwner %}
+                        <div class="flex items-center gap-2">
+                            <button
+                                type="button"
+                                class="text-sm text-red-600 hover:text-red-800 font-semibold"
+                                data-remove-collaborator
+                                data-remove-url="{{ collaborator.removeUrl }}"
+                                {% if collaborator.isSelf %}data-self-remove="true"{% endif %}
+                            >
+                                {% if collaborator.isSelf %}Usuń mój dostęp{% else %}Usuń{% endif %}
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</section>
+
+

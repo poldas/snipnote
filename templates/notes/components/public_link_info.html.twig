@@ -1,0 +1,39 @@
+{#
+  PublicLinkInfo Component
+  Displays current public URL with copy action
+  Props: publicUrl (string), visibility (string)
+#}
+<section class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+    <div class="flex items-start justify-between gap-3">
+        <div>
+            <p class="text-sm font-semibold text-slate-900">Publiczny link</p>
+            <p class="text-xs text-slate-500 mt-1">
+                Każdy, kto ma ten link, może zobaczyć notatkę (tylko do odczytu).
+            </p>
+        </div>
+        <span class="inline-flex items-center gap-2 rounded-full bg-emerald-50 text-emerald-700 px-3 py-1 text-xs font-semibold border border-emerald-200">
+            🌐 Publiczna
+        </span>
+    </div>
+    <div class="mt-3 flex flex-wrap items-center gap-3">
+        <a 
+            href="{{ publicUrl }}" 
+            class="font-mono text-sm text-indigo-700 hover:text-indigo-900 break-all underline decoration-dotted"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-public-link
+        >
+            {{ publicUrl }}
+        </a>
+        <button
+            type="button"
+            data-copy-public-link
+            data-link="{{ publicUrl }}"
+            class="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-colors"
+        >
+            📋 Kopiuj link
+        </button>
+    </div>
+</section>
+
+

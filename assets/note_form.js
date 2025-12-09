@@ -6,12 +6,87 @@
 (function () {
     'use strict';
 
+    const defaultConfig = {
+        mode: 'create',
+        noteId: null,
+        submitUrl: '/api/notes',
+        redirectUrl: '/notes',
+        previewUrl: '/api/notes/preview',
+        initialTitle: '',
+        initialDescription: '',
+        initialLabels: [],
+        initialVisibility: 'private'
+    };
+
+    // ========== DOM Elements ==========
+    const elements = {
+        form: null,
+        titleInput: null,
+        titleCounter: null,
+        titleError: null,
+        descriptionTextarea: null,
+        descriptionCounter: null,
+        descriptionError: null,
+        visibilityInputs: null,
+        visibilityDescription: null,
+        visibilityError: null,
+        tagInput: null,
+        addTagBtn: null,
+        tagsContainer: null,
+        labelsInput: null,
+        labelsError: null,
+        formErrors: null,
+        errorList: null,
+        previewBtn: null,
+        submitBtn: null,
+        statusIndicator: null,
+        savingSpinner: null,
+        previewSection: null,
+        previewContent: null,
+        closePreview: null,
+        markdownToolbar: null,
+        ariaLive: null,
+        csrfToken: null
+    };
+
+    function refreshElements() {
+        elements.form = document.querySelector('[data-note-form]');
+        elements.titleInput = document.querySelector('[data-title-input]');
+        elements.titleCounter = document.querySelector('[data-title-counter]');
+        elements.titleError = document.querySelector('[data-title-error]');
+        elements.descriptionTextarea = document.querySelector('[data-description-textarea]');
+        elements.descriptionCounter = document.querySelector('[data-description-counter]');
+        elements.descriptionError = document.querySelector('[data-description-error]');
+        elements.visibilityInputs = document.querySelectorAll('[data-visibility-input]');
+        elements.visibilityDescription = document.querySelector('[data-visibility-description]');
+        elements.visibilityError = document.querySelector('[data-visibility-error]');
+        elements.tagInput = document.querySelector('[data-tag-input]');
+        elements.addTagBtn = document.querySelector('[data-add-tag-btn]');
+        elements.tagsContainer = document.querySelector('[data-tags-container]');
+        elements.labelsInput = document.querySelector('[data-labels-input]');
+        elements.labelsError = document.querySelector('[data-labels-error]');
+        elements.formErrors = document.querySelector('[data-form-errors]');
+        elements.errorList = document.querySelector('[data-error-list]');
+        elements.previewBtn = document.querySelector('[data-preview-btn]');
+        elements.submitBtn = document.querySelector('[data-submit-btn]');
+        elements.statusIndicator = document.querySelector('[data-status-indicator]');
+        elements.savingSpinner = document.querySelector('[data-saving-spinner]');
+        elements.previewSection = document.querySelector('[data-preview-section]');
+        elements.previewContent = document.querySelector('[data-preview-content]');
+        elements.closePreview = document.querySelector('[data-close-preview]');
+        elements.markdownToolbar = document.querySelector('[data-markdown-toolbar]');
+        elements.ariaLive = document.querySelector('[data-global-aria-live]');
+        elements.csrfToken = document.querySelector('[data-csrf-token]');
+    }
+
+    const config = getFormConfig();
+
     // ========== State Management ==========
     const formState = {
         title: '',
         description: '',
         labels: [],
-        visibility: 'private',
+        visibility: config.initialVisibility || 'private',
         isSubmitting: false,
         isPreviewing: false,
         errors: {
@@ -21,37 +96,6 @@
             visibility: [],
             _request: []
         }
-    };
-
-    // ========== DOM Elements ==========
-    const elements = {
-        form: document.querySelector('[data-note-form]'),
-        titleInput: document.querySelector('[data-title-input]'),
-        titleCounter: document.querySelector('[data-title-counter]'),
-        titleError: document.querySelector('[data-title-error]'),
-        descriptionTextarea: document.querySelector('[data-description-textarea]'),
-        descriptionCounter: document.querySelector('[data-description-counter]'),
-        descriptionError: document.querySelector('[data-description-error]'),
-        visibilityInputs: document.querySelectorAll('[data-visibility-input]'),
-        visibilityDescription: document.querySelector('[data-visibility-description]'),
-        visibilityError: document.querySelector('[data-visibility-error]'),
-        tagInput: document.querySelector('[data-tag-input]'),
-        addTagBtn: document.querySelector('[data-add-tag-btn]'),
-        tagsContainer: document.querySelector('[data-tags-container]'),
-        labelsInput: document.querySelector('[data-labels-input]'),
-        labelsError: document.querySelector('[data-labels-error]'),
-        formErrors: document.querySelector('[data-form-errors]'),
-        errorList: document.querySelector('[data-error-list]'),
-        previewBtn: document.querySelector('[data-preview-btn]'),
-        submitBtn: document.querySelector('[data-submit-btn]'),
-        statusIndicator: document.querySelector('[data-status-indicator]'),
-        savingSpinner: document.querySelector('[data-saving-spinner]'),
-        previewSection: document.querySelector('[data-preview-section]'),
-        previewContent: document.querySelector('[data-preview-content]'),
-        closePreview: document.querySelector('[data-close-preview]'),
-        markdownToolbar: document.querySelector('[data-markdown-toolbar]'),
-        ariaLive: document.querySelector('[data-global-aria-live]'),
-        csrfToken: document.querySelector('[data-csrf-token]')
     };
 
     // ========== Validation ==========
@@ -112,7 +156,7 @@
         if (errorElement && messages.length > 0) {
             errorElement.textContent = messages.join(', ');
             errorElement.classList.remove('hidden');
-            
+
             if (inputElement) {
                 inputElement.setAttribute('aria-invalid', 'true');
                 inputElement.classList.add('border-red-500', 'focus:ring-red-500');
@@ -120,7 +164,7 @@
         } else if (errorElement) {
             errorElement.textContent = '';
             errorElement.classList.add('hidden');
-            
+
             if (inputElement) {
                 inputElement.setAttribute('aria-invalid', 'false');
                 inputElement.classList.remove('border-red-500', 'focus:ring-red-500');
@@ -216,7 +260,7 @@
         formState.labels = deduplicateLabels(newLabels);
         updateLabelsInput();
         renderTags();
-        
+
         if (elements.tagInput) {
             elements.tagInput.value = '';
         }
@@ -257,7 +301,7 @@
 
         // Attach event listeners to remove buttons
         elements.tagsContainer.querySelectorAll('[data-remove-tag]').forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 const index = parseInt(this.getAttribute('data-remove-tag'), 10);
                 removeLabel(index);
             });
@@ -305,11 +349,11 @@
         }
 
         textarea.value = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
-        
+
         // Update state and counter
         formState.description = textarea.value;
         updateDescriptionCounter();
-        
+
         // Set cursor position
         const newPos = start + replacement.length;
         textarea.setSelectionRange(newPos, newPos);
@@ -343,29 +387,20 @@
     }
 
     // ========== API Integration ==========
-    function getAuthToken() {
-        // Try localStorage first
-        const local = localStorage.getItem('auth_token');
-        if (local) return local;
-        
-        // Fallback to cookie
-        const match = document.cookie.match(/(?:^|; )auth_token=([^;]+)/);
-        return match ? decodeURIComponent(match[1]) : null;
-    }
 
     function isTokenExpired(token) {
         if (!token) return true;
-        
+
         try {
             // Decode JWT payload (second part)
             const parts = token.split('.');
             if (parts.length !== 3) return true;
-            
+
             const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
-            
+
             // Check if exp exists and if it's in the future
             if (!payload.exp) return false; // No expiration
-            
+
             // Add 10 second buffer to account for clock drift
             return payload.exp <= (Date.now() / 1000) + 10;
         } catch (e) {
@@ -383,18 +418,6 @@
     }
 
     async function submitNote() {
-        // Check if token is expired before attempting
-        const token = getAuthToken();
-        if (!token) {
-            redirectToLogin('Brak tokenu autoryzacji. Zaloguj się.');
-            return;
-        }
-        
-        if (isTokenExpired(token)) {
-            redirectToLogin('Sesja wygasła. Zaloguj się ponownie.');
-            return;
-        }
-
         // Validate form
         const validation = validateForm();
         if (!validation.valid) {
@@ -426,27 +449,28 @@
             'Content-Type': 'application/json'
         };
 
-        headers['Authorization'] = `Bearer ${token}`;
-
         if (elements.csrfToken) {
             headers['X-CSRF-Token'] = elements.csrfToken.value;
         }
 
         try {
-            const response = await fetch('/api/notes', {
-                method: 'POST',
+            const targetUrl = config.submitUrl || (config.mode === 'edit' && config.noteId ? `/api/notes/${config.noteId}` : '/api/notes');
+            const method = config.mode === 'edit' ? 'PATCH' : 'POST';
+            const response = await fetch(targetUrl, {
+                method,
                 headers,
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload),
+                credentials: 'same-origin'
             });
 
             if (response.ok) {
                 const data = await response.json();
-                announce('Notatka została utworzona pomyślnie');
-                showToast('Notatka utworzona!', 'success');
-                
+                announce(config.mode === 'edit' ? 'Notatka została zaktualizowana' : 'Notatka została utworzona pomyślnie');
+                showToast(config.mode === 'edit' ? 'Zapisano zmiany!' : 'Notatka utworzona!', 'success');
+
                 // Redirect to dashboard or edit page
                 setTimeout(() => {
-                    window.location.href = '/notes';
+                    window.location.href = config.redirectUrl || '/notes';
                 }, 500);
                 return;
             }
@@ -457,14 +481,28 @@
                 return;
             }
 
+            if (response.status === 403) {
+                showToast('Brak uprawnień do zapisania tej notatki.', 'error');
+                announce('Brak uprawnień do zapisania tej notatki.');
+                return;
+            }
+
             if (response.status === 400) {
                 const errorData = await response.json();
                 if (errorData.errors) {
-                    formState.errors = errorData.errors;
-                    Object.entries(errorData.errors).forEach(([field, messages]) => {
-                        showFieldError(field, messages);
+                    formState.errors = Object.assign({}, {
+                        title: [],
+                        description: [],
+                        labels: [],
+                        visibility: [],
+                        _request: []
+                    }, errorData.errors);
+                    Object.entries(formState.errors).forEach(([field, messages]) => {
+                        if (Array.isArray(messages)) {
+                            showFieldError(field, messages);
+                        }
                     });
-                    showGlobalErrors(errorData.errors);
+                    showGlobalErrors(formState.errors);
                     announce('Formularz zawiera błędy walidacji');
                 }
                 return;
@@ -491,18 +529,6 @@
     }
 
     async function previewNote() {
-        // Check if token is expired before attempting
-        const token = getAuthToken();
-        if (!token) {
-            redirectToLogin('Brak tokenu autoryzacji. Zaloguj się.');
-            return;
-        }
-        
-        if (isTokenExpired(token)) {
-            redirectToLogin('Sesja wygasła. Zaloguj się ponownie.');
-            return;
-        }
-
         // Validate required fields
         const titleErrors = validateField('title', formState.title);
         const descriptionErrors = validateField('description', formState.description);
@@ -532,50 +558,73 @@
             'Content-Type': 'application/json'
         };
 
-        headers['Authorization'] = `Bearer ${token}`;
-
         try {
-            const response = await fetch('/api/notes/preview', {
+            const targetUrl = config.previewUrl || '/api/notes/preview';
+            const response = await fetch(targetUrl, {
                 method: 'POST',
                 headers,
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload),
+                credentials: 'same-origin'
             });
 
             if (response.ok) {
                 const data = await response.json();
-                if (elements.previewContent && data.html) {
-                    elements.previewContent.innerHTML = data.html;
+                const html = data?.data?.html;
+                if (html) {
+                    renderPreviewHtml(html);
+                    announce('Podgląd wygenerowany');
+                    return;
                 }
-                if (elements.previewSection) {
-                    elements.previewSection.classList.remove('hidden');
-                    elements.previewSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }
-                announce('Podgląd wygenerowany');
+                // Brak HTML w odpowiedzi – pokazujemy lokalny fallback
+                renderLocalPreview('Brak danych podglądu z serwera, użyto wersji lokalnej.');
                 return;
             }
 
-            // Fallback: Local markdown rendering (very basic)
-            if (elements.previewContent) {
-                const basicHtml = escapeHtml(formState.description)
-                    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-                    .replace(/`(.+?)`/g, '<code>$1</code>')
-                    .replace(/\n/g, '<br>');
-                elements.previewContent.innerHTML = `<h2>${escapeHtml(formState.title)}</h2><div>${basicHtml}</div>`;
+            if (response.status === 401 || response.status === 403) {
+                announce('Brak dostępu do podglądu.');
+                showToast('Brak dostępu do podglądu.', 'error');
+                formState.isPreviewing = false;
+                updateButtonStates();
+                return;
             }
-            if (elements.previewSection) {
-                elements.previewSection.classList.remove('hidden');
-                elements.previewSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-            announce('Podgląd wygenerowany (tryb lokalny)');
+
+            // Nieudana odpowiedź – pokaż komunikat i fallback
+            renderLocalPreview('Nie udało się pobrać podglądu, pokazano wersję lokalną.');
 
         } catch (error) {
             console.error('Preview error:', error);
-            showToast('Nie udało się wygenerować podglądu', 'error');
+            renderLocalPreview('Błąd podglądu, pokazano wersję lokalną.');
         } finally {
             formState.isPreviewing = false;
             updateButtonStates();
         }
+    }
+
+    function renderPreviewHtml(html) {
+        if (elements.previewContent) {
+            elements.previewContent.innerHTML = html;
+        }
+        if (elements.previewSection) {
+            elements.previewSection.classList.remove('hidden');
+            elements.previewSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+
+    function renderLocalPreview(message) {
+        if (elements.previewContent) {
+            const basicHtml = escapeHtml(formState.description)
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/`(.+?)`/g, '<code>$1</code>')
+                .replace(/\n/g, '<br>');
+            elements.previewContent.innerHTML = `<h2>${escapeHtml(formState.title || 'Podgląd')}</h2><div>${basicHtml || '<p class="text-slate-500">(Brak treści)</p>'}</div>`;
+        }
+        if (elements.previewSection) {
+            elements.previewSection.classList.remove('hidden');
+            elements.previewSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        announce(message);
+        showToast(message, 'info');
     }
 
     // ========== UI Updates ==========
@@ -637,7 +686,7 @@
     function initializeEventListeners() {
         // Title input
         if (elements.titleInput) {
-            elements.titleInput.addEventListener('input', function() {
+            elements.titleInput.addEventListener('input', function () {
                 formState.title = this.value;
                 updateTitleCounter();
                 clearFieldError('title');
@@ -650,7 +699,7 @@
 
         // Description textarea
         if (elements.descriptionTextarea) {
-            elements.descriptionTextarea.addEventListener('input', function() {
+            elements.descriptionTextarea.addEventListener('input', function () {
                 formState.description = this.value;
                 updateDescriptionCounter();
                 clearFieldError('description');
@@ -663,7 +712,7 @@
 
         // Visibility inputs
         elements.visibilityInputs.forEach(input => {
-            input.addEventListener('change', function() {
+            input.addEventListener('change', function () {
                 if (this.checked) {
                     formState.visibility = this.value;
                     updateVisibilityDescription(this.value);
@@ -683,14 +732,14 @@
 
         // Tag input
         if (elements.tagInput) {
-            elements.tagInput.addEventListener('keydown', function(e) {
+            elements.tagInput.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter' || e.key === ',') {
                     e.preventDefault();
                     addLabel(this.value);
                 }
             });
 
-            elements.tagInput.addEventListener('blur', function() {
+            elements.tagInput.addEventListener('blur', function () {
                 if (this.value.trim() !== '') {
                     addLabel(this.value);
                 }
@@ -699,7 +748,7 @@
 
         // Add tag button
         if (elements.addTagBtn) {
-            elements.addTagBtn.addEventListener('click', function() {
+            elements.addTagBtn.addEventListener('click', function () {
                 if (elements.tagInput && elements.tagInput.value.trim() !== '') {
                     addLabel(elements.tagInput.value);
                 }
@@ -711,7 +760,7 @@
 
         // Markdown toolbar
         if (elements.markdownToolbar) {
-            elements.markdownToolbar.addEventListener('click', function(e) {
+            elements.markdownToolbar.addEventListener('click', function (e) {
                 const button = e.target.closest('[data-md-action]');
                 if (button) {
                     const action = button.getAttribute('data-md-action');
@@ -732,7 +781,7 @@
 
         // Close preview
         if (elements.closePreview) {
-            elements.closePreview.addEventListener('click', function() {
+            elements.closePreview.addEventListener('click', function () {
                 if (elements.previewSection) {
                     elements.previewSection.classList.add('hidden');
                 }
@@ -740,7 +789,7 @@
         }
 
         // Keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function (e) {
             // Ctrl/Cmd + B for bold
             if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
                 e.preventDefault();
@@ -764,14 +813,78 @@
         });
     }
 
+    function applyInitialStateFromConfig() {
+        if (elements.titleInput) {
+            if (elements.titleInput.value === '' && config.initialTitle) {
+                elements.titleInput.value = config.initialTitle;
+            }
+            formState.title = elements.titleInput.value || config.initialTitle || '';
+            updateTitleCounter();
+        }
+
+        if (elements.descriptionTextarea) {
+            if (elements.descriptionTextarea.value === '' && config.initialDescription) {
+                elements.descriptionTextarea.value = config.initialDescription;
+            }
+            formState.description = elements.descriptionTextarea.value || config.initialDescription || '';
+            updateDescriptionCounter();
+        }
+
+        if (Array.isArray(config.initialLabels)) {
+            formState.labels = deduplicateLabels(config.initialLabels);
+            updateLabelsInput();
+            renderTags();
+        } else {
+            const parsedLabels = parseLabelsInputValue();
+            formState.labels = deduplicateLabels(parsedLabels);
+            updateLabelsInput();
+            renderTags();
+        }
+
+        if (config.initialVisibility) {
+            formState.visibility = config.initialVisibility;
+            updateVisibilityDescription(formState.visibility);
+            updateVisibilityLabels();
+        }
+    }
+
+    function getFormConfig() {
+        if (!elements.form || !elements.form.dataset.noteConfig) {
+            return defaultConfig;
+        }
+
+        try {
+            const parsed = JSON.parse(elements.form.dataset.noteConfig);
+            return Object.assign({}, defaultConfig, parsed || {});
+        } catch (error) {
+            console.warn('Nie udało się odczytać konfiguracji formularza', error);
+            return defaultConfig;
+        }
+    }
+
+    function parseLabelsInputValue() {
+        if (!elements.labelsInput || !elements.labelsInput.value) {
+            return [];
+        }
+
+        try {
+            const parsed = JSON.parse(elements.labelsInput.value);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+            console.warn('Nie udało się sparsować etykiet z ukrytego pola', error);
+            return [];
+        }
+    }
+
     // ========== Initialization ==========
     function init() {
+        refreshElements();
         console.log('Note form initialization started');
         console.log('Form element:', elements.form);
         console.log('Title input:', elements.titleInput);
         console.log('Description textarea:', elements.descriptionTextarea);
         console.log('Visibility inputs count:', elements.visibilityInputs.length);
-        
+
         // Check if form exists
         if (!elements.form) {
             console.error('Note form not found - missing [data-note-form] attribute');
@@ -790,6 +903,7 @@
             console.error('Visibility inputs not found - missing [data-visibility-input] attribute');
         }
 
+        applyInitialStateFromConfig();
         initializeEventListeners();
         updateButtonStates();
         announce('Formularz notatki gotowy do wypełnienia');

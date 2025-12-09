@@ -50,7 +50,7 @@
         type="hidden" 
         name="labels" 
         data-labels-input
-        value="[]"
+        value="{{ initialLabels is defined ? initialLabels|json_encode|e('html_attr') : '[]' }}"
     >
 
     <div 

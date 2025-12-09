@@ -6,12 +6,87 @@
 (function () {
     'use strict';
 
+    const defaultConfig = {
+        mode: 'create',
+        noteId: null,
+        submitUrl: '/api/notes',
+        redirectUrl: '/notes',
+        previewUrl: '/api/notes/preview',
+        initialTitle: '',
+        initialDescription: '',
+        initialLabels: [],
+        initialVisibility: 'private'
+    };
+
+    // ========== DOM Elements ==========
+    const elements = {
+        form: null,
+        titleInput: null,
+        titleCounter: null,
+        titleError: null,
+        descriptionTextarea: null,
+        descriptionCounter: null,
+        descriptionError: null,
+        visibilityInputs: null,
+        visibilityDescription: null,
+        visibilityError: null,
+        tagInput: null,
+        addTagBtn: null,
+        tagsContainer: null,
+        labelsInput: null,
+        labelsError: null,
+        formErrors: null,
+        errorList: null,
+        previewBtn: null,
+        submitBtn: null,
+        statusIndicator: null,
+        savingSpinner: null,
+        previewSection: null,
+        previewContent: null,
+        closePreview: null,
+        markdownToolbar: null,
+        ariaLive: null,
+        csrfToken: null
+    };
+
+    function refreshElements() {
+        elements.form = document.querySelector('[data-note-form]');
+        elements.titleInput = document.querySelector('[data-title-input]');
+        elements.titleCounter = document.querySelector('[data-title-counter]');
+        elements.titleError = document.querySelector('[data-title-error]');
+        elements.descriptionTextarea = document.querySelector('[data-description-textarea]');
+        elements.descriptionCounter = document.querySelector('[data-description-counter]');
+        elements.descriptionError = document.querySelector('[data-description-error]');
+        elements.visibilityInputs = document.querySelectorAll('[data-visibility-input]');
+        elements.visibilityDescription = document.querySelector('[data-visibility-description]');
+        elements.visibilityError = document.querySelector('[data-visibility-error]');
+        elements.tagInput = document.querySelector('[data-tag-input]');
+        elements.addTagBtn = document.querySelector('[data-add-tag-btn]');
+        elements.tagsContainer = document.querySelector('[data-tags-container]');
+        elements.labelsInput = document.querySelector('[data-labels-input]');
+        elements.labelsError = document.querySelector('[data-labels-error]');
+        elements.formErrors = document.querySelector('[data-form-errors]');
+        elements.errorList = document.querySelector('[data-error-list]');
+        elements.previewBtn = document.querySelector('[data-preview-btn]');
+        elements.submitBtn = document.querySelector('[data-submit-btn]');
+        elements.statusIndicator = document.querySelector('[data-status-indicator]');
+        elements.savingSpinner = document.querySelector('[data-saving-spinner]');
+        elements.previewSection = document.querySelector('[data-preview-section]');
+        elements.previewContent = document.querySelector('[data-preview-content]');
+        elements.closePreview = document.querySelector('[data-close-preview]');
+        elements.markdownToolbar = document.querySelector('[data-markdown-toolbar]');
+        elements.ariaLive = document.querySelector('[data-global-aria-live]');
+        elements.csrfToken = document.querySelector('[data-csrf-token]');
+    }
+
+    const config = getFormConfig();
+
     // ========== State Management ==========
     const formState = {
         title: '',
         description: '',
         labels: [],
-        visibility: 'private',
+        visibility: config.initialVisibility || 'private',
         isSubmitting: false,
         isPreviewing: false,
         errors: {
@@ -21,37 +96,6 @@
             visibility: [],
             _request: []
         }
-    };
-
-    // ========== DOM Elements ==========
-    const elements = {
-        form: document.querySelector('[data-note-form]'),
-        titleInput: document.querySelector('[data-title-input]'),
-        titleCounter: document.querySelector('[data-title-counter]'),
-        titleError: document.querySelector('[data-title-error]'),
-        descriptionTextarea: document.querySelector('[data-description-textarea]'),
-        descriptionCounter: document.querySelector('[data-description-counter]'),
-        descriptionError: document.querySelector('[data-description-error]'),
-        visibilityInputs: document.querySelectorAll('[data-visibility-input]'),
-        visibilityDescription: document.querySelector('[data-visibility-description]'),
-        visibilityError: document.querySelector('[data-visibility-error]'),
-        tagInput: document.querySelector('[data-tag-input]'),
-        addTagBtn: document.querySelector('[data-add-tag-btn]'),
-        tagsContainer: document.querySelector('[data-tags-container]'),
-        labelsInput: document.querySelector('[data-labels-input]'),
-        labelsError: document.querySelector('[data-labels-error]'),
-        formErrors: document.querySelector('[data-form-errors]'),
-        errorList: document.querySelector('[data-error-list]'),
-        previewBtn: document.querySelector('[data-preview-btn]'),
-        submitBtn: document.querySelector('[data-submit-btn]'),
-        statusIndicator: document.querySelector('[data-status-indicator]'),
-        savingSpinner: document.querySelector('[data-saving-spinner]'),
-        previewSection: document.querySelector('[data-preview-section]'),
-        previewContent: document.querySelector('[data-preview-content]'),
-        closePreview: document.querySelector('[data-close-preview]'),
-        markdownToolbar: document.querySelector('[data-markdown-toolbar]'),
-        ariaLive: document.querySelector('[data-global-aria-live]'),
-        csrfToken: document.querySelector('[data-csrf-token]')
     };
 
     // ========== Validation ==========
@@ -410,8 +454,10 @@
         }
 
         try {
-            const response = await fetch('/api/notes', {
-                method: 'POST',
+            const targetUrl = config.submitUrl || (config.mode === 'edit' && config.noteId ? `/api/notes/${config.noteId}` : '/api/notes');
+            const method = config.mode === 'edit' ? 'PATCH' : 'POST';
+            const response = await fetch(targetUrl, {
+                method,
                 headers,
                 body: JSON.stringify(payload),
                 credentials: 'same-origin'
@@ -419,12 +465,12 @@
 
             if (response.ok) {
                 const data = await response.json();
-                announce('Notatka została utworzona pomyślnie');
-                showToast('Notatka utworzona!', 'success');
+                announce(config.mode === 'edit' ? 'Notatka została zaktualizowana' : 'Notatka została utworzona pomyślnie');
+                showToast(config.mode === 'edit' ? 'Zapisano zmiany!' : 'Notatka utworzona!', 'success');
 
                 // Redirect to dashboard or edit page
                 setTimeout(() => {
-                    window.location.href = '/notes';
+                    window.location.href = config.redirectUrl || '/notes';
                 }, 500);
                 return;
             }
@@ -435,14 +481,28 @@
                 return;
             }
 
+            if (response.status === 403) {
+                showToast('Brak uprawnień do zapisania tej notatki.', 'error');
+                announce('Brak uprawnień do zapisania tej notatki.');
+                return;
+            }
+
             if (response.status === 400) {
                 const errorData = await response.json();
                 if (errorData.errors) {
-                    formState.errors = errorData.errors;
-                    Object.entries(errorData.errors).forEach(([field, messages]) => {
-                        showFieldError(field, messages);
+                    formState.errors = Object.assign({}, {
+                        title: [],
+                        description: [],
+                        labels: [],
+                        visibility: [],
+                        _request: []
+                    }, errorData.errors);
+                    Object.entries(formState.errors).forEach(([field, messages]) => {
+                        if (Array.isArray(messages)) {
+                            showFieldError(field, messages);
+                        }
                     });
-                    showGlobalErrors(errorData.errors);
+                    showGlobalErrors(formState.errors);
                     announce('Formularz zawiera błędy walidacji');
                 }
                 return;
@@ -499,7 +559,8 @@
         };
 
         try {
-            const response = await fetch('/api/notes/preview', {
+            const targetUrl = config.previewUrl || '/api/notes/preview';
+            const response = await fetch(targetUrl, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify(payload),
@@ -516,6 +577,14 @@
                 }
                 // Brak HTML w odpowiedzi – pokazujemy lokalny fallback
                 renderLocalPreview('Brak danych podglądu z serwera, użyto wersji lokalnej.');
+                return;
+            }
+
+            if (response.status === 401 || response.status === 403) {
+                announce('Brak dostępu do podglądu.');
+                showToast('Brak dostępu do podglądu.', 'error');
+                formState.isPreviewing = false;
+                updateButtonStates();
                 return;
             }
 
@@ -744,8 +813,72 @@
         });
     }
 
+    function applyInitialStateFromConfig() {
+        if (elements.titleInput) {
+            if (elements.titleInput.value === '' && config.initialTitle) {
+                elements.titleInput.value = config.initialTitle;
+            }
+            formState.title = elements.titleInput.value || config.initialTitle || '';
+            updateTitleCounter();
+        }
+
+        if (elements.descriptionTextarea) {
+            if (elements.descriptionTextarea.value === '' && config.initialDescription) {
+                elements.descriptionTextarea.value = config.initialDescription;
+            }
+            formState.description = elements.descriptionTextarea.value || config.initialDescription || '';
+            updateDescriptionCounter();
+        }
+
+        if (Array.isArray(config.initialLabels)) {
+            formState.labels = deduplicateLabels(config.initialLabels);
+            updateLabelsInput();
+            renderTags();
+        } else {
+            const parsedLabels = parseLabelsInputValue();
+            formState.labels = deduplicateLabels(parsedLabels);
+            updateLabelsInput();
+            renderTags();
+        }
+
+        if (config.initialVisibility) {
+            formState.visibility = config.initialVisibility;
+            updateVisibilityDescription(formState.visibility);
+            updateVisibilityLabels();
+        }
+    }
+
+    function getFormConfig() {
+        if (!elements.form || !elements.form.dataset.noteConfig) {
+            return defaultConfig;
+        }
+
+        try {
+            const parsed = JSON.parse(elements.form.dataset.noteConfig);
+            return Object.assign({}, defaultConfig, parsed || {});
+        } catch (error) {
+            console.warn('Nie udało się odczytać konfiguracji formularza', error);
+            return defaultConfig;
+        }
+    }
+
+    function parseLabelsInputValue() {
+        if (!elements.labelsInput || !elements.labelsInput.value) {
+            return [];
+        }
+
+        try {
+            const parsed = JSON.parse(elements.labelsInput.value);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+            console.warn('Nie udało się sparsować etykiet z ukrytego pola', error);
+            return [];
+        }
+    }
+
     // ========== Initialization ==========
     function init() {
+        refreshElements();
         console.log('Note form initialization started');
         console.log('Form element:', elements.form);
         console.log('Title input:', elements.titleInput);
@@ -770,6 +903,7 @@
             console.error('Visibility inputs not found - missing [data-visibility-input] attribute');
         }
 
+        applyInitialStateFromConfig();
         initializeEventListeners();
         updateButtonStates();
         announce('Formularz notatki gotowy do wypełnienia');
