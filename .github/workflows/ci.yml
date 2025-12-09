@@ -36,8 +36,8 @@ jobs:
 
       - name: Prepare env files
         run: |
-          cp env.dev .env
-          cp env.test .env.test
+          cp env.example .env
+          cp env.test.example .env.test
           # Ensure host DB hostname (localhost) for CI services
           sed -i 's@database:5432@localhost:5432@g' .env .env.test
 
