@@ -4,6 +4,7 @@ ARG APP_ENV=prod
 
 ENV APP_ENV=${APP_ENV} \
     APP_DEBUG=0 \
+    APP_RUNTIME_OPTIONS={\"disable_dotenv\":true} \
     COMPOSER_ALLOW_SUPERUSER=1 \
     APACHE_DOCUMENT_ROOT=/var/www/html/public
 
@@ -29,6 +30,10 @@ COPY docker/php-opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 FROM base AS builder
+# Ensure prod env during build-time console commands (Dotenv disabled)
+ENV APP_ENV=prod \
+    APP_DEBUG=0 \
+    APP_RUNTIME_OPTIONS={\"disable_dotenv\":true}
 COPY . .
 RUN --mount=type=cache,target=/tmp/composer-cache \
     composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader --no-scripts \
