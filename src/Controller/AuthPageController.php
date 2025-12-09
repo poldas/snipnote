@@ -40,7 +40,7 @@ final class AuthPageController extends AbstractController
 
         return $this->render('auth/landing.html.twig', [
             'hero' => [
-                'headline' => 'Notuj. Udostępniaj. Współpracuj w Snipnote.',
+                'headline' => 'Notujj. Udostępniaj. Współpracuj w Snipnote.',
                 'subcopy' => 'Szybkie, bezpieczne i przejrzyste notatki, które łatwo udostępnisz innym.',
             ],
             'navSwitch' => $this->navToLogin(),
