@@ -101,7 +101,7 @@ jobs:
 
       - name: Start PHP dev server
         run: |
-          APP_ENV=dev APP_DEBUG=0 php -S 0.0.0.0:8080 -t public > /tmp/php-server.log 2>&1 &
+          APP_ENV=test APP_DEBUG=0 php -S 0.0.0.0:8080 -t public > /tmp/php-server.log 2>&1 &
           sleep 5
 
       - name: Run Playwright E2E
@@ -109,11 +109,17 @@ jobs:
           E2E_BASE_URL: http://localhost:8080
         run: npm run e2e
 
+      - name: Print PHP server log on failure
+        if: failure()
+        run: |
+          echo "===== /tmp/php-server.log ====="
+          cat /tmp/php-server.log || true
+
       - name: Upload coverage artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: phpunit-coverage
+          name: phpunit-coverage-${{ github.run_attempt }}
           path: var/coverage/clover.xml
 
   e2e:
@@ -197,7 +203,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-report-${{ github.run_attempt }}
           path: playwright-report
 
       - name: Upload Playwright report
