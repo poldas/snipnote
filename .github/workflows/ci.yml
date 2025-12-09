@@ -2,6 +2,7 @@ name: CI
 
 on:
   push:
+    branches: [ "rc" ]
 
 jobs:
   build-test:
@@ -33,6 +34,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Prepare env files
+        run: |
+          cp env.dev .env
+          cp env.test .env.test
+          # Ensure host DB hostname (localhost) for CI services
+          sed -i 's@database:5432@localhost:5432@g' .env .env.test
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -55,13 +63,6 @@ jobs:
 
       - name: Composer install
         run: composer install --no-interaction --prefer-dist
-
-      - name: Prepare env files
-        run: |
-          cp env.example .env
-          cp env.test.example .env.test
-          # Ensure host DB hostname (localhost) for CI services
-          sed -i 's@database:5432@localhost:5432@g' .env .env.test
 
       - name: Lint PHP (syntax + composer)
         run: |
