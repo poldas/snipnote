@@ -31,7 +31,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 FROM base AS builder
 COPY . .
 RUN --mount=type=cache,target=/tmp/composer-cache \
-    composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+    composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader --no-scripts
 # Uncomment if you want compiled env for prod
 # RUN composer dump-env prod
 # Uncomment if assets should be built
@@ -44,6 +44,10 @@ COPY --from=builder /var/www/html /var/www/html
 RUN mkdir -p /var/www/html/var \
  && chown -R www-data:www-data /var/www/html/var
 
+# Runtime entrypoint: warm cache with real env, then start Apache
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # Drop build-time tools from runtime image to reduce surface
 RUN apt-get purge -y git unzip \
  && apt-get autoremove -y \
@@ -55,5 +59,7 @@ USER www-data
 EXPOSE 80
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD curl -fsS http://127.0.0.1/ || exit 1
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["apache2-foreground"]
 
 
