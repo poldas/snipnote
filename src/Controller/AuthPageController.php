@@ -50,6 +50,10 @@ final class AuthPageController extends AbstractController
     #[Route('/login', name: 'app_login_page', methods: ['GET', 'POST'])]
     public function login(Request $request): Response
     {
+        if ($this->getUser()) {
+            return $this->redirect('/notes');
+        }
+
         $redirect = $request->query->get('redirect');
 
         return $this->render('auth/login.html.twig', [
@@ -66,6 +70,10 @@ final class AuthPageController extends AbstractController
     #[Route('/register', name: 'app_register_page', methods: ['GET', 'POST'])]
     public function register(Request $request): Response
     {
+        if ($this->getUser()) {
+            return $this->redirect('/notes');
+        }
+
         if ($request->isMethod('POST')) {
             $submittedToken = (string) $request->request->get('_csrf_token', '');
             if (!$this->csrfTokenManager->isTokenValid(new CsrfToken('register', $submittedToken))) {

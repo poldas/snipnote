@@ -1,0 +1,59 @@
+FROM php:8.4-apache-bookworm AS base
+
+ARG APP_ENV=prod
+
+ENV APP_ENV=${APP_ENV} \
+    APP_DEBUG=0 \
+    COMPOSER_ALLOW_SUPERUSER=1 \
+    APACHE_DOCUMENT_ROOT=/var/www/html/public
+
+WORKDIR /var/www/html
+
+# Apache vhost config
+COPY docker/apache/snipnote.conf /etc/apache2/sites-available/snipnote.conf
+
+# System deps + PHP extensions
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      git unzip curl libpq-dev libicu-dev libzip-dev zlib1g-dev \
+ && docker-php-ext-install -j$(nproc) intl pdo_pgsql zip opcache \
+ && a2enmod rewrite headers \
+ && a2dissite 000-default \
+ && a2ensite snipnote \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+# Opcache tuned for production
+COPY docker/php-opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+FROM base AS builder
+COPY . .
+RUN --mount=type=cache,target=/tmp/composer-cache \
+    composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+# Uncomment if you want compiled env for prod
+# RUN composer dump-env prod
+# Uncomment if assets should be built
+# RUN npm ci && npm run build
+
+FROM base AS runtime
+COPY --from=builder /var/www/html /var/www/html
+
+# Ensure writable cache/logs
+RUN mkdir -p /var/www/html/var \
+ && chown -R www-data:www-data /var/www/html/var
+
+# Drop build-time tools from runtime image to reduce surface
+RUN apt-get purge -y git unzip \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+USER www-data
+
+EXPOSE 80
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD curl -fsS http://127.0.0.1/ || exit 1
+
+

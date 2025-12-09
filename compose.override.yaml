@@ -8,8 +8,8 @@ services:
 
   app:
     environment:
-      MAILER_DSN: smtp://mailer:1025
-      MAILER_FROM: no-reply@snipnote.local
+      MAILER_DSN: ${MAILER_DSN}
+      MAILER_FROM: ${MAILER_FROM}
     depends_on:
       mailer:
         condition: service_started

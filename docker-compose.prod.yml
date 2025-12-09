@@ -1,0 +1,77 @@
+services:
+  traefik:
+    image: traefik:v3.1
+    entrypoint: sh -c "touch /letsencrypt/acme.json && chmod 600 /letsencrypt/acme.json && exec traefik"
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedByDefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--certificatesresolvers.letsencrypt.acme.email=${TRAEFIK_ACME_EMAIL}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-letsencrypt:/letsencrypt
+    networks:
+      - proxy
+    restart: unless-stopped
+
+  app:
+    image: ${APP_IMAGE:-ghcr.io/poldas/snipnote:prod}
+    environment:
+      APP_ENV: prod
+      APP_DEBUG: 0
+      APP_SECRET: ${APP_SECRET}
+      DATABASE_URL: ${DATABASE_URL}
+      MAILER_DSN: ${MAILER_DSN}
+      JWT_SECRET: ${JWT_SECRET}
+      VERIFY_EMAIL_SECRET: ${VERIFY_EMAIL_SECRET}
+      MAILER_FROM: ${MAILER_FROM}
+      DEFAULT_URI: https://${TRAEFIK_DOMAIN}
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES}
+      TRUSTED_HOSTS: ${TRAEFIK_DOMAIN}
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.snipnote.rule: Host(`${TRAEFIK_DOMAIN}`)
+      traefik.http.routers.snipnote.entrypoints: websecure
+      traefik.http.routers.snipnote.tls: "true"
+      traefik.http.routers.snipnote.tls.certresolver: letsencrypt
+      traefik.http.services.snipnote.loadbalancer.server.port: "80"
+      traefik.http.services.snipnote.loadbalancer.healthcheck.path: /
+      traefik.http.services.snipnote.loadbalancer.healthcheck.interval: 10s
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - proxy
+    restart: unless-stopped
+
+  database:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - database_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"${POSTGRES_USER}\" -d \"${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+networks:
+  proxy:
+    driver: bridge
+
+volumes:
+  database_data:
+  traefik-letsencrypt:
+
