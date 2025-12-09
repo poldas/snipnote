@@ -4,6 +4,9 @@ doctrine:
         types:
             datetimetz_immutable: App\DBAL\Type\DateTimeTzMicrosecondType
             text_array: App\DBAL\Type\TextArrayType
+        mapping_types:
+            _text: text
+            note_visibility: string
 
         # IMPORTANT: You MUST configure your server version,
         # either here or in the DATABASE_URL env var (see .env file)

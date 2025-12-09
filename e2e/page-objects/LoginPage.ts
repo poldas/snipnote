@@ -4,7 +4,7 @@ import { expect, Page } from '@playwright/test';
  * Login page (auth layout).
  */
 export class LoginPage {
-    constructor(private readonly page: Page) {}
+    constructor(private readonly page: Page) { }
 
     async goto() {
         const response = await this.page.goto('/login');

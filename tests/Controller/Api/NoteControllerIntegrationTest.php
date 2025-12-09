@@ -73,7 +73,7 @@ final class NoteControllerIntegrationTest extends WebTestCase
             'q' => 'hello',
             'label' => ['work', 'dev'],
         ], server: [
-            'HTTP_Authorization' => 'Bearer ' . $this->createJwtForUser($user, 'testsecret'),
+            'HTTP_Authorization' => 'Bearer ' . $this->createJwtForUser($user),
         ]);
 
         $response = $client->getResponse();
@@ -88,11 +88,6 @@ final class NoteControllerIntegrationTest extends WebTestCase
 
     private function createAuthenticatedClient(User $user, ?NotesQueryService $notesQueryService = null)
     {
-        $secret = 'testsecret';
-        putenv('JWT_SECRET=' . $secret);
-        $_ENV['JWT_SECRET'] = $secret;
-        $_SERVER['JWT_SECRET'] = $secret;
-
         $client = static::createClient();
         $container = static::getContainer();
 
@@ -107,8 +102,9 @@ final class NoteControllerIntegrationTest extends WebTestCase
         return $client;
     }
 
-    private function createJwtForUser(User $user, string $secret): string
+    private function createJwtForUser(User $user): string
     {
+        $secret = $_ENV['JWT_SECRET'] ?? 'test-jwt-secret';
         $header = $this->base64UrlEncode(json_encode(['alg' => 'HS256', 'typ' => 'JWT'], JSON_THROW_ON_ERROR));
         $payload = $this->base64UrlEncode(json_encode([
             'sub' => $user->getUuid(),
