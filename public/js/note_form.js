@@ -18,6 +18,9 @@
         initialVisibility: 'private'
     };
 
+    // Filled lazily in init() once the form element is available
+    let config = defaultConfig;
+
     // ========== DOM Elements ==========
     const elements = {
         form: null,
@@ -78,8 +81,6 @@
         elements.ariaLive = document.querySelector('[data-global-aria-live]');
         elements.csrfToken = document.querySelector('[data-csrf-token]');
     }
-
-    const config = getFormConfig();
 
     // ========== State Management ==========
     const formState = {
@@ -879,6 +880,8 @@
     // ========== Initialization ==========
     function init() {
         refreshElements();
+        config = getFormConfig();
+
         console.log('Note form initialization started');
         console.log('Form element:', elements.form);
         console.log('Title input:', elements.titleInput);

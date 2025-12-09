@@ -28,8 +28,11 @@ Docker Compose: php-fpm 8.2, nginx, postgres (+ ewentualnie mailhog)
 Konfiguracja kompatybilna z uruchomieniem CLI: `php bin/console`, `phpunit`, `phpstan`
 
 #### Testy / jakość
-PHPUnit + Symfony test tools
+PHPUnit + Symfony Test Pack
 DoctrineFixturesBundle / własne seedy do danych testowych
 PHP-CS-Fixer (PSR-12)
 PHPStan na poziomie 5
+E2E Playwright
 Symfony Profiler + Monolog dla debugowania/obserwowalności
+Testy integracyjne na osobnej bazie postgres
+Uruchamiane przez github actionw / workflow

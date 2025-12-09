@@ -1,0 +1,15 @@
+Przygotujemy się do scenariusza testu e2e.
+
+1. Wejdź na stronę główną "/"
+2. W formularzu logowania kliknij link: Załóż konto "/register"
+3. Następnie na stronie "/register" w formularzu logowania kliknij w link: Zaloguj się "/login"
+4. Następnie na stronie "/login" w formularzu logowania kliknij w link: nie pamiętasz hasła? "/forgot-password"
+5.Następnie na stronie "/forgot-password" w formularzu logowania kliknij w link: Zaloguj się "/login"
+6. Następnie na stronie "/login" kliknij w logo "/", aby przejść na stronę główną
+
+
+Przejdź przez kluczowe komponenty widoku powiązane z tym scenariuszem dodając atrybuty data-test-id dla o wartościach dopasowanych do znaczenia danego elementu lub akcji. 
+
+
+------
+Dla kluczowych elementów utwórz dedykowane klasy wg wzorca POM @playwright.md

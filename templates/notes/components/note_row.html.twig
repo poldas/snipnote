@@ -30,7 +30,7 @@
             </div>
         {% endif %}
         <div class="text-xs text-slate-500">
-            Utworzono: {{ note.createdAt|date('d.m.Y') }}
+            Utworzono: {{ note.createdAt|date('d.m.Y H:i:s') }}
         </div>
         {% if publicHref %}
             <div class="text-xs text-slate-500 break-all">

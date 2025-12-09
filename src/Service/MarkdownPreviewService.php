@@ -18,6 +18,7 @@ final class MarkdownPreviewService
 
     public function renderPreview(GenerateMarkdownPreviewCommand $command): NotesMarkdownPreviewResponseDto
     {
+
         $rawHtml = $this->markdownConverter->convert($command->description)->getContent();
         $safeHtml = $this->sanitizer->sanitize($rawHtml);
 

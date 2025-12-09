@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: app
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: app
+        options: >-
+          --health-cmd="pg_isready -U app -d app"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      APP_ENV: test
+      APP_DEBUG: 0
+      APP_SECRET: ci-app-secret
+      JWT_SECRET: ci-jwt-secret
+      DATABASE_URL: "postgresql://app:app@localhost:5432/app?serverVersion=16&charset=utf8"
+      MAILER_DSN: null://null
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_pgsql, intl, zip
+          coverage: xdebug
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Cache Composer deps
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Composer install
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Prepare env files
+        run: |
+          cp env.example .env
+          cp env.test.example .env.test
+          # Ensure host DB hostname (localhost) for CI services
+          sed -i 's@database:5432@localhost:5432@g' .env .env.test
+
+      - name: Lint PHP (syntax + composer)
+        run: |
+          composer validate --strict
+          find src tests -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Prepare database (test)
+        run: |
+          php bin/console doctrine:database:create --if-not-exists --env=test
+          php bin/console doctrine:migrations:migrate --no-interaction --env=test
+
+      - name: PHPUnit with coverage
+        run: ./bin/phpunit --coverage-clover var/coverage/clover.xml
+
+      - name: Setup Playwright deps
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Start PHP dev server
+        run: |
+          APP_ENV=dev APP_DEBUG=0 php -S 0.0.0.0:8080 -t public > /tmp/php-server.log 2>&1 &
+          sleep 5
+
+      - name: Run Playwright E2E
+        env:
+          E2E_BASE_URL: http://localhost:8080
+        run: npm run e2e
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phpunit-coverage
+          path: var/coverage/clover.xml
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+
