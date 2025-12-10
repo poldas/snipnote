@@ -13,6 +13,7 @@ Data: 2025-12-10
 | 3 | Security Headers (HSTS, XSS, etc) | 🟡 ŚREDNIE | Blokuje iframe | ⚠️ TAK (iframe) |
 | 4 | `no-new-privileges` dla wszystkich | 🟢 NISKIE | Brak | ❌ NIE |
 | 5 | Resource limits | 🟡 ŚREDNIE | Może wymagać tuning | ⚠️ TAK (jeśli za małe) |
+| 6 | `read_only` filesystem | 🔴 WYSOKIE | Wymaga testów | ⚠️ TAK - **ODŁOŻONE** |
 
 ---
 
@@ -211,6 +212,43 @@ watch -n 5 'docker stats --no-stream'
 - PHP workery działają jako `www-data`
 - Pliki aplikacji są owned przez `www-data` (linia 52 w Dockerfile)
 - Tylko master proces Apache działa jako root (potrzebny do bindowania portu 80)
+
+---
+
+### ⚠️ `read_only: true` filesystem (ODŁOŻONE NA PÓŹNIEJ)
+
+**Dlaczego ODŁOŻONE:**
+- Wymaga precyzyjnej konfiguracji tmpfs i volumes
+- Na produkcji wystąpił błąd: "Unable to write in /var/www/html/var/cache/prod"
+- Wymaga dokładnych testów lokalnych przed wdrożeniem
+- Za dużo zmian naraz może złamać aplikację
+
+**Konfiguracja która jest potrzebna:**
+```yaml
+read_only: true
+tmpfs:
+  - /tmp:size=100M,mode=1777
+  - /var/run:size=10M,mode=755
+  - /var/log/apache2:size=50M,mode=755
+volumes:
+  - app_cache:/var/www/html/var
+```
+
+**Oraz volume w sekcji volumes:**
+```yaml
+volumes:
+  database_data:
+  traefik-letsencrypt:
+  app_cache:  # ← Dodać
+```
+
+**Plan wdrożenia:**
+1. ✅ Naprawiono entrypoint.sh (dodano mkdir i chown)
+2. ⏳ Przetestować lokalnie z read_only
+3. ⏳ Deploy na staging (jeśli dostępny)
+4. ⏳ Deploy na produkcję w godzinach low traffic
+
+**Status:** Zakomentowane w docker-compose.prod.yml jako TODO
 
 ---
 

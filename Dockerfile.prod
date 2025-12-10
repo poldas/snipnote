@@ -18,6 +18,7 @@ WORKDIR /var/www/html
 
 # Apache vhost config
 COPY docker/apache/snipnote.conf /etc/apache2/sites-available/snipnote.conf
+COPY docker/apache/security.conf /etc/apache2/conf-available/security.conf
 
 # System deps + PHP extensions
 RUN apt-get update \
@@ -27,6 +28,7 @@ RUN apt-get update \
  && a2enmod rewrite headers \
  && a2dissite 000-default \
  && a2ensite snipnote \
+ && a2enconf security \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 

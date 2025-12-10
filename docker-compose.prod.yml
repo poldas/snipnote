@@ -24,7 +24,6 @@ services:
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
       - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
       - "--entrypoints.websecure.forwardedHeaders.trustedIPs=172.16.0.0/12"
-      - "--entrypoints.websecure.http.tls.minVersion=VersionTLS12"
       - "--certificatesresolvers.letsencrypt.acme.email=${TRAEFIK_ACME_EMAIL}"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
@@ -43,7 +42,14 @@ services:
 
   app:
     image: ${APP_IMAGE:-ghcr.io/poldas/snipnote}:${APP_IMAGE_TAG:-prod}
-    read_only: true
+    # TODO: Enable read_only after testing with proper tmpfs/volumes configuration
+    # read_only: true
+    # tmpfs:
+    #   - /tmp:size=100M,mode=1777
+    #   - /var/run:size=10M,mode=755
+    #   - /var/log/apache2:size=50M,mode=755
+    # volumes:
+    #   - app_cache:/var/www/html/var
     deploy:
       resources:
         limits:
