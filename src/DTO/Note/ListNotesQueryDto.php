@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\DTO\Note;
 
+use App\Entity\NoteVisibility;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class ListNotesQueryDto
@@ -34,6 +35,10 @@ final readonly class ListNotesQueryDto
             new Assert\Length(max: 64),
         ])]
         public array $labels = [],
+
+    #[Assert\Choice(choices: [NoteVisibility::Public->value, NoteVisibility::Private->value, NoteVisibility::Draft->value])]
+    #[Assert\Length(max: 16)]
+    public ?string $visibility = null,
     ) {}
 }
 

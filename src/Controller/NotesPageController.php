@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\DTO\Note\NoteSummaryDto;
+use App\Entity\NoteVisibility;
 use App\Entity\User;
 use App\Service\NoteCollaboratorService;
 use App\Service\NoteService;
@@ -24,6 +25,11 @@ final class NotesPageController extends AbstractController
 {
     private const PER_PAGE = 10;
     private const MAX_SEARCH_LENGTH = 200;
+    private const ALLOWED_VISIBILITIES = [
+        NoteVisibility::Public->value,
+        NoteVisibility::Private->value,
+        NoteVisibility::Draft->value,
+    ];
 
     public function __construct(
         private readonly AuthService $authService,
@@ -146,6 +152,7 @@ final class NotesPageController extends AbstractController
         $rawQ = (string) $request->query->get('q', '');
         $q = $this->sanitizeSearch($rawQ);
         $page = max(1, (int) $request->query->get('page', 1));
+        $visibility = $this->normalizeVisibility($request->query->get('visibility'));
 
         $parsed = $this->notesSearchParser->parse($q);
 
@@ -166,6 +173,7 @@ final class NotesPageController extends AbstractController
                     perPage: self::PER_PAGE,
                     q: $parsed['text'],
                     labels: $parsed['labels'],
+                    visibility: $visibility,
                 )
             );
 
@@ -188,12 +196,23 @@ final class NotesPageController extends AbstractController
             'view' => [
                 'q' => $rawQ,
                 'parsedQ' => $parsed,
+                'visibility' => $visibility,
                 'notes' => $notes,
                 'meta' => $meta,
                 'isLoading' => false,
                 'error' => $error,
             ],
         ]);
+    }
+
+    private function normalizeVisibility(mixed $raw): ?string
+    {
+        if (!is_string($raw)) {
+            return null;
+        }
+
+        $value = strtolower(trim($raw));
+        return in_array($value, self::ALLOWED_VISIBILITIES, true) ? $value : null;
     }
 
     private function sanitizeSearch(string $q): string

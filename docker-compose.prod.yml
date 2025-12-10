@@ -75,6 +75,7 @@ services:
       TRAEFIK_DOMAIN: ${TRAEFIK_DOMAIN}
     labels:
       traefik.enable: "true"
+      traefik.docker.network: snipnote_proxy
       traefik.http.routers.snipnote.rule: Host(`${TRAEFIK_DOMAIN}`)
       traefik.http.routers.snipnote.entrypoints: websecure
       traefik.http.routers.snipnote.tls: "true"

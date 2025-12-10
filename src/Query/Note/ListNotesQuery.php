@@ -15,6 +15,7 @@ final readonly class ListNotesQuery
         public int $perPage,
         public ?string $q,
         public array $labels = [],
+        public ?string $visibility = null,
     ) {}
 }
 

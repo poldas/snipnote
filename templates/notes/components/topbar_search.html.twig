@@ -1,5 +1,6 @@
 {% set value = q ?? '' %}
 {% set count = count ?? null %}
+{% set visibilityValue = visibility ?? '' %}
 <form action="/notes" method="get" data-notes-search-form class="flex flex-col gap-3">
     <div class="flex flex-col sm:flex-row gap-3 sm:items-center">
         <div class="relative flex-1">
@@ -17,6 +18,20 @@
                 aria-describedby="search-hint"
             >
         </div>
+        <div class="w-full sm:w-44">
+            <label for="visibility" class="sr-only">Widoczność notatek</label>
+            <select
+                id="visibility"
+                name="visibility"
+                class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 shadow-inner focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                onchange="this.form.requestSubmit();"
+            >
+                <option value="" {% if visibilityValue == '' %}selected{% endif %}>Wszystkie notatki</option>
+                <option value="public" {% if visibilityValue == 'public' %}selected{% endif %}>Publiczne</option>
+                <option value="private" {% if visibilityValue == 'private' %}selected{% endif %}>Prywatne</option>
+                <option value="draft" {% if visibilityValue == 'draft' %}selected{% endif %}>Drafty</option>
+            </select>
+        </div>
         <button type="submit"
                 data-search-submit
                 class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 text-white px-4 py-2.5 text-sm font-semibold shadow-sm shadow-indigo-500/15 hover:bg-indigo-500 transition-colors w-full sm:w-auto">
@@ -24,7 +39,7 @@
                 <circle class="opacity-30" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-90" d="M4 12a8 8 0 0 1 8-8" stroke="currentColor" stroke-width="4" stroke-linecap="round"></path>
             </svg>
-            <span>Wyszukaj</span>
+            <span>Szukaj</span>
         </button>
         {% if count is not null %}
             <span class="text-sm text-slate-500">Wyniki: {{ count }}</span>

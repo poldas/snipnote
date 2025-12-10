@@ -88,6 +88,12 @@ class NoteRepository extends ServiceEntityRepository
                 ->setParameter('labels', $labelsLiteral, Types::STRING);
         }
 
+        if ($query->visibility !== null) {
+            $dbalFilters
+                ->andWhere('n.visibility = :visibility')
+                ->setParameter('visibility', $query->visibility, Types::STRING);
+        }
+
         $totalQb = clone $dbalFilters;
         $total = (int) $totalQb
             ->select('COUNT(*)')

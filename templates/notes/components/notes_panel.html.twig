@@ -4,6 +4,7 @@
 {% set labels = labels ?? [] %}
 {% set error = error ?? null %}
 {% set isLoading = isLoading ?? false %}
+{% set visibility = visibility ?? '' %}
 
 <section class="space-y-4" aria-live="polite">
     <div class="sr-only" role="status">
@@ -41,7 +42,7 @@
         </div>
     {% endif %}
 
-    {% include 'notes/components/pagination.html.twig' with { meta: meta, q: q, labels: labels } %}
+    {% include 'notes/components/pagination.html.twig' with { meta: meta, q: q, labels: labels, visibility: visibility } %}
 
     {% include 'notes/components/delete_confirm_modal.html.twig' %}
 </section>

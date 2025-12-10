@@ -30,14 +30,22 @@ final class NotesQueryServiceTest extends TestCase
                     && $query->page === 2
                     && $query->perPage === 5
                     && $query->q === 'search'
-                    && $query->labels === ['work'];
+                    && $query->labels === ['work']
+                    && $query->visibility === NoteVisibility::Private->value;
             }))
             ->willReturn(new PaginatedResult([$note], 1));
 
         $service = new NotesQueryService($repository);
 
         $response = $service->listOwnedNotes(
-            new ListNotesQuery(ownerId: 1, page: 2, perPage: 5, q: 'search', labels: ['work'])
+            new ListNotesQuery(
+                ownerId: 1,
+                page: 2,
+                perPage: 5,
+                q: 'search',
+                labels: ['work'],
+                visibility: NoteVisibility::Private->value,
+            )
         );
 
         self::assertSame(1, $response->meta->total);

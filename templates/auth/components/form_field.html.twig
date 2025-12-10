@@ -19,7 +19,7 @@
         id="{{ id }}"
         name="{{ name }}"
         type="{{ type }}"
-        class="w-full rounded-2xl border px-4 py-3 bg-white text-slate-900 placeholder:text-slate-500 shadow-sm transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300 {{ errorMessage ? 'border-rose-300 bg-rose-50 focus:ring-rose-200 focus:border-rose-300' : 'border-slate-200/80 hover:border-slate-300' }}"
+        class="w-full rounded-2xl border px-4 py-3 bg-white text-slate-900 placeholder:text-slate-500 shadow-sm hover:shadow-md focus:shadow-md transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300 {{ errorMessage ? 'border-rose-300 bg-rose-50 focus:ring-rose-200 focus:border-rose-300' : 'border-slate-200/80 hover:border-slate-300' }}"
         placeholder="{{ placeholder }}"
         {% if autocomplete %}autocomplete="{{ autocomplete }}"{% endif %}
         {% if pattern %}pattern="{{ pattern }}"{% endif %}

@@ -57,7 +57,8 @@
                     q: view.q,
                     parsed: view.parsedQ,
                     isLoading: view.isLoading,
-                    count: view.meta.total|default(0)
+                    count: view.meta.total|default(0),
+                    visibility: view.visibility|default('')
                 } %}
             </div>
         </div>
@@ -72,6 +73,7 @@
                     meta: view.meta,
                     q: view.q,
                     labels: parsed.labels,
+                    visibility: view.visibility|default(''),
                     error: view.error,
                     isLoading: view.isLoading
                 } %}
