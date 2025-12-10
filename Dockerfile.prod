@@ -1,4 +1,9 @@
-FROM php:8.4-apache-bookworm AS base
+# Using specific version for security and reproducibility
+# TODO: Pin to SHA256 digest for even better security:
+#   docker pull php:8.4-apache-bookworm
+#   docker inspect --format='{{index .RepoDigests 0}}' php:8.4-apache-bookworm
+#   Then use: FROM php:8.4-apache-bookworm@sha256:...
+FROM php:8.4.1-apache-bookworm AS base
 
 ARG APP_ENV=prod
 
@@ -24,12 +29,12 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-# Opcache tuned for production
+# PHP configuration for production
 COPY docker/php-opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
 FROM base AS builder
+# Composer needed only in builder stage, not in runtime
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # Ensure prod env during build-time console commands (Dotenv disabled)
 ENV APP_ENV=prod \
     APP_DEBUG=0 \
@@ -45,11 +50,21 @@ RUN --mount=type=cache,target=/tmp/composer-cache \
 # RUN npm ci && npm run build
 
 FROM base AS runtime
+# Apply security hardening only in runtime so builder can use composer requirements
+COPY docker/php-security.ini /usr/local/etc/php/conf.d/security.ini
 COPY --from=builder /var/www/html /var/www/html
 
-# Ensure writable cache/logs
-RUN mkdir -p /var/www/html/var \
- && chown -R www-data:www-data /var/www/html/var
+# Cleanup unnecessary files and set permissions
+RUN rm -rf /var/www/html/.git* \
+           /var/www/html/tests \
+           /var/www/html/docker \
+           /var/www/html/*.md \
+           /var/www/html/phpunit.* \
+ && mkdir -p /var/www/html/var \
+ && chown -R www-data:www-data /var/www/html/var \
+ && find /var/www/html -type f -exec chmod 644 {} \; \
+ && find /var/www/html -type d -exec chmod 755 {} \; \
+ && chmod +x /var/www/html/bin/console
 
 # Runtime entrypoint: warm cache with real env, then start Apache
 COPY docker/entrypoint.sh /entrypoint.sh
@@ -61,12 +76,9 @@ RUN apt-get purge -y git unzip \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-# USER www-data
-
 EXPOSE 80
 
-HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD curl -fsS http://127.0.0.1/ || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=40s \
+    CMD curl -fsS -H "User-Agent: Docker-Healthcheck" http://127.0.0.1/ || exit 1
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["apache2-foreground"]
-
-
