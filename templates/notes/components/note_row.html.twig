@@ -2,9 +2,9 @@
 {% set editUrl = note.editUrl ?? '#' %}
 {% set publicUrl = note.publicUrl ?? null %}
 {% set publicHref = publicUrl ? ((publicUrl|slice(0, 4) == 'http') ? publicUrl : app.request.schemeAndHttpHost ~ publicUrl) : null %}
-<article class="flex flex-col sm:flex-row sm:items-center gap-4 px-5 py-4 hover:bg-slate-50 transition-colors">
+<article class="flex flex-col sm:flex-row sm:items-center gap-4 px-4 sm:px-5 py-4 hover:bg-slate-50 transition-colors">
     <div class="flex-1 text-left space-y-2 select-text">
-        <div class="flex items-center gap-2 text-xs text-slate-500 uppercase tracking-wide">
+        <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 uppercase tracking-wide">
             <span class="font-semibold text-slate-700">ID {{ note.id }}</span>
             <span class="h-1.5 w-1.5 rounded-full bg-slate-300"></span>
             {% set isPublic = note.visibility|lower == 'public' %}
@@ -18,10 +18,10 @@
                 {% if isPublic %}✔{% else %}✖{% endif %} {{ note.visibility|default('private')|capitalize }}
             </span>
         </div>
-        <h3 class="text-lg font-semibold text-slate-900">
+        <h3 class="text-lg font-semibold text-slate-900 break-words">
             {{ note.title is not empty ? note.title : '(Bez tytułu)' }}
         </h3>
-        <p class="text-sm text-slate-600 line-clamp-2">{{ note.excerpt }}</p>
+        <p class="text-sm text-slate-600 line-clamp-2 break-words">{{ note.excerpt }}</p>
         {% if note.labels is defined and note.labels is not empty %}
             <div class="flex flex-wrap gap-2">
                 {% for label in note.labels %}
@@ -39,7 +39,7 @@
         {% endif %}
     </div>
 
-    <div class="flex items-center gap-2 self-start sm:self-center">
+    <div class="flex items-center gap-2 self-start sm:self-center flex-wrap sm:flex-nowrap justify-start sm:justify-end w-full sm:w-auto">
         <a href="{{ editUrl }}" class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-colors" aria-label="Edytuj notatkę">
             ✏️
         </a>

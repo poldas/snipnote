@@ -643,7 +643,7 @@
             } else if (formState.isPreviewing) {
                 elements.statusIndicator.textContent = 'Generowanie podglądu...';
             } else {
-                elements.statusIndicator.textContent = 'Gotowe do zapisania';
+                elements.statusIndicator.textContent = '';
             }
         }
 
@@ -880,9 +880,9 @@
     // ========== Initialization ==========
     function init() {
         refreshElements();
+        console.log('Note form initialization started');
         config = getFormConfig();
 
-        console.log('Note form initialization started');
         console.log('Form element:', elements.form);
         console.log('Title input:', elements.titleInput);
         console.log('Description textarea:', elements.descriptionTextarea);
