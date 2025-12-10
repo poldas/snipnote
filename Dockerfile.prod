@@ -61,7 +61,7 @@ RUN apt-get purge -y git unzip \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-USER www-data
+# USER www-data
 
 EXPOSE 80
 

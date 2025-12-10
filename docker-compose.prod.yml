@@ -1,7 +1,13 @@
 services:
   traefik:
-    image: traefik:v3.1
-    entrypoint: sh -c "touch /letsencrypt/acme.json && chmod 600 /letsencrypt/acme.json && exec traefik"
+    image: traefik:v3.6
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        touch /letsencrypt/acme.json && chmod 600 /letsencrypt/acme.json
+        exec traefik "$@"
+      - --
     command:
       - "--providers.docker=true"
       - "--providers.docker.exposedByDefault=false"
@@ -38,6 +44,7 @@ services:
       TRUSTED_HOSTS: ${TRAEFIK_DOMAIN}
       REFRESH_TOKEN_TTL_SECONDS: ${REFRESH_TOKEN_TTL_SECONDS}
       MESSENGER_TRANSPORT_DSN: ${MESSENGER_TRANSPORT_DSN}
+      TRAEFIK_DOMAIN: ${TRAEFIK_DOMAIN}
     labels:
       traefik.enable: "true"
       traefik.http.routers.snipnote.rule: Host(`${TRAEFIK_DOMAIN}`)
