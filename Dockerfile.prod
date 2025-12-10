@@ -10,6 +10,7 @@ ARG APP_ENV=prod
 ENV APP_ENV=${APP_ENV} \
     APP_DEBUG=0 \
     APP_RUNTIME_OPTIONS={\"disable_dotenv\":true} \
+    TRUSTED_PROXIES=127.0.0.1,REMOTE_ADDR \
     COMPOSER_ALLOW_SUPERUSER=1 \
     APACHE_DOCUMENT_ROOT=/var/www/html/public
 
