@@ -43,7 +43,7 @@ final class NoteController extends AbstractController
             perPage: (int) $request->query->get('per_page', ListNotesQueryDto::DEFAULT_PER_PAGE),
             q: $request->query->get('q'),
             labels: $this->extractLabels($request),
-            visibility: $request->query->get('visibility'),
+            visibility: (string) $request->query->get('visibility', 'owner'),
         );
 
         $this->validate($dto);

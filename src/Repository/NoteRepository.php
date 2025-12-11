@@ -69,10 +69,27 @@ class NoteRepository extends ServiceEntityRepository
         $conn = $em->getConnection();
 
         $search = $query->q !== null ? trim($query->q) : null;
+        $visibility = $query->visibility ?? 'owner';
+
         $dbalFilters = $conn->createQueryBuilder()
-            ->from('notes', 'n')
-            ->where('n.owner_id = :ownerId')
-            ->setParameter('ownerId', $query->ownerId, Types::INTEGER);
+            ->from('notes', 'n');
+
+        if ($visibility === 'shared') {
+            $dbalFilters
+                ->innerJoin('n', 'note_collaborators', 'c', 'c.note_id = n.id')
+                ->where('c.user_id = :userId')
+                ->setParameter('userId', $query->ownerId, Types::INTEGER);
+        } else {
+            $dbalFilters
+                ->where('n.owner_id = :ownerId')
+                ->setParameter('ownerId', $query->ownerId, Types::INTEGER);
+
+            if (in_array($visibility, [NoteVisibility::Public->value, NoteVisibility::Private->value, NoteVisibility::Draft->value], true)) {
+                $dbalFilters
+                    ->andWhere('n.visibility = :visibility')
+                    ->setParameter('visibility', $visibility, Types::STRING);
+            }
+        }
 
         if ($search !== null && $search !== '') {
             $dbalFilters
@@ -86,12 +103,6 @@ class NoteRepository extends ServiceEntityRepository
             $dbalFilters
                 ->andWhere('n.labels && :labels')
                 ->setParameter('labels', $labelsLiteral, Types::STRING);
-        }
-
-        if ($query->visibility !== null) {
-            $dbalFilters
-                ->andWhere('n.visibility = :visibility')
-                ->setParameter('visibility', $query->visibility, Types::STRING);
         }
 
         $totalQb = clone $dbalFilters;

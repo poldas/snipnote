@@ -60,5 +60,37 @@ final class NotesQueryServiceTest extends TestCase
         self::assertSame('private', $dto->visibility);
         self::assertSame('uuid-123', $dto->urlToken);
     }
-}
 
+    public function testListSharedNotesUsesVisibilityShared(): void
+    {
+        $owner = new User('owner@example.com', 'hash');
+        $note = new Note($owner, 'Shared title', 'Desc', labels: ['team'], visibility: NoteVisibility::Public);
+        $note->setUrlToken('shared-123');
+
+        $repository = $this->createMock(NoteRepository::class);
+        $repository
+            ->expects(self::once())
+            ->method('findPaginatedForOwnerWithFilters')
+            ->with(self::callback(static function (ListNotesQuery $query): bool {
+                return $query->ownerId === 5
+                    && $query->page === 1
+                    && $query->perPage === 10
+                    && $query->q === null
+                    && $query->labels === []
+                    && $query->visibility === 'shared';
+            }))
+            ->willReturn(new PaginatedResult([$note], 1));
+
+        $service = new NotesQueryService($repository);
+
+        $response = $service->listOwnedNotes(
+            new ListNotesQuery(ownerId: 5, page: 1, perPage: 10, q: null, labels: [], visibility: 'shared')
+        );
+
+        self::assertSame(1, $response->meta->total);
+        self::assertCount(1, $response->data);
+        self::assertSame('Shared title', $response->data[0]->title);
+        self::assertSame('shared-123', $response->data[0]->urlToken);
+        self::assertSame('public', $response->data[0]->visibility);
+    }
+}

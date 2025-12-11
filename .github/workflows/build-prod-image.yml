@@ -2,7 +2,7 @@ name: Build & Push Prod Image
 
 on:
   push:
-    branches: [ "main"]
+    branches: [ "main", "deploy"]
   workflow_dispatch:
 
 permissions:

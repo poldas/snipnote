@@ -7,16 +7,23 @@
         <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 uppercase tracking-wide">
             <span class="font-semibold text-slate-700">ID {{ note.id }}</span>
             <span class="h-1.5 w-1.5 rounded-full bg-slate-300"></span>
+            {% set isShared = note.isShared|default(false) %}
             {% set isPublic = note.visibility|lower == 'public' %}
-            <span class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11px] font-semibold border
-                {% if isPublic %}
-                    border-emerald-200 bg-emerald-50 text-emerald-700
-                {% else %}
-                    border-rose-200 bg-rose-50 text-rose-700
-                {% endif %}
-            ">
-                {% if isPublic %}✔{% else %}✖{% endif %} {{ note.visibility|default('private')|capitalize }}
-            </span>
+            {% if isShared %}
+                <span class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11px] font-semibold border border-sky-200 bg-sky-50 text-sky-700">
+                    🤝 For Me
+                </span>
+            {% else %}
+                <span class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11px] font-semibold border
+                    {% if isPublic %}
+                        border-emerald-200 bg-emerald-50 text-emerald-700
+                    {% else %}
+                        border-rose-200 bg-rose-50 text-rose-700
+                    {% endif %}
+                ">
+                    {% if isPublic %}✔{% else %}✖{% endif %} {{ note.visibility|default('private')|capitalize }}
+                </span>
+            {% endif %}
         </div>
         <h3 class="text-lg font-semibold text-slate-900 break-words">
             {{ note.title is not empty ? note.title : '(Bez tytułu)' }}

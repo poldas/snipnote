@@ -26,9 +26,11 @@ final class NotesPageController extends AbstractController
     private const PER_PAGE = 10;
     private const MAX_SEARCH_LENGTH = 200;
     private const ALLOWED_VISIBILITIES = [
+        'owner',
         NoteVisibility::Public->value,
         NoteVisibility::Private->value,
         NoteVisibility::Draft->value,
+        'shared',
     ];
 
     public function __construct(
@@ -177,8 +179,9 @@ final class NotesPageController extends AbstractController
                 )
             );
 
+            $isSharedView = $visibility === 'shared';
             $notes = array_map(
-                fn(NoteSummaryDto $note): array => $this->mapNoteSummary($note),
+                fn(NoteSummaryDto $note): array => $this->mapNoteSummary($note, $isSharedView),
                 $response->data
             );
 
@@ -208,11 +211,11 @@ final class NotesPageController extends AbstractController
     private function normalizeVisibility(mixed $raw): ?string
     {
         if (!is_string($raw)) {
-            return null;
+            return 'owner';
         }
 
         $value = strtolower(trim($raw));
-        return in_array($value, self::ALLOWED_VISIBILITIES, true) ? $value : null;
+        return in_array($value, self::ALLOWED_VISIBILITIES, true) ? $value : 'owner';
     }
 
     private function sanitizeSearch(string $q): string
@@ -240,7 +243,7 @@ final class NotesPageController extends AbstractController
      *     publicUrl: string
      * }
      */
-    private function mapNoteSummary(NoteSummaryDto $note): array
+    private function mapNoteSummary(NoteSummaryDto $note, bool $isSharedView = false): array
     {
         $labels = array_values(array_filter($note->labels, static fn(string $label): bool => trim($label) !== ''));
         $excerpt = $this->makeExcerpt($note->description);
@@ -252,6 +255,7 @@ final class NotesPageController extends AbstractController
             'excerpt' => $excerpt,
             'labels' => $labels,
             'visibility' => $note->visibility,
+            'isShared' => $isSharedView,
             'createdAt' => $note->createdAt,
             'updatedAt' => $note->updatedAt,
             'editUrl' => '/notes/' . $note->id . '/edit',

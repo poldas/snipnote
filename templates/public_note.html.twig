@@ -40,6 +40,7 @@
 
         a {
             color: inherit;
+            text-decoration: none;
         }
 
         main.public-note {
@@ -99,6 +100,68 @@
             .pn-card {
                 padding: 40px;
             }
+        }
+
+        .pn-brand {
+            display: flex;
+            justify-content: flex-start;
+            width: 100%;
+            margin-bottom: 18px;
+        }
+
+        .pn-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0;
+            border-radius: 12px;
+            background: transparent;
+            border: none;
+            color: var(--pn-primary-strong);
+            text-decoration: none;
+            font-weight: 700;
+            box-shadow: none;
+            transition: color 120ms ease, transform 120ms ease;
+        }
+
+        .pn-logo:hover,
+        .pn-logo:focus-visible {
+            color: #1e3a8a;
+            transform: translateY(-1px);
+        }
+
+        .pn-logo__mark {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            background: #e0e7ff;
+            border: 1px solid #cbd5e1;
+            color: var(--pn-primary);
+            font-weight: 700;
+            font-size: 18px;
+            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
+        }
+
+        .pn-logo__text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+
+        .pn-logo__title {
+            color: var(--pn-primary-strong);
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .pn-logo__subtitle {
+            color: #475569;
+            font-size: 12px;
+            font-weight: 600;
+            opacity: 0.9;
         }
 
         .pn-meta-row {
@@ -244,6 +307,159 @@
             opacity: 0.8;
         }
 
+        /* Error state */
+        .pn-error {
+            position: relative;
+            overflow: hidden;
+            border-radius: 28px;
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            background: linear-gradient(140deg, rgba(224, 231, 255, 0.5), rgba(240, 249, 255, 0.7));
+            box-shadow: var(--pn-shadow);
+            padding: 28px;
+        }
+
+        @media (min-width: 640px) {
+            .pn-error {
+                padding: 44px;
+                border-radius: 32px;
+            }
+        }
+
+        .pn-error__glow {
+            position: absolute;
+            filter: blur(44px);
+            opacity: 0.4;
+            animation: float 10s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .pn-error__glow--1 {
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle, rgba(96, 165, 250, 0.9), transparent 55%);
+            top: -60px;
+            right: -40px;
+        }
+
+        .pn-error__glow--2 {
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.8), transparent 55%);
+            bottom: -50px;
+            left: -30px;
+            animation-delay: 1.5s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+
+        .pn-error__card {
+            position: relative;
+            display: grid;
+            gap: 16px;
+            max-width: 720px;
+        }
+
+        .pn-error__icon {
+            width: 64px;
+            height: 64px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 18px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            font-size: 26px;
+            box-shadow: 0 16px 38px rgba(15, 23, 42, 0.12);
+            animation: bounce 2.4s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+
+        .pn-error__content {
+            display: grid;
+            gap: 10px;
+        }
+
+        .pn-error__eyebrow {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #475569;
+            margin: 0;
+        }
+
+        .pn-error__title {
+            margin: 0;
+            font-size: 26px;
+            line-height: 1.25;
+            color: var(--pn-primary-strong);
+        }
+
+        .pn-error__desc {
+            margin: 0;
+            color: #475569;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        .pn-error__actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 6px;
+        }
+
+        .pn-error__btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: 14px;
+            border: 1px solid transparent;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 120ms ease, box-shadow 140ms ease, background-color 140ms ease, color 140ms ease, border-color 140ms ease;
+            text-decoration: none;
+        }
+
+        .pn-error__btn--primary {
+            background: #1d4ed8;
+            color: #fff;
+            border-color: #1d4ed8;
+            box-shadow: 0 12px 28px rgba(37, 99, 235, 0.28);
+        }
+
+        .pn-error__btn--primary:hover,
+        .pn-error__btn--primary:focus-visible {
+            background: #1e40af;
+            border-color: #1e40af;
+            transform: translateY(-1px);
+            box-shadow: 0 14px 32px rgba(30, 64, 175, 0.32);
+        }
+
+        .pn-error__btn--ghost {
+            background: rgba(255, 255, 255, 0.8);
+            color: var(--pn-primary-strong);
+            border-color: #e2e8f0;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+        }
+
+        .pn-error__btn--ghost:hover,
+        .pn-error__btn--ghost:focus-visible {
+            background: #fff;
+            color: #1e40af;
+            transform: translateY(-1px);
+            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+        }
+
         @media (max-width: 480px) {
             body {
                 font-size: 15px;
@@ -294,6 +510,17 @@
 {% block body %}
 <main class="public-note">
     <section class="public-note__container">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-4">
+            <header class="pn-brand">
+                <a href="/" class="pn-logo" aria-label="Snipnote — strona główna">
+                    <span class="pn-logo__mark">S</span>
+                    <span class="pn-logo__text">
+                        <span class="pn-logo__title">Snipnote</span>
+                        <span class="pn-logo__subtitle">Twoje notatki</span>
+                    </span>
+                </a>
+            </header>
+        </div>
         {% if errorCode is not null %}
             {% include 'components/public_note_error.html.twig' with { errorCode: errorCode } %}
         {% elseif note is defined and note %}
@@ -314,7 +541,6 @@
                             </time>
                         </div>
                     </div>
-
                     <h1>
                         {{ note.title is not empty ? note.title : '(Bez tytułu)' }}
                     </h1>

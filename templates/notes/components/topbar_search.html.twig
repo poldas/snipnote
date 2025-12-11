@@ -1,6 +1,6 @@
 {% set value = q ?? '' %}
 {% set count = count ?? null %}
-{% set visibilityValue = visibility ?? '' %}
+{% set visibilityValue = visibility ?? 'owner' %}
 <form action="/notes" method="get" data-notes-search-form class="flex flex-col gap-3">
     <div class="flex flex-col sm:flex-row gap-3 sm:items-center">
         <div class="relative flex-1">
@@ -26,10 +26,11 @@
                 class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 shadow-inner focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 onchange="this.form.requestSubmit();"
             >
-                <option value="" {% if visibilityValue == '' %}selected{% endif %}>Wszystkie notatki</option>
+                <option value="owner" {% if visibilityValue == 'owner' %}selected{% endif %}>Wszystkie notatki</option>
                 <option value="public" {% if visibilityValue == 'public' %}selected{% endif %}>Publiczne</option>
                 <option value="private" {% if visibilityValue == 'private' %}selected{% endif %}>Prywatne</option>
                 <option value="draft" {% if visibilityValue == 'draft' %}selected{% endif %}>Drafty</option>
+                <option value="shared" {% if visibilityValue == 'shared' %}selected{% endif %}>For Me</option>
             </select>
         </div>
         <button type="submit"

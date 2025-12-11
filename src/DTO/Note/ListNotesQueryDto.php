@@ -36,9 +36,8 @@ final readonly class ListNotesQueryDto
         ])]
         public array $labels = [],
 
-    #[Assert\Choice(choices: [NoteVisibility::Public->value, NoteVisibility::Private->value, NoteVisibility::Draft->value])]
-    #[Assert\Length(max: 16)]
-    public ?string $visibility = null,
+        #[Assert\Choice(choices: ['owner', NoteVisibility::Public->value, NoteVisibility::Private->value, NoteVisibility::Draft->value, 'shared'])]
+        #[Assert\Length(max: 16)]
+        public string $visibility = 'owner',
     ) {}
 }
-
