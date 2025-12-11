@@ -1,10 +1,6 @@
-name: Build & Push Prod Image
+name: On Demand Build & Deploy on VPS
 
 on:
-  push:
-    branches:
-      - main
-      - deploy
   workflow_dispatch:
 
 permissions:
@@ -57,12 +53,13 @@ jobs:
         env:
           GHCR_USERNAME: ${{ github.repository_owner }}
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          DEPLOY_BRANCH: ${{ github.ref_name }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script_stop: true
-          envs: GHCR_USERNAME,GHCR_TOKEN
+          envs: GHCR_USERNAME,GHCR_TOKEN,DEPLOY_BRANCH
           script: |
             set -euo pipefail
             cd ~/snipnote
@@ -76,4 +73,3 @@ jobs:
             fi
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
             ./bin/deploy/update-app.sh
-
