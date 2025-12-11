@@ -13,8 +13,22 @@ echo "📦 Pulling latest image..."
 docker compose --env-file .env -f docker-compose.prod.yml pull app
 
 echo ""
-echo "📦 Pulling git code ..."
-git pull
+DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
+echo "📦 Pulling git code for branch: ${DEPLOY_BRANCH} ..."
+
+# Ensure the branch exists on the remote and sync it locally
+if ! git ls-remote --exit-code --heads origin "${DEPLOY_BRANCH}" > /dev/null; then
+  echo "Remote branch ${DEPLOY_BRANCH} not found. Aborting." >&2
+  exit 1
+fi
+
+git fetch origin "${DEPLOY_BRANCH}"
+if git rev-parse --verify "${DEPLOY_BRANCH}" > /dev/null 2>&1; then
+  git checkout "${DEPLOY_BRANCH}"
+else
+  git checkout -b "${DEPLOY_BRANCH}" "origin/${DEPLOY_BRANCH}"
+fi
+git pull origin "${DEPLOY_BRANCH}"
 
 # 3. Sprawdź czy obraz się zmienił
 echo ""
