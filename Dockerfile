@@ -16,12 +16,7 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 # Opcache for production
-RUN { \
-  echo "opcache.enable=1"; \
-  echo "opcache.enable_cli=1"; \
-  echo "opcache.validate_timestamps=0"; \
-  echo "opcache.preload_user=www-data"; \
-} > /usr/local/etc/php/conf.d/opcache.ini
+COPY docker/php-opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 

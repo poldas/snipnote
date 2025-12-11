@@ -1,0 +1,41 @@
+{% set value = q ?? '' %}
+{% set count = count ?? null %}
+{% set visibilityValue = visibility ?? 'owner' %}
+<form action="/notes" method="get" data-notes-search-form class="flex flex-col gap-3">
+    <div class="flex flex-col sm:flex-row gap-3 sm:items-center">
+        <div class="relative flex-1">
+            <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                🔍
+            </span>
+            <input
+                type="text"
+                name="q"
+                value="{{ value }}"
+                maxlength="200"
+                placeholder="Szukaj notatek lub użyj label:etykieta"
+                class="w-full rounded-xl border border-slate-300 bg-white px-10 py-2.5 text-sm text-slate-800 shadow-inner focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                aria-label="Szukaj notatek"
+                aria-describedby="search-hint"
+            >
+        </div>
+        <div class="w-full sm:w-44">
+            <label for="visibility" class="sr-only">Widoczność notatek</label>
+            <select
+                id="visibility"
+                name="visibility"
+                class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-800 shadow-inner focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                onchange="this.form.requestSubmit();"
+            >
+                <option value="owner" {% if visibilityValue == 'owner' %}selected{% endif %}>Wszystkie notatki</option>
+                <option value="public" {% if visibilityValue == 'public' %}selected{% endif %}>Publiczne</option>
+                <option value="private" {% if visibilityValue == 'private' %}selected{% endif %}>Prywatne</option>
+                <option value="draft" {% if visibilityValue == 'draft' %}selected{% endif %}>Drafty</option>
+                <option value="shared" {% if visibilityValue == 'shared' %}selected{% endif %}>For Me</option>
+            </select>
+        </div>
+        {% if count is not null %}
+            <span class="text-sm text-slate-500">Wyniki: {{ count }}</span>
+        {% endif %}
+    </div>
+</form>
+

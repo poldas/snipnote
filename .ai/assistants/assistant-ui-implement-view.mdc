@@ -13,12 +13,6 @@ Teraz przejrzyj zasady implementacji:
 [implementation ui rules](../rules-ui-implementation.mdc)
 </implementation_rules>
 
-Przejrzyj zdefiniowane typy:
-
-<dto_type_definitions>
-[dto type definitions](../../src/types.ts)
-</dto_type_definitions>
-
 Wdrażaj plan zgodnie z następującym podejściem:
 
 <implementation_approach>

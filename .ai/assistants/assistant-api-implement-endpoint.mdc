@@ -3,15 +3,18 @@ Twoim zadaniem jest wdrożenie endpointa interfejsu API REST w oparciu o podany 
 Najpierw dokładnie przejrzyj dostarczony plan wdrożenia:
 
 <implementation_plan>
-{{endpoint-implementation-plan}} <- dodaj referencję do planu implementacji endpointa (np. @generations-endpoint-implementation-plan.md)
+@.ai/spec/public-notes-api-plan.md 
 </implementation_plan>
 
-<types>
-{{types}} <- dodaj referencje do definicji typów (np. @types)
-</types>
+<database_plan>
+@.ai/spec/db-plan.md 
+</database_plan>
 
 <implementation_rules>
-{{backend-rules}} <- dodaj referencje do reguł backendowych (np. @shared.mdc, @backend.mdc, @astro.mdc)
+@.cursor/rules/programming-rules.md 
+
+- zawsze uruchamiaj komendy w kontenerze dockerowym (docker compose ...), aplikacja uruchamia się w dockerze, nie lokalnie
+- testy uruchmiaj zawsze przez gotowy skrypt który uruchamia dockera ./test.sh
 </implementation_rules>
 
 <implementation_approach>
@@ -52,6 +55,6 @@ Teraz wykonaj następujące kroki, aby zaimplementować punkt końcowy interfejs
 
 Po zakończeniu implementacji upewnij się, że zawiera wszystkie niezbędne importy, definicje funkcji i wszelkie dodatkowe funkcje pomocnicze lub klasy wymagane do implementacji.
 
-Jeśli musisz przyjąć jakieś założenia lub masz jakiekolwiek pytania dotyczące planu implementacji, przedstaw je przed pisaniem kodu.
+Jeśli musisz przyjąć jakieś założenia lub masz jakiekolwiek pytania dotyczące planu implementacji, przedstaw je przed pisaniem kodu. Używaj gotowych już funkcjonalności jeżeli istnieją i zawsze pisz podstawowe testy. Pamiętaj że to jest MVP i musi być w miarę proste, ale też bezpieczne i profesjonalnie napisane zgodnie z zasadami php8 i symfony8.
 
 Pamiętaj, aby przestrzegać najlepszych praktyk projektowania REST API, stosować się do wytycznych dotyczących stylu języka programowania i upewnić się, że kod jest czysty, czytelny i dobrze zorganizowany.

@@ -1,0 +1,26 @@
+{% set icon = errorCode == 0 ? '⚠️' : (errorCode == 403 ? '🔒' : '🔗') %}
+{% set errorTitle = errorCode == 403 ? 'Notatka niedostępna (prywatna)' : (errorCode == 404 ? 'Notatka niedostępna lub nieprawidłowy link' : 'Problem z połączeniem') %}
+{% set errorDesc = errorCode == 403 ? 'Właściciel ograniczył dostęp do tej notatki.' : (errorCode == 404 ? 'Sprawdź, czy adres URL jest poprawny lub zapytaj właściciela o nowy link.' : 'Nie udało się pobrać danych. Spróbuj ponownie za chwilę.') %}
+
+<div id="public-note-shell" class="pn-error">
+    <div class="pn-error__glow pn-error__glow--1" aria-hidden="true"></div>
+    <div class="pn-error__card">
+        <div class="pn-error__content">
+            <h2 class="pn-error__title">{{ errorTitle }}</h2>
+            <p class="pn-error__desc">{{ errorDesc }}</p>
+            <div class="pn-error__actions">
+                {% if errorCode == 0 %}
+                    <button
+                        type="button"
+                        hx-get="{{ app.request.pathinfo }}"
+                        hx-target="#public-note-shell"
+                        hx-swap="outerHTML"
+                        class="pn-error__btn pn-error__btn--primary">
+                        Spróbuj ponownie
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+

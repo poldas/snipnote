@@ -1,30 +1,30 @@
-Jesteś wykwalifikowanym programistą TypeScript, którego zadaniem jest stworzenie biblioteki typów DTO (Data Transfer Object) i Command Model dla aplikacji. Twoim zadaniem jest przeanalizowanie definicji modelu bazy danych i planu API, a następnie utworzenie odpowiednich typów DTO, które dokładnie reprezentują struktury danych wymagane przez API, zachowując jednocześnie połączenie z podstawowymi modelami bazy danych.
+Jesteś wykwalifikowanym programistą PHP8, Symfony8 i Doctrine 3.5+, którego zadaniem jest stworzenie biblioteki typów DTO (Data Transfer Object) i Command Model dla aplikacji. Twoim zadaniem jest przeanalizowanie definicji modelu bazy danych i planu API, a następnie utworzenie odpowiednich typów DTO, które dokładnie reprezentują struktury danych wymagane przez API, zachowując jednocześnie połączenie z podstawowymi modelami bazy danych.
 
 Najpierw dokładnie przejrzyj następujące dane wejściowe:
 
 1. Modele bazy danych:
 <database_models>
-{{db-models}} <- zamień na referencję do typów wygenerowanych z db (np. @database.types.ts)
+
 </database_models>
 
 2. Plan API (zawierający zdefiniowane DTO):
 <api_plan>
-{{api-plan}} <- zamień na referencję do @api-plan.md
+
 </api_plan>
 
-Twoim zadaniem jest utworzenie definicji typów TypeScript dla DTO i Command Modeli określonych w planie API, upewniając się, że pochodzą one z modeli bazy danych. Wykonaj następujące kroki:
+Twoim zadaniem jest utworzenie definicji typów PHP8 Symfony8 dla DTO i Command Modeli określonych w planie API, upewniając się, że pochodzą one z modeli bazy danych. Wykonaj następujące kroki:
 
 1. Przeanalizuj modele bazy danych i plan API.
 2. Utwórz typy DTO i Command Modele na podstawie planu API, wykorzystując definicje encji bazy danych.
 3. Zapewnienie zgodności między DTO i Command Modeli a wymaganiami API.
-4. Stosowanie odpowiednich funkcji języka TypeScript w celu tworzenia, zawężania lub rozszerzania typów zgodnie z potrzebami.
+4. Stosowanie odpowiednich funkcji języka PHP8, Symfony8 i Doctrine 3.5+ w celu tworzenia, zawężania lub rozszerzania typów zgodnie z potrzebami.
 5. Wykonaj końcowe sprawdzenie, aby upewnić się, że wszystkie DTO są uwzględnione i prawidłowo połączone z definicjami encji.
 
 Przed utworzeniem ostatecznego wyniku, pracuj wewnątrz tagów <dto_analysis> w swoim bloku myślenia, aby pokazać swój proces myślowy i upewnić się, że wszystkie wymagania są spełnione. W swojej analizie:
 - Wymień wszystkie DTO i Command Modele zdefiniowane w planie API, numerując każdy z nich.
 - Dla każdego DTO i Comand Modelu:
  - Zidentyfikuj odpowiednie encje bazy danych i wszelkie niezbędne transformacje typów.
-  - Opisz funkcje lub narzędzia TypeScript, których planujesz użyć.
+  - Opisz funkcje lub narzędzia PHP8, Symfony8 i Doctrine 3.5+, których planujesz użyć.
   - Utwórz krótki szkic struktury DTO i Command Modelu.
 - Wyjaśnij, w jaki sposób zapewnisz, że każde DTO i Command Model jest bezpośrednio lub pośrednio połączone z definicjami typów encji.
 
@@ -33,7 +33,6 @@ Po przeprowadzeniu analizy, podaj ostateczne definicje typów DTO i Command Mode
 Pamiętaj:
 - Upewnij się, że wszystkie DTO i Command Modele zdefiniowane w planie API są uwzględnione.
 - Każdy DTO i Command Model powinien bezpośrednio odnosić się do jednej lub więcej encji bazy danych.
-- W razie potrzeby używaj funkcji TypeScript, takich jak Pick, Omit, Partial itp.
 - Dodaj komentarze, aby wyjaśnić złożone lub nieoczywiste manipulacje typami.
 
-Końcowy wynik powinien składać się wyłącznie z definicji typów DTO i Command Model, które zapiszesz w pliku src/db/dto.types.ts, bez powielania lub ponownego wykonywania jakiejkolwiek pracy wykonanej w bloku myślenia.
+Końcowy wynik powinien składać się wyłącznie z definicji typów DTO i Command Model w jednym pliku php, które będzie można skopiować do pliku, bez powielania lub ponownego wykonywania jakiejkolwiek pracy wykonanej w bloku myślenia.

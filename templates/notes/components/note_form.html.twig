@@ -1,0 +1,90 @@
+{#
+  NoteForm Component
+  Main form component that aggregates all fields and handles validation
+  Props: 
+    - csrfToken (string)
+    - initialTitle, initialDescription, initialLabels, initialVisibility
+    - mode: 'create' | 'edit'
+    - noteId, submitUrl, redirectUrl, previewUrl
+#}
+{% set formConfig = {
+    mode: mode ?? 'create',
+    noteId: noteId ?? null,
+    submitUrl: submitUrl ?? '/api/notes',
+    redirectUrl: redirectUrl ?? '/notes',
+    previewUrl: previewUrl ?? '/api/notes/preview',
+    initialTitle: initialTitle ?? '',
+    initialDescription: initialDescription ?? '',
+    initialLabels: initialLabels ?? [],
+    initialVisibility: initialVisibility ?? 'private'
+} %}
+
+<form 
+    id="note-form" 
+    data-note-form
+    data-note-config="{{ formConfig|json_encode|e('html_attr') }}"
+    class="space-y-6"
+    novalidate
+>
+    <input type="hidden" name="csrf_token" value="{{ csrfToken }}" data-csrf-token>
+    
+    {# Validation Alert List - Global form errors #}
+    <div id="form-errors" data-form-errors class="hidden">
+        {% include 'notes/components/validation_alert_list.html.twig' %}
+    </div>
+
+    {# Title Field #}
+    <div data-field="title">
+        {% include 'notes/components/title_field.html.twig' with {
+            initialTitle: formConfig.initialTitle
+        } %}
+    </div>
+
+    {# Visibility Toggle #}
+    <div data-field="visibility">
+        {% include 'notes/components/visibility_toggle.html.twig' with {
+            initialValue: formConfig.initialVisibility
+        } %}
+    </div>
+
+    {# Markdown Textarea #}
+    <div data-field="description">
+        {% include 'notes/components/markdown_textarea.html.twig' with {
+            initialDescription: formConfig.initialDescription
+        } %}
+    </div>
+
+    {# Tag Input #}
+    <div data-field="labels">
+        {% include 'notes/components/tag_input.html.twig' with {
+            initialLabels: formConfig.initialLabels
+        } %}
+    </div>
+
+    {# Preview Section (hidden by default, shown after preview request) #}
+    <div 
+        id="preview-section" 
+        data-preview-section 
+        class="hidden border-t border-slate-200 pt-6"
+    >
+        <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-slate-900">Podgląd</h3>
+            <button 
+                type="button" 
+                data-close-preview
+                class="text-sm text-slate-600 hover:text-slate-900"
+                aria-label="Zamknij podgląd"
+            >
+                ✕ Zamknij
+            </button>
+        </div>
+        <div 
+            id="preview-content" 
+            data-preview-content 
+            class="prose prose-slate max-w-none bg-slate-50 rounded-lg p-6 border border-slate-200"
+        >
+            {# Preview HTML will be inserted here #}
+        </div>
+    </div>
+</form>
+

@@ -19,5 +19,22 @@ services:
     App\:
         resource: '../src/'
 
+    League\CommonMark\Environment\Environment:
+        class: League\CommonMark\Environment\Environment
+        arguments:
+            - { }
+        calls:
+            - [addExtension, ['@League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension']]
+
+    League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension: ~
+
+    League\CommonMark\MarkdownConverter:
+        class: League\CommonMark\MarkdownConverter
+        arguments:
+            - '@League\CommonMark\Environment\Environment'
+
+    League\CommonMark\ConverterInterface: '@League\CommonMark\MarkdownConverter'
+    Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface: '@html_sanitizer.sanitizer.markdown'
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

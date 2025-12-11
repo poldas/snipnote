@@ -1,0 +1,40 @@
+{% set meta = meta ?? { page: 1, totalPages: 1, total: 0 } %}
+{% set q = q ?? '' %}
+{% set labels = labels ?? [] %}
+{% set visibility = visibility ?? '' %}
+{% set page = meta.page|default(1) %}
+{% set totalPages = meta.totalPages|default(1) %}
+{% set prevPage = page > 1 ? page - 1 : 1 %}
+{% set nextPage = page < totalPages ? page + 1 : totalPages %}
+{% set windowStart = page - 2 %}
+{% if windowStart < 1 %}{% set windowStart = 1 %}{% endif %}
+{% set windowEnd = windowStart + 4 %}
+{% if windowEnd > totalPages %}{% set windowEnd = totalPages %}{% endif %}
+{% if windowEnd < windowStart %}{% set windowStart = windowEnd %}{% endif %}
+
+{% if totalPages > 1 %}
+<nav class="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-600" aria-label="Paginacja">
+    <a href="/notes?page={{ prevPage }}{% if q %}&q={{ q|url_encode }}{% endif %}{% if visibility %}&visibility={{ visibility|url_encode }}{% endif %}{% for label in labels %}&label={{ label|url_encode }}{% endfor %}"
+       class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 font-semibold {% if page <= 1 %}opacity-50 pointer-events-none{% else %}hover:bg-slate-100{% endif %}">
+        Poprzednia
+    </a>
+
+    <div class="flex items-center gap-2">
+        {% for p in windowStart..windowEnd %}
+            {% set isCurrent = p == page %}
+            <a href="/notes?page={{ p }}{% if q %}&q={{ q|url_encode }}{% endif %}{% if visibility %}&visibility={{ visibility|url_encode }}{% endif %}{% for label in labels %}&label={{ label|url_encode }}{% endfor %}"
+               {% if isCurrent %}aria-current="page"{% endif %}
+               class="inline-flex items-center justify-center min-w-[42px] rounded-lg border px-3 py-2 font-semibold transition-colors
+               {% if isCurrent %}border-indigo-200 bg-indigo-50 text-indigo-700{% else %}border-slate-200 bg-white text-slate-700 hover:bg-slate-100{% endif %}">
+                {{ p }}
+            </a>
+        {% endfor %}
+    </div>
+
+    <a href="/notes?page={{ nextPage }}{% if q %}&q={{ q|url_encode }}{% endif %}{% if visibility %}&visibility={{ visibility|url_encode }}{% endif %}{% for label in labels %}&label={{ label|url_encode }}{% endfor %}"
+       class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 font-semibold {% if page >= totalPages %}opacity-50 pointer-events-none{% else %}hover:bg-slate-100{% endif %}">
+        Następna
+    </a>
+</nav>
+{% endif %}
+

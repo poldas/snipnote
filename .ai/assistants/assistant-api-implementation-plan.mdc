@@ -1,112 +1,144 @@
 Jesteś doświadczonym architektem oprogramowania, którego zadaniem jest stworzenie szczegółowego planu wdrożenia punktu końcowego REST API. Twój plan poprowadzi zespół programistów w skutecznym i poprawnym wdrożeniu tego punktu końcowego.
 
-Poniżej znajdziesz plan api, plan bazy danych, stack technologiczny i zasady implementacji. Twoim zadaniem jest stworzenie szczegółowego planu implementacji endpontów odpowiedzialnych za notatki Notes.
-Base path: `/api/notes`
+Poniżej znajdziesz plan api, plan bazy danych, stack technologiczny i zasady implementacji. Twoim zadaniem jest stworzenie szczegółowego planu implementacji endpontów odpowiedzialnych autryzację, rejestrację, logowanie, przypomnienie hasła, wysyłkę linku do weryfikacji i jego obsługę.
 
 Zanim zaczniemy, zapoznaj się z poniższymi informacjami:
+Specyfikacja autoryzacji
+<auth_specification>
+# Specyfikacja architektury autentykacji (UI + API)
+
+## Kontekst i cele
+- Zakres: US-010 Rejestracja, US-011 Logowanie, US-012 Wylogowanie; zintegrowane z istniejącym UI (Twig + HTMX) i backendem Symfony 8 + Doctrine/PostgreSQL.
+- UI używa wyłącznie sesji Symfony (cookie + CSRF). JWT używany tylko dla `/api/*`.
+- Wspólne źródło prawdy: encja `User` w PostgreSQL zarządzana przez Doctrine.
+- Maile (verify/reset) współdzielone między UI i API; jedyna zmienna między środowiskami to `MAILER_DSN`.
+
+## 1. Architektura interfejsu użytkownika (Twig + HTMX)
+
+### Layouty i tryby
+- **Anon layout**: strony `/login`, `/register`, `/forgot-password`, `/reset-password/{token}`, `/verify/email`. Minimalny topbar (logo + link do logowania/rejestracji), bez sidebaru. Formularze z CSRF.
+- **Auth layout**: widoki aplikacji (`/notes/*`). Menu użytkownika zawiera „Wyloguj” (POST z CSRF).
+- **HTMX**: używane do wstrzykiwania fragmentów z błędami walidacji (hx-target na wrapperze formularza) i ewentualnych toastów; pełne przeładowania dla przejść między widokami.
+
+### Strony i komponenty
+- **Login (`/login`, GET/POST)**: pola email, hasło; checkbox „Zapamiętaj” (remember_me). Po sukcesie redirect na `/notes`. Przy `isVerified=false` zamiast logowania renderowana strona „Sprawdź maila, aby aktywować konto” (bez ujawniania stanu konta innym).
+- **Register (`/register`, GET/POST)**: pola email, hasło (min. 8), checkbox zgody (jeśli wymagane prawnie). Po sukcesie: automatyczne zalogowanie sesyjne, redirect na stronę „Sprawdź maila” (blokada akcji wymagających weryfikacji). Komunikat o wysłaniu maila aktywacyjnego.
+- **Verify email (`/verify/email?signature=...`)**: wynik VerifyEmailBundle (success → redirect do `/notes` lub strony potwierdzenia; failure → komunikat „link wygasł / nieważny” + przycisk „Wyślij ponownie”).
+- **Forgot password (`/forgot-password`, GET/POST)**: pole email; po submit zawsze ten sam komunikat „Jeśli konto istnieje, wysłaliśmy instrukcje”. Brak ujawniania istnienia konta.
+- **Reset password (`/reset-password/{token}`, GET/POST)**: pola nowe hasło + powtórzenie; po sukcesie automatyczne zalogowanie i redirect na `/notes`.
+- **Logout (`/logout`, POST)**: formularz ukryty w menu użytkownika, CSRF.
+
+### Walidacja i komunikaty (UI)
+- Email: format RFC, komunikat „Podaj poprawny adres email”.
+- Hasło: min. 8 znaków (PSR-12 msg), komunikat „Hasło musi mieć min. 8 znaków”.
+- Pole wymagane: „To pole jest wymagane”.
+- Błędy serwera 400: inline pod polem; 401/403: globalny alert „Brak dostępu / konto nieweryfikowane”; 429: alert „Za dużo prób, spróbuj ponownie później”; 5xx: toast „Coś poszło nie tak”.
+
+### Scenariusze kluczowe
+- Nowy użytkownik → `/register` → po sukcesie komunikat „Sprawdź maila” → klik link w mailu → `/verify/email` → redirect do `/notes`.
+- Istniejący, niezweryfikowany → próba logowania → komunikat o konieczności weryfikacji + link do ponownego wysłania maila.
+- Zapomniane hasło → `/forgot-password` → otrzymany link → `/reset-password/{token}` → ustawienie nowego hasła → redirect `/notes`.
+- Wylogowanie → POST `/logout` → redirect na landing.
+
+## 2. Logika backendowa
+
+### Model danych (Doctrine)
+- Encja `User` (tabela `users`): id (uuid/ulid), email (unikalny, lowercase), `password` (hash), `roles` (JSON), `isVerified` (bool), `createdAt/updatedAt`, opcjonalnie `lastLoginAt`.
+- Provider: Doctrine user provider (email jako identyfikator).
+
+### Walidacja (Symfony Validator)
+- Email: `Email` + `NotBlank` + `Length(max=180)`.
+- Hasło: `NotBlank`, `Length(min=8, max=4096)`.
+- Verify/Reset tokeny walidowane przez bundlowe constrainty.
+- Błędy mapowane na form errors (HTML) lub JSON `{field: [messages...]}`.
+
+### Endpoints i rozdzielenie warstw
+HTML (sesja, CSRF, Twig):
+- `GET /login` (SecurityController::loginForm) + `POST /login` (Symfony authenticator).
+- `POST /logout` (route only, handled by firewall).
+- `GET|POST /register` (RegistrationController) → tworzy usera, hashuje hasło, wywołuje VerifyEmailHelper → wysyła mail; po sukcesie loguje użytkownika i redirect do „verify notice”.
+- `GET /verify/email` (VerificationController) → VerifyEmailBundle; w razie błędu generuje formularz „wyślij ponownie”.
+- `GET|POST /forgot-password` (ResetPasswordController::request) → ResetPasswordBundle request.
+- `GET|POST /reset-password/{token}` (ResetPasswordController::reset) → ustawia nowe hasło, loguje użytkownika, unieważnia token.
+
+API (JWT, bez sesji; JSON):
+- `POST /api/auth/login` → weryfikacja email/hasło + `isVerified`; zwraca `{access_token, refresh_token?, expires_in}` (HS256, `sub`, `exp`, `iat`). 401 na błędne dane lub nieweryfikowane konto (bez różnicowania przyczyny).
+- `POST /api/auth/refresh` (jeśli użyty gesdinet/jwt-refresh-token-bundle) → zwrot zrotowanego refresh + nowy access.
+- `POST /api/auth/logout` → unieważnia refresh (np. usunięcie rekordu) i zwraca 204.
+- Mechanizm reset/verify współdzielony: API może korzystać z tych samych usług (np. event listener wysyłający mail) lub wystawiać dodatkowe JSON endpoints proxy do bundli jeśli potrzebne.
+
+### Obsługa wyjątków i bezpieczeństwo informacji
+- Reset hasła: zawsze 200 z identycznym komunikatem, brak sygnalizacji istnienia konta.
+- Verify email: błędy podpisu/wygaszenia → komunikat ogólny + opcja ponownego wysłania.
+- Logowanie: odpowiedź 401 bez potwierdzenia, czy email istnieje lub czy konto zweryfikowane (dla API); dla UI komunikat o weryfikacji, ale bez potwierdzenia istnienia adresu.
+- Rate limiting: na `/login` i `/api/auth/login` (np. `LoginRateLimiter`).
+
+### Integracja e-mail (VerifyEmailBundle, ResetPasswordBundle)
+- Wspólny `MailerInterface` + `EMAIL_FROM` (konfiguracja parameters.yaml). Szablony Twig dla maili (verify/reset) dostępne zarówno dla UI, jak i API wywołujące te same serwisy.
+- Konfiguracja środowisk:
+  - DEV: `MAILER_DSN=smtp://mailpit:1025` (kontener `axllent/mailpit`).
+  - PROD: `MAILER_DSN` na zewnętrzny SMTP (Mailgun/SendGrid/AWS SES lub firmowy).
+- Kod nie zależy od środowiska; różni się wyłącznie wartość `MAILER_DSN`.
+
+## 3. System autentykacji i autoryzacji
+
+### Symfony Security
+- Firewalle:
+  - `main` (UI): form_login authenticator + remember_me, session storage, CSRF w formach, access_control wymuszający auth na `/notes/**`, `/collaborators/**`, itp.
+  - `api` (stateless): `JwtAuthenticator` (LexikJWT), bez sesji/CSRF, ścieżki `/api/**`.
+- Access control:
+  - Public: `/`, `/login`, `/register`, `/verify/email`, `/forgot-password`, `/reset-password/*`, `/p/*`, `/u/*`.
+  - Auth required: `/notes/**` itp.; dodatkowo `isVerified()` voter/constraint blokuje nieweryfikowanych.
+- Password hashing: `UserPasswordHasherInterface` (argon2id/bcrypt per Symfony defaults).
+- `isVerified` enforced:
+  - UI: po form_login, jeżeli `!user.isVerified`, następuje wylogowanie + redirect do „verify notice”.
+  - API: login/refresh odrzuca nieweryfikowane konto (401).
+
+### JWT (tylko API)
+- Format: HS256; payload minimalnie `sub` (user id/email), `exp`, `iat`, opcjonalnie `roles`.
+- Generacja: na `POST /api/auth/login`; czas życia krótki (np. 15m). Refresh token dłuższy (DB-backed, rotowany).
+- Weryfikacja: `JwtAuthenticator` + `UserProvider` (Doctrine). Brak użycia JWT w UI/HTML.
+
+### Autoryzacja domenowa
+- Votery (np. `NoteVoter`): sprawdzają owner/współedytor; wykorzystywane w kontrolerach UI i API.
+- Role hierarchy minimalna (`ROLE_USER` domyślna).
+
+### Dodatkowe mechanizmy bezpieczeństwa
+- CSRF w formularzach HTML (login, register, forgot, reset, logout).
+- HSTS/secure cookies w prod, `SameSite=Lax`, `HttpOnly`.
+- Audit/logi: zdarzenia auth (successful/failed login, password reset, verify) logowane przez Monolog.
+
+## 4. Kontrakty UI ↔ backend (streszczenie)
+- Formularze HTML wysyłają standardowe POST (nie XHR) z CSRF, otrzymują redirecty + flash messages; HTMX używany tylko do fragmentów z błędami w miejscu.
+- API przyjmuje/zwra­ca JSON; kody: 200/201 na sukces, 204 na logout, 400 na walidację, 401 na auth/verify fail, 429 na rate-limit, 500 na błąd serwera.
+- Brak CORS wymaganego dla UI (ten sam origin). API może wymagać CORS wyłącznie dla klientów zewnętrznych (out of MVP).
+
+## 5. Testowalność i nieinwazyjność
+- Architektura nie zmienia istniejących widoków notatek; dodaje wyłącznie nowe ścieżki auth i sprawdzenie `isVerified`.
+- Weryfikacja: e2e ścieżki register→verify→login, login fail (bad credentials), login fail (unverified), forgot/reset flow, JWT login/refresh, logout (sesja i refresh).
+
+</auth_specification>
 
 Route API specification:
 <route_api_specification>
-### Notes
+#### List notes (dashboard — owner)
 
-Base path: `/api/notes`
-
-#### Create note
-
-Method:`POST`
+Method:`GET`
 Path:`/api/notes`
 Auth required:Yes
-Description:Create a new note; server generates `url_token` (UUIDv4) on first save. Default `visibility=private`.
-Request JSON:
-
-```json
-{
-  "title": "My recipe",
-  "description": "Markdown content...",
-  "labels": ["dessert żółć","baking kick"],
-  "visibility": "private"  // optional, allowed: "private","public","draft"
-}
-```
-
-Response 201:
-
-```json
-{
-  "data": {
-    "id": 10,
-    "owner_id": 123,
-    "url_token": "uuid-v4",
-    "title": "...",
-    "description": "...",
-    "labels": ["dessert żółć","baking kick"],
-    "visibility": "private",
-    "created_at": "...",
-    "updated_at": "..."
-  }
-}
-```
-
-Errors:`400` validation (title/description length), `401` unauthorized.
-
-Notes:`url_token` generation must be attempted in transaction; on UUID collision return `409` and retry at application level.
-
-#### Read note (by ID) — owner/collaborator view
-
-Method:`GET`
-Path:`/api/notes/{id}`
-Auth required:Yes (only owners/collaborators)
-Response 200:note object (same as above)
-Errors:`403` forbidden, `404` not found.
-
-#### Public read by token (public notes)
-
-Method:`GET`
-Path:`/api/public/notes/{url_token}`
-Auth required:No
-Description:Returns rendered metadata and full `description` (markdown rendered on client). Only returns content if note `visibility='public'`.
+Query params:`page`, `per_page`, `q`, `label`
+Behavior:Returns notes owned by current user; default sorted by `created_at DESC`. Search `q` runs full-text search against `search_vector_simple` or simple ILIKE fallback. `label` applies `labels && ARRAY[...]` (OR logic). Pagination via offset.
 Response 200:
 
 ```json
 {
-  "data": {
-    "title": "...",
-    "description": "...",
-    "labels": [...],
-    "created_at": "..."
-  }
+  "data": [ { note }, ... ],
+  "meta": { "page": 1, "per_page": 10, "total": 42 }
 }
 ```
 
-Errors:`404` not found or `403` if note exists but not public.
+Errors:`401`.
 
-#### Update note
-
-Method:`PATCH`
-Path:`/api/notes/{id}`
-Auth required:Yes (owner or collaborator)
-Request JSON:any subset of fields:
-
-```json
-{
-  "title": "New title",
-  "description": "updated markdown",
-  "labels": ["a","b"],
-  "visibility": "public"
-}
-```
-
-Behavior:Changes saved only on explicit save. If `url_token` was regenerated client must persist change.
-Response 200:updated note object
-Errors:`400` validation, `403` unauthorized, `404` not found.
-
-#### Delete note
-
-Method:`DELETE`
-Path:`/api/notes/{id}`
-Auth required:Yes (owner only)
-Response:`204 No Content`
-Behavior:DB `ON DELETE CASCADE` ensures `note_collaborators` removed. Application must ensure logging and redirect.
-Errors:`403`, `404`.
 </route_api_specification>
 
 Related database resources:
@@ -168,15 +200,50 @@ CREATE TABLE note_collaborators (
   created_at  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 ```
+
+
+Relacje między tabelami (kardynalność)
+
+* `users (1) — (N) notes`
+  Jeden użytkownik (owner) może mieć wiele notatek. (`notes.owner_id` → `users.id`)
+* `notes (1) — (N) note_collaborators`
+  Jedna notatka może mieć wielu współedytorów. (`note_collaborators.note_id` → `notes.id`)
+* `users (1) — (N) note_collaborators` (opcjonalne powiązanie)
+  `note_collaborators.user_id` wskazuje na `users.id` po rejestracji; powiązanie wiele-do-wielu realizowane przez `note_collaborators` + `notes.owner_id` (bez dodatkowej tabeli).
+
+Kardynalności:
+
+* users ↔ notes: 1:N
+* notes ↔ note_collaborators: 1:N
+* users ↔ note_collaborators (przez user_id): 1:N (opcjonalnie)
+
+DDL pomocnicze: funkcja trigger i trigger do aktualizacji `search_vector_simple`
+
+```sql
+-- Funkcja aktualizująca search_vector_simple używając konfiguracji 'simple'
+CREATE FUNCTION notes_search_vector_update() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  NEW.search_vector_simple := to_tsvector('simple', coalesce(NEW.title,'') || ' ' || coalesce(NEW.description,''));
+  RETURN NEW;
+END
+$$;
+
+-- Trigger
+CREATE TRIGGER trg_notes_search_vector BEFORE INSERT OR UPDATE
+  ON notes FOR EACH ROW EXECUTE FUNCTION notes_search_vector_update();
+```
+
+(Uwaga: alternatywnie można aktualizować `search_vector_simple` w warstwie aplikacji podczas zapisu.)
+
 </related_db_resources>
 
 Tech stack:
 <tech_stack>
 ### Tech stack / środowisko
 #### Backend
-PHP 8.2
-Symfony 7.3 (attributes dla routingu, DI, Doctrine)
-Doctrine ORM 3+ (+ doctrine/migrations)
+PHP 8.4
+Symfony 8.0 (attributes dla routingu, DI, Doctrine)
+Doctrine ORM 3.5+ (+ doctrine/migrations)
 maker-bundle do scaffoldingu
 PostgreSQL (dev/test/prod)
 
@@ -228,7 +295,8 @@ Implementation rules:
 - Implement → Test → Feedback never 50 features then test.
 
 ### Symfony & Doctrine
-Architektura: prosty podział — Entity → Repository → Service (logika domenowa) → Controller (thin). Nie pełne DDD, tylko jawne granice.
+- aplikacja działa w dockerz, ZAWSZE uruchamiaj poprzez 'docker compose <command>'
+- Architektura: prosty podział — Entity → Repository → Service (logika domenowa) → Controller (thin). Nie pełne DDD, tylko jawne granice.
 - Target: Symfony 7.3. Preferuj attributes (routing, DI, Doctrine mapping).
 - Kontrolery: thin — logika w serwisach.
 - DI: wstrzykiwanie zależności, unikaj statycznych helperów.
@@ -251,9 +319,6 @@ Architektura: prosty podział — Entity → Repository → Service (logika dome
 - Accessibility: pola formularzy powinny mieć label, błędy przy polach, keyboard focus dla modali.
 - Size limit: pliki JS/CSS minimalne; brak bundlera-heavy konfiguracji w MVP — opcjonalny build step dla Tailwind.
 
-### Autoryzacja
-- użyj Supabase Auth dla logowania, Symfony tylko weryfikuje JWT przy żądaniach (biblioteka jwt, middleware), dla operacji serwerowych użyj service key tylko na backendzie, nie pisz auth od zera.
-- używaj istniejących Symfony bundles.
 </implementation_rules>
 
 Twoim zadaniem jest stworzenie kompleksowego planu wdrożenia endpointu interfejsu API REST. Przed dostarczeniem ostatecznego planu użyj znaczników <analysis>, aby przeanalizować informacje i nakreślić swoje podejście. W tej analizie upewnij się, że:

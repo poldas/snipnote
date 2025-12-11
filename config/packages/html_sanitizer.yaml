@@ -1,0 +1,11 @@
+framework:
+  html_sanitizer:
+    sanitizers:
+      markdown:
+        allow_safe_elements: true
+        allowed_link_schemes: ['http', 'https', 'mailto']
+        allow_elements: ['p', 'br', 'hr', 'strong', 'em', 'code', 'pre', 'blockquote', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'img', 'a']
+        allow_attributes:
+          'a': ['href', 'title']
+          'img': ['src', 'alt', 'title', 'width', 'height']
+

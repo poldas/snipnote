@@ -1,0 +1,16 @@
+{% set count = count ?? null %}
+{% set addHref = addHref ?? '/notes/new' %}
+
+<div class="flex flex-wrap items-center justify-between gap-3">
+    <div class="space-y-1">
+        <h2 class="text-xl font-semibold text-slate-900">Notatki</h2>
+        <p class="text-sm text-slate-500">
+            {{ count is not null ? count ~ ' wyników' : 'Przeglądaj i filtruj swoje notatki' }}
+        </p>
+    </div>
+    <a href="{{ addHref }}" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 text-white px-4 py-2.5 text-sm font-semibold shadow-sm shadow-indigo-500/15 hover:bg-indigo-500 transition-colors">
+        <span class="text-lg">+</span>
+        <span>Dodaj notatkę</span>
+    </a>
+</div>
+

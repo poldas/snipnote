@@ -1,0 +1,72 @@
+{% set action = action ?? '/login' %}
+{% set csrfToken = csrfToken ?? csrf_token('authenticate') %}
+{% set errors = errors ?? [] %}
+{% set prefill = prefill ?? {} %}
+{% set pending = pending ?? false %}
+{% set redirect = redirect ?? null %}
+
+{% set emailError = (errors|filter(e => (e.field ?? null) == 'email')|first).message ?? null %}
+{% set passwordError = (errors|filter(e => (e.field ?? null) == 'password')|first).message ?? null %}
+{% set globalErrors = errors|filter(e => e.field is not defined or e.field is null)|map(e => e.message) %}
+
+<form action="{{ action }}" method="post" class="space-y-4" hx-boost="false">
+    <input type="hidden" name="_csrf_token" value="{{ csrfToken }}">
+    {% if redirect %}
+        <input type="hidden" name="redirect" value="{{ redirect }}">
+    {% endif %}
+
+    {% include 'auth/components/global_error_banner.html.twig' with { messages: globalErrors } %}
+
+    {% include 'auth/components/form_field.html.twig' with {
+        config: {
+            id: 'email',
+            name: 'email',
+            label: 'Email',
+            type: 'email',
+            placeholder: 'you@example.com',
+            autocomplete: 'email',
+            required: true,
+            pattern: '[^@\\s]+@[^@\\s]+\\.[^@\\s]+',
+            maxLength: 180
+        },
+        value: prefill.email ?? '',
+        error: emailError,
+        autoFocus: true
+    } %}
+
+    {% include 'auth/components/form_field.html.twig' with {
+        config: {
+            id: 'password',
+            name: 'password',
+            label: 'Hasło',
+            type: 'password',
+            placeholder: '••••••••',
+            autocomplete: 'current-password',
+            required: true,
+            minLength: 8,
+            maxLength: 4096
+        },
+        error: passwordError
+    } %}
+
+    <button type="submit"
+            class="w-full inline-flex items-center justify-center rounded-2xl text-white px-4 py-3 font-semibold shadow-lg shadow-indigo-500/25 transition-all disabled:opacity-70 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#c7d2fe] focus:ring-offset-2 focus:ring-offset-white hover:translate-y-[-1px] active:translate-y-0.5 btn-auth-primary"
+            {% if pending %}disabled{% endif %}
+            hx-disabled-elt="this">
+        {% if pending %}
+            <span class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/60 border-t-transparent"></span>
+        {% endif %}
+        Zaloguj się
+    </button>
+
+    <div class="text-sm text-slate-700 text-center space-y-1">
+        <p>
+            Nie masz konta?
+            <a href="/register" data-test-id="login-link-register" class="text-indigo-600 hover:text-indigo-800 font-semibold underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-300 transition-colors">Załóż konto</a>
+        </p>
+        <p>
+            <a href="/forgot-password" data-test-id="login-link-forgot-password" class="text-indigo-600 hover:text-indigo-800 font-semibold underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-300 transition-colors">Nie pamiętasz hasła?</a>
+        </p>
+    </div>
+</form>
+

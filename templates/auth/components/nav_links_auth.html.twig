@@ -1,0 +1,11 @@
+{% set nav = nav ?? { href: '/register', label: 'Nie masz konta? Zarejestruj się' } %}
+
+<a href="{{ nav.href }}"
+   data-test-id="auth-nav-link"
+   class="inline-flex items-center gap-2 text-sm font-semibold text-indigo-700 hover:text-indigo-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-300 transition-colors">
+    <span>{{ nav.label }}</span>
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M9 5l7 7-7 7" />
+    </svg>
+</a>
+

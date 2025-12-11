@@ -1,0 +1,33 @@
+{% extends 'auth/base_auth.html.twig' %}
+
+{% block title %}Zarejestruj się | Snipnote{% endblock %}
+
+{% block auth_nav %}
+    {% include 'auth/components/nav_links_auth.html.twig' with { nav: navSwitch ?? { href: '/login', label: 'Masz już konto? Zaloguj się' } } %}
+{% endblock %}
+
+{% block auth_hero %}
+    {% include 'auth/components/hero_intro.html.twig' with { hero: hero ?? {} } %}
+{% endblock %}
+
+{% block auth_card %}
+    {% set errors = errors ?? [] %}
+    {% set prefill = prefill ?? {} %}
+    {% set pending = pending ?? false %}
+
+    {% embed 'auth/components/auth_card.html.twig' with {
+        title: 'Rejestracja',
+        subtitle: 'Załóż konto, aby tworzyć i udostępniać notatki.',
+        pending: pending
+    } %}
+        {% block auth_card_body %}
+            {% include 'auth/components/register_form.html.twig' with {
+                action: '/register',
+                errors: errors,
+                prefill: prefill,
+                pending: pending
+            } %}
+        {% endblock %}
+    {% endembed %}
+{% endblock %}
+

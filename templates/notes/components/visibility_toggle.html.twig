@@ -1,0 +1,104 @@
+{#
+  VisibilityToggle Component
+  Toggle between private/public/draft visibility options
+  Props: initialValue (string, default: 'private')
+#}
+{% set currentValue = initialValue ?? 'private' %}
+
+<div>
+    <label class="block text-sm font-semibold text-slate-700 mb-3">
+        Widoczność
+    </label>
+    <div 
+        role="radiogroup" 
+        aria-labelledby="visibility-label"
+        class="inline-flex rounded-lg border border-slate-300 bg-slate-50 p-1"
+        data-visibility-toggle
+    >
+        <input 
+            type="radio" 
+            id="visibility-private" 
+            name="visibility" 
+            value="private"
+            data-visibility-input
+            class="sr-only"
+            {% if currentValue == 'private' %}checked{% endif %}
+        >
+        <label 
+            for="visibility-private"
+            class="px-4 py-2 text-sm font-medium rounded-md cursor-pointer transition-all
+                   {% if currentValue == 'private' %}
+                   bg-white text-indigo-700 border border-indigo-200 shadow-sm
+                   {% else %}
+                   text-slate-600 hover:text-slate-900
+                   {% endif %}"
+            data-visibility-label="private"
+        >
+            🔒 Prywatna
+        </label>
+
+        <input 
+            type="radio" 
+            id="visibility-public" 
+            name="visibility" 
+            value="public"
+            data-visibility-input
+            class="sr-only"
+            {% if currentValue == 'public' %}checked{% endif %}
+        >
+        <label 
+            for="visibility-public"
+            class="px-4 py-2 text-sm font-medium rounded-md cursor-pointer transition-all
+                   {% if currentValue == 'public' %}
+                   bg-white text-indigo-700 border border-indigo-200 shadow-sm
+                   {% else %}
+                   text-slate-600 hover:text-slate-900
+                   {% endif %}"
+            data-visibility-label="public"
+        >
+            🌐 Publiczna
+        </label>
+
+        <input 
+            type="radio" 
+            id="visibility-draft" 
+            name="visibility" 
+            value="draft"
+            data-visibility-input
+            class="sr-only"
+            {% if currentValue == 'draft' %}checked{% endif %}
+        >
+        <label 
+            for="visibility-draft"
+            class="px-4 py-2 text-sm font-medium rounded-md cursor-pointer transition-all
+                   {% if currentValue == 'draft' %}
+                   bg-white text-indigo-700 border border-indigo-200 shadow-sm
+                   {% else %}
+                   text-slate-600 hover:text-slate-900
+                   {% endif %}"
+            data-visibility-label="draft"
+        >
+            📝 Szkic
+        </label>
+    </div>
+    <p class="mt-2 text-xs text-slate-500">
+        <span data-visibility-description>
+            {% if currentValue == 'public' %}
+                Notatka będzie widoczna publicznie pod unikalnym linkiem.
+            {% elseif currentValue == 'draft' %}
+                Szkic - notatka niewidoczna dla nikogo poza Tobą.
+            {% else %}
+                Notatka widoczna tylko dla Ciebie i współpracowników.
+            {% endif %}
+        </span>
+    </p>
+    <div 
+        id="visibility-error" 
+        data-visibility-error
+        class="hidden mt-2 text-sm text-red-600"
+        role="alert"
+    >
+        {# Error messages will be inserted here by JavaScript #}
+    </div>
+</div>
+
