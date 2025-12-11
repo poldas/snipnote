@@ -1,0 +1,15 @@
+{% set onAddHref = onAddHref ?? '/notes/new' %}
+<div class="p-8 text-center space-y-3">
+    <p class="text-lg font-semibold text-slate-900">Nie ma jeszcze notatek</p>
+    <p class="text-sm text-slate-500">Dodaj pierwszą notatkę. Pamiętaj że domyślnie notatka jest prywatna.</p>
+    <a href="{{ onAddHref }}"
+       class="group px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg font-medium text-sm transition-all hover:bg-emerald-50 hover:border-emerald-500 hover:text-emerald-700 inline-flex items-center gap-2">
+        <span class="w-6 h-6 bg-emerald-100 text-emerald-600 rounded-md flex items-center justify-center transition-colors group-hover:bg-emerald-500 group-hover:text-white">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+        </span>
+        Dodaj notatkę
+    </a>
+</div>
+

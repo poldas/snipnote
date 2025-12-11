@@ -1,0 +1,36 @@
+{#
+  DangerZone Component
+  Props: deleteUrl (string), regenerateUrl? (string|null), redirectUrl (string)
+#}
+<section 
+    class="bg-white border border-red-200 rounded-xl p-5 shadow-sm space-y-4"
+    data-danger-zone
+    data-delete-url="{{ deleteUrl }}"
+    data-redirect-url="{{ redirectUrl }}"
+    {% if regenerateUrl is defined and regenerateUrl %}data-regenerate-url="{{ regenerateUrl }}"{% endif %}
+>
+    <div>
+        <h2 class="text-lg font-semibold text-red-700">Strefa zagrożenia</h2>
+        <p class="text-sm text-red-600">Operacje nieodwracalne. Używaj ostrożnie.</p>
+    </div>
+    <div class="flex flex-col sm:flex-row gap-3">
+        <button
+            type="button"
+            data-open-delete-modal
+            class="inline-flex items-center justify-center px-4 py-2.5 border border-red-200 text-red-700 bg-red-50 rounded-lg font-semibold text-sm hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
+        >
+            🗑️ Usuń notatkę
+        </button>
+        {% if regenerateUrl is defined and regenerateUrl %}
+            <button
+                type="button"
+                data-open-regenerate-modal
+                class="inline-flex items-center justify-center px-4 py-2.5 border border-amber-200 text-amber-700 bg-amber-50 rounded-lg font-semibold text-sm hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-colors"
+            >
+                ♻️ Wygeneruj nowy URL
+            </button>
+        {% endif %}
+    </div>
+</section>
+
+

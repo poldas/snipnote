@@ -1,0 +1,47 @@
+name: Deploy to VPS
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-to-vps
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: SSH deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Smoke test SSH (welcome.sh)
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script_stop: true
+          script: |
+            if [ ! -f ~/welcome.sh ]; then
+              echo "welcome.sh not found in home directory" >&2
+              exit 1
+            fi
+            chmod +x ~/welcome.sh || true
+            ~/welcome.sh
+
+      - name: Docker login and restart app
+        uses: appleboy/ssh-action@v0.1.10
+        env:
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script_stop: true
+          envs: GHCR_USERNAME,GHCR_TOKEN
+          script: |
+            cd ~/snipnote
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+            ./bin/deploy/update-app.sh

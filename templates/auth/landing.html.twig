@@ -1,0 +1,34 @@
+{% extends 'auth/base_auth.html.twig' %}
+
+{% block title %}Snipnote — Zacznij zapisywać notatki{% endblock %}
+
+{% block auth_nav %}
+    {% include 'auth/components/nav_links_auth.html.twig' with { nav: navSwitch ?? { href: '/login', label: 'Masz już konto? Zaloguj się' } } %}
+{% endblock %}
+
+{% block auth_hero %}
+    {% include 'auth/components/hero_intro.html.twig' with { hero: hero ?? {}, showCtas: false } %}
+{% endblock %}
+
+{% block auth_card %}
+    {% set errors = errors ?? [] %}
+    {% set prefill = prefill ?? {} %}
+    {% set pending = pending ?? false %}
+
+    {% embed 'auth/components/auth_card.html.twig' with {
+        title: 'Zaloguj się',
+        subtitle: 'Zaloguj się lub zarejestruj, aby dodawać i udostępniać notatki',
+        pending: pending
+    } %}
+        {% block auth_card_body %}
+            {% include 'auth/components/login_form.html.twig' with {
+                action: '/login',
+                errors: errors,
+                prefill: prefill,
+                pending: pending,
+                redirect: redirect ?? null
+            } %}
+        {% endblock %}
+    {% endembed %}
+{% endblock %}
+

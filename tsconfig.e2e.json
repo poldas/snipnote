@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "allowSyntheticDefaultImports": true,
+        "types": [
+            "node",
+            "@playwright/test"
+        ],
+        "strict": true,
+        "outDir": "e2e/artifacts/dist",
+        "rootDir": "."
+    },
+    "include": [
+        "playwright.config.ts",
+        "e2e/**/*.ts"
+    ]
+}

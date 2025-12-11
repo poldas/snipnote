@@ -1,0 +1,11 @@
+Zapoznaj się z technical stackiem i planem testów zamieszczonych w odpowiednich tagach TECHSTACK i TESTSPEC
+
+<TECHSTACK>
+@.ai/spec/tech-stack.md 
+</TECHSTACK>
+
+<TESTSPEC>
+@.ai/test-plan.md 
+</TESTSPEC>
+
+Przygotuj kompletne gotowe do uruchomienia środowisko do wdrażania testów jednostkowych i e2e wykorzystując powyższe dane o technologii i testach. Jeżeli czegoś nie możesz zrobić poproś mnie.

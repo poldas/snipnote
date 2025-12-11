@@ -1,0 +1,83 @@
+FROM php:8.4.1-apache-bookworm AS base
+
+ARG APP_ENV=prod
+
+ENV APP_ENV=${APP_ENV} \
+    APP_DEBUG=0 \
+    APP_RUNTIME_OPTIONS={\"disable_dotenv\":true} \
+    TRUSTED_PROXIES=127.0.0.1,REMOTE_ADDR \
+    COMPOSER_ALLOW_SUPERUSER=1 \
+    APACHE_DOCUMENT_ROOT=/var/www/html/public
+
+WORKDIR /var/www/html
+
+# Apache vhost config
+COPY docker/apache/snipnote.conf /etc/apache2/sites-available/snipnote.conf
+COPY docker/apache/security.conf /etc/apache2/conf-available/security.conf
+
+# System deps + PHP extensions
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      git unzip curl libpq-dev libicu-dev libzip-dev zlib1g-dev \
+ && docker-php-ext-install -j$(nproc) intl pdo_pgsql zip opcache \
+ && a2enmod rewrite headers \
+ && a2dissite 000-default \
+ && a2ensite snipnote \
+ && a2enconf security \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+# PHP configuration for production
+COPY docker/php-opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+
+FROM base AS builder
+# Composer needed only in builder stage, not in runtime
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+# Ensure prod env during build-time console commands (Dotenv disabled)
+ENV APP_ENV=prod \
+    APP_DEBUG=0 \
+    APP_RUNTIME_OPTIONS={\"disable_dotenv\":true}
+COPY . .
+RUN --mount=type=cache,target=/tmp/composer-cache \
+    composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader --no-scripts \
+ && php bin/console importmap:install --no-interaction --env=prod \
+ && php bin/console asset-map:compile --env=prod
+# Uncomment if you want compiled env for prod
+# RUN composer dump-env prod
+# Uncomment if assets should be built
+# RUN npm ci && npm run build
+
+FROM base AS runtime
+# Apply security hardening only in runtime so builder can use composer requirements
+COPY docker/php-security.ini /usr/local/etc/php/conf.d/security.ini
+COPY --from=builder /var/www/html /var/www/html
+
+# Cleanup unnecessary files and set permissions
+RUN rm -rf /var/www/html/.git* \
+           /var/www/html/tests \
+           /var/www/html/docker \
+           /var/www/html/*.md \
+           /var/www/html/phpunit.* \
+ && mkdir -p /var/www/html/var \
+ && mkdir -p /var/www/html/var/sessions \
+ && chown -R www-data:www-data /var/www/html/var \
+ && find /var/www/html -type f -exec chmod 644 {} \; \
+ && find /var/www/html -type d -exec chmod 755 {} \; \
+ && chmod +x /var/www/html/bin/console
+
+# Runtime entrypoint: warm cache with real env, then start Apache
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Drop build-time tools from runtime image to reduce surface
+RUN apt-get purge -y git unzip \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+EXPOSE 80
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=40s \
+    CMD curl -fsS -H "User-Agent: Docker-Healthcheck" http://127.0.0.1/ || exit 1
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["apache2-foreground"]

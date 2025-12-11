@@ -1,0 +1,35 @@
+{% extends 'auth/base_auth.html.twig' %}
+
+{% block title %}Zaloguj się | Snipnote{% endblock %}
+
+{% block auth_nav %}
+    {% include 'auth/components/nav_links_auth.html.twig' with { nav: navSwitch ?? { href: '/register', label: 'Nie masz konta? Zarejestruj się' } } %}
+{% endblock %}
+
+{% block auth_hero %}
+    {% include 'auth/components/hero_intro.html.twig' with { hero: hero ?? {} } %}
+{% endblock %}
+
+{% block auth_card %}
+    {% set tagText = redirect ? 'Po zalogowaniu wrócisz do docelowej strony' : null %}
+    {% set errors = errors ?? [] %}
+    {% set prefill = prefill ?? {} %}
+    {% set pending = pending ?? false %}
+
+    {% embed 'auth/components/auth_card.html.twig' with {
+        title: 'Logowanie',
+        subtitle: 'Wpisz email i hasło, aby przejść do notatek.',
+        pending: pending
+    } %}
+        {% block auth_card_body %}
+            {% include 'auth/components/login_form.html.twig' with {
+                action: '/login',
+                errors: errors,
+                prefill: prefill,
+                pending: pending,
+                redirect: redirect
+            } %}
+        {% endblock %}
+    {% endembed %}
+{% endblock %}
+

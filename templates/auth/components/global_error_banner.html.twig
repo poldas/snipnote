@@ -1,0 +1,17 @@
+{% set messages = messages ?? [] %}
+
+{% if messages|length > 0 %}
+    <div class="rounded-xl border border-rose-300/60 bg-rose-900/40 text-rose-50 px-4 py-3 mb-4" role="alert">
+        <div class="flex items-start gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mt-[2px]" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-.75-11.75a.75.75 0 011.5 0v4.5a.75.75 0 01-1.5 0v-4.5zm0 6.75a.75.75 0 111.5 0 .75.75 0 01-1.5 0z" clip-rule="evenodd" />
+            </svg>
+            <div class="space-y-1 text-sm">
+                {% for msg in messages %}
+                    <p>{{ msg }}</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endif %}
+

@@ -1,0 +1,38 @@
+{% set cfg = config ?? {} %}
+{% set id = cfg.id ?? cfg.name ?? 'field-' ~ random() %}
+{% set name = cfg.name ?? id %}
+{% set type = cfg.type ?? 'text' %}
+{% set label = cfg.label ?? name %}
+{% set placeholder = cfg.placeholder ?? '' %}
+{% set autocomplete = cfg.autocomplete ?? null %}
+{% set pattern = cfg.pattern ?? null %}
+{% set required = cfg.required ?? false %}
+{% set minLength = cfg.minLength ?? null %}
+{% set maxLength = cfg.maxLength ?? null %}
+{% set autoFocus = autoFocus ?? false %}
+{% set errorMessage = error ?? null %}
+{% set value = value ?? '' %}
+
+<div class="space-y-1.5">
+    <label for="{{ id }}" class="text-sm font-semibold text-slate-800">{{ label }}{% if required %} <span class="text-rose-500">*</span>{% endif %}</label>
+    <input
+        id="{{ id }}"
+        name="{{ name }}"
+        type="{{ type }}"
+        class="w-full rounded-2xl border px-4 py-3 bg-white text-slate-900 placeholder:text-slate-500 shadow-sm hover:shadow-md focus:shadow-md transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300 {{ errorMessage ? 'border-rose-300 bg-rose-50 focus:ring-rose-200 focus:border-rose-300' : 'border-slate-200/80 hover:border-slate-300' }}"
+        placeholder="{{ placeholder }}"
+        {% if autocomplete %}autocomplete="{{ autocomplete }}"{% endif %}
+        {% if pattern %}pattern="{{ pattern }}"{% endif %}
+        {% if required %}required{% endif %}
+        {% if minLength %}minlength="{{ minLength }}"{% endif %}
+        {% if maxLength %}maxlength="{{ maxLength }}"{% endif %}
+        {% if autoFocus %}autofocus{% endif %}
+        value="{{ value }}"
+        aria-invalid="{{ errorMessage ? 'true' : 'false' }}"
+        aria-describedby="{{ errorMessage ? id ~ '-error' : '' }}"
+    />
+    <div id="{{ id }}-error">
+        {% include 'auth/components/inline_error.html.twig' with { message: errorMessage } %}
+    </div>
+</div>
+

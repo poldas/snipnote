@@ -1,0 +1,85 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ title ?? 'Snipnote' }}{% endblock %}
+
+{% block stylesheets %}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #e8eaf6 0%, #f3e5f5 50%, #e1f5fe 100%);
+            color: #0f172a;
+            font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .glass-surface {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .btn-auth-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: transform 150ms ease, box-shadow 150ms ease, background 160ms ease;
+        }
+
+        .btn-auth-primary:hover {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #38bdf8 100%);
+        }
+
+        .btn-auth-primary:active {
+            background: #4338ca;
+        }
+
+        .logo-mark {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 800;
+            font-size: 24px;
+            box-shadow: 0 10px 24px rgba(102, 126, 234, 0.28);
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <main class="min-h-screen flex flex-col">
+        <div class="w-full px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto flex-1 flex flex-col py-10">
+            <header class="flex items-center justify-between gap-4 mb-10">
+                <a href="/" data-test-id="logo-home-link" class="inline-flex items-center gap-2 text-indigo-700 hover:text-indigo-900 transition-colors">
+                    <span class="logo-mark" aria-hidden="true">S</span>
+                    <div class="leading-tight">
+                        <div class="text-lg font-semibold text-indigo-900">Snipnote</div>
+                        <div class="text-sm text-indigo-700/80">Twórz i udostępniaj notatki</div>
+                    </div>
+                </a>
+                <div>
+                    {% block auth_nav %}{% endblock %}
+                </div>
+            </header>
+
+            <div class="grid lg:grid-cols-2 gap-10 items-center flex-1 w-full">
+                <div class="space-y-8">
+                    {% block auth_hero %}{% endblock %}
+                </div>
+
+                <div class="w-full">
+                    {% block auth_card %}
+                        <div class="glass-surface rounded-2xl p-8 border border-slate-800 text-slate-100">
+                            <p class="text-sm text-slate-300">Dodaj tutaj zawartość karty formularza.</p>
+                        </div>
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+    </main>
+{% endblock %}
+

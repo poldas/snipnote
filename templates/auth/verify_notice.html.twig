@@ -1,0 +1,53 @@
+{% extends 'auth/base_auth.html.twig' %}
+
+{% block title %}Potwierdź email | Snipnote{% endblock %}
+
+{% block auth_nav %}
+    {% include 'auth/components/nav_links_auth.html.twig' with { nav: navSwitch ?? { href: '/login', label: 'Wróć do logowania' } } %}
+{% endblock %}
+
+{% block auth_hero %}
+    {% include 'auth/components/hero_intro.html.twig' with {
+        hero: hero ?? {
+            headline: 'Sprawdź skrzynkę i potwierdź adres email',
+            subcopy: 'Kliknij w link aktywacyjny, aby dokończyć rejestrację i korzystać z notatek.'
+        },
+        showCtas: false
+    } %}
+{% endblock %}
+
+{% block auth_card %}
+    {% set state = state ?? 'pending' %}
+    {% set prefill = prefill ?? {} %}
+    {% set errors = errors ?? [] %}
+    {% set pending = pending ?? false %}
+    {% set message = message ?? (state == 'invalid' ? 'Link wygasł lub jest nieprawidłowy.' : 'Wysłaliśmy link aktywacyjny na Twój email.') %}
+
+    {% embed 'auth/components/auth_card.html.twig' with {
+        title: 'Potwierdź swój adres email',
+        subtitle: 'Bez aktywacji nie będziemy mogli udostępniać Twoich notatek.',
+        pending: pending
+    } %}
+        {% block auth_card_body %}
+            <div class="space-y-4">
+                <div class="rounded-xl border {{ state == 'invalid' ? 'border-amber-200 bg-amber-50 text-amber-900' : 'border-indigo-100 bg-indigo-50 text-indigo-900' }} px-4 py-3">
+                    <p class="text-sm font-semibold">{{ message }}</p>
+                    <ul class="mt-2 text-sm space-y-1 text-indigo-800/80">
+                        <li>• Sprawdź skrzynkę oraz folder spam/oznaczone.</li>
+                        <li>• Link jest jednorazowy i ma ograniczony czas ważności.</li>
+                        <li>• Jeśli link nie działa, wyślij go ponownie poniżej.</li>
+                    </ul>
+                </div>
+
+                {% include 'auth/components/verify_resend_form.html.twig' with {
+                    action: action ?? '/verify/email/resend',
+                    prefill: prefill,
+                    errors: errors,
+                    pending: pending
+                } %}
+            </div>
+        {% endblock %}
+    {% endembed %}
+{% endblock %}
+
+

@@ -1,0 +1,49 @@
+{% set notes = notes ?? [] %}
+{% set meta = meta ?? { page: 1, totalPages: 1, total: 0 } %}
+{% set q = q ?? '' %}
+{% set labels = labels ?? [] %}
+{% set error = error ?? null %}
+{% set isLoading = isLoading ?? false %}
+{% set visibility = visibility ?? '' %}
+
+<section class="space-y-4" aria-live="polite">
+    <div class="sr-only" role="status">
+        {% if isLoading %}Ładowanie listy notatek...{% endif %}
+        {% if error %}{{ error }}{% endif %}
+    </div>
+
+    {% if error %}
+        <div class="rounded-xl border border-red-200 bg-red-50 text-red-800 px-4 py-3 text-sm flex items-center justify-between gap-3" role="alert">
+            <span>{{ error }}</span>
+            <a href="/notes" class="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white/70 px-3 py-1.5 text-sm font-semibold text-red-700 hover:bg-white transition-colors">
+                Spróbuj ponownie
+            </a>
+        </div>
+    {% endif %}
+
+    {% if isLoading %}
+        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-6 flex items-center gap-3 text-sm text-slate-600" aria-label="Trwa ładowanie">
+            <span class="h-4 w-4 border-2 border-slate-200 border-t-indigo-500 rounded-full animate-spin"></span>
+            Ładuję notatki...
+        </div>
+    {% elseif meta.total|default(0) == 0 and (q or labels is not empty) %}
+        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-8 text-center space-y-3">
+            <p class="text-lg font-semibold text-slate-900">Brak wyników</p>
+            <p class="text-sm text-slate-500">Nie znaleziono notatek dla podanych filtrów.</p>
+            <div class="flex items-center justify-center gap-3">
+                <a href="/notes" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-colors">
+                    Wyczyść filtry
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+            {% include 'notes/components/notes_list.html.twig' with { notes: notes } %}
+        </div>
+    {% endif %}
+
+    {% include 'notes/components/pagination.html.twig' with { meta: meta, q: q, labels: labels, visibility: visibility } %}
+
+    {% include 'notes/components/delete_confirm_modal.html.twig' %}
+</section>
+

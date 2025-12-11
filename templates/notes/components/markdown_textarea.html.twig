@@ -1,0 +1,127 @@
+{#
+  MarkdownTextarea Component
+  Large textarea with markdown toolbar and character counter
+  Max length: 10000 characters
+#}
+<div>
+    <div class="flex items-center justify-between mb-2">
+        <label 
+            for="note-description" 
+            class="block text-sm font-semibold text-slate-700"
+        >
+            Opis (Markdown) <span class="text-red-500" aria-label="wymagane">*</span>
+        </label>
+        <span 
+            id="description-counter" 
+            data-description-counter
+            class="text-xs text-slate-500"
+            aria-live="polite"
+        >
+            0 / 10000
+        </span>
+    </div>
+
+    {# Markdown Toolbar #}
+    <div 
+        class="flex flex-wrap items-center gap-1 mb-2 p-2 bg-slate-50 border border-slate-300 rounded-t-lg"
+        role="toolbar"
+        aria-label="Narzędzia formatowania markdown"
+        data-markdown-toolbar
+    >
+        <button
+            type="button"
+            data-md-action="bold"
+            title="Pogrubienie (Ctrl+B)"
+            aria-label="Pogrubienie"
+            class="px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-white hover:text-indigo-600 rounded border border-transparent hover:border-slate-200 transition-colors"
+        >
+            <strong>B</strong>
+        </button>
+        <button
+            type="button"
+            data-md-action="italic"
+            title="Kursywa (Ctrl+I)"
+            aria-label="Kursywa"
+            class="px-3 py-1.5 text-sm italic text-slate-700 hover:bg-white hover:text-indigo-600 rounded border border-transparent hover:border-slate-200 transition-colors"
+        >
+            <em>I</em>
+        </button>
+        <button
+            type="button"
+            data-md-action="code"
+            title="Kod inline"
+            aria-label="Kod inline"
+            class="px-3 py-1.5 text-sm font-mono text-slate-700 hover:bg-white hover:text-indigo-600 rounded border border-transparent hover:border-slate-200 transition-colors"
+        >
+            &lt;/&gt;
+        </button>
+        <button
+            type="button"
+            data-md-action="link"
+            title="Link (Ctrl+K)"
+            aria-label="Dodaj link"
+            class="px-3 py-1.5 text-sm text-slate-700 hover:bg-white hover:text-indigo-600 rounded border border-transparent hover:border-slate-200 transition-colors"
+        >
+            🔗
+        </button>
+        <span class="w-px h-6 bg-slate-300 mx-1"></span>
+        <button
+            type="button"
+            data-md-action="heading"
+            title="Nagłówek"
+            aria-label="Nagłówek"
+            class="px-3 py-1.5 text-sm font-bold text-slate-700 hover:bg-white hover:text-indigo-600 rounded border border-transparent hover:border-slate-200 transition-colors"
+        >
+            H
+        </button>
+        <button
+            type="button"
+            data-md-action="list"
+            title="Lista punktowana"
+            aria-label="Lista"
+            class="px-3 py-1.5 text-sm text-slate-700 hover:bg-white hover:text-indigo-600 rounded border border-transparent hover:border-slate-200 transition-colors"
+        >
+            •••
+        </button>
+        <button
+            type="button"
+            data-md-action="quote"
+            title="Cytat"
+            aria-label="Cytat"
+            class="px-3 py-1.5 text-sm text-slate-700 hover:bg-white hover:text-indigo-600 rounded border border-transparent hover:border-slate-200 transition-colors"
+        >
+            "
+        </button>
+    </div>
+
+    <textarea
+        id="note-description"
+        name="description"
+        data-description-textarea
+        rows="12"
+        maxlength="10000"
+        required
+        aria-required="true"
+        aria-describedby="description-error description-counter"
+        aria-invalid="false"
+        class="w-full px-4 py-3 border border-slate-200/80 border-t-0 rounded-b-2xl bg-white text-slate-900 placeholder-slate-400 font-mono text-sm resize-y shadow-sm hover:shadow-md focus:shadow-md transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300"
+        placeholder="Wpisz treść notatki w formacie Markdown...
+
+**Przykłady:**
+- **pogrubienie**
+- *kursywa*
+- `kod`
+- [link](https://example.com)
+- # Nagłówek
+"
+    >{{ initialDescription ?? '' }}</textarea>
+    <div 
+        id="description-error" 
+        data-description-error
+        class="hidden mt-2 text-sm text-red-600"
+        role="alert"
+    >
+        {# Error messages will be inserted here by JavaScript #}
+    </div>
+</div>
+

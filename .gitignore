@@ -23,3 +23,11 @@
 /.idea
 /.vscode
 /.DS_Store
+
+# JS / Playwright artifacts
+/node_modules
+/playwright-report
+/test-results
+/blob-report
+/e2e/.cache
+/e2e/artifacts

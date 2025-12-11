@@ -27,12 +27,7 @@ Najpierw przejrzyj następujące informacje:
 {{endpoint-implementation}} <- zamień na referencję do implementacji endpointów, z których będzie korzystał widok (np. @generations.ts, @flashcards.ts)
 </endpoint_implementation>
 
-6. Type Definitions:
-<type_definitions>
-{{types}} <- zamień na referencję do pliku z definicjami DTOsów (np. @types.ts)
-</type_definitions>
-
-7. Tech Stack:
+6. Tech Stack:
 <tech_stack>
 {{tech-stack}} <- zamień na referencję do pliku @tech-stack.md
 </tech_stack>
