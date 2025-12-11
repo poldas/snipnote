@@ -45,8 +45,5 @@
             <span class="text-sm text-slate-500">Wyniki: {{ count }}</span>
         {% endif %}
     </div>
-    <p id="search-hint" class="text-sm text-slate-500 leading-relaxed break-words">
-        Hint: dodaj <code class="px-1 py-0.5 bg-slate-100 border border-slate-200 rounded break-words whitespace-normal">label:nazwa1,nazwa2,nazwa3</code> aby filtrować etykiety. Aktywne: {{ parsed.labels|default([])|join(', ') ?: 'brak' }}.
-    </p>
 </form>
 

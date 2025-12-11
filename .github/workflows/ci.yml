@@ -2,7 +2,10 @@ name: CI
 
 on:
   push:
-    branches: [ "rc" , "main"]
+    branches:
+      - rc
+      - 'fix-*'
+      - 'func-*'
 
 jobs:
   php-lint:
