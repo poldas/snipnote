@@ -48,6 +48,14 @@ Cel: zastąpić ręczne TLS/nginx prostą warstwą Traefik działającą w tym s
   ```
 - **Logowanie do GHCR (VPS lub lokalnie jeśli pull z prywatnego)**:
   ```bash
+
+  sh-keygen -t ed25519 -C "gha-deploy" -f ~/.ssh/github_actions
+  chmod 600 ~/.ssh/github_actions
+  chmod 600 ~/.ssh/github_actions
+  cat ~/.ssh/github_actions.pub >> ~/.ssh/authorized_keys
+  cat ~/.ssh/github_actions.pub >> ~/.ssh/authorized_keys
+  cat ~/.ssh/github_actions
+
   echo "$PAT" | docker login ghcr.io -u <gh-username> --password-stdin
   ```
 - **Deploy na VPS (z plikiem env.prod)** — na VPS, w katalogu repo:
