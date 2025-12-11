@@ -47,6 +47,32 @@
             font-size: 24px;
             box-shadow: 0 10px 24px rgba(102, 126, 234, 0.28);
         }
+
+        .fade-up-soft {
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeUpSoft 900ms ease-out 360ms forwards;
+        }
+
+        @keyframes fadeUpSoft {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .fade-up-soft {
+                animation: none;
+                opacity: 1;
+                transform: none;
+            }
+        }
+
     </style>
 {% endblock %}
 
