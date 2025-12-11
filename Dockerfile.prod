@@ -77,7 +77,7 @@ RUN apt-get purge -y git unzip \
 
 EXPOSE 80
 
-HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=40s \
+HEALTHCHECK --interval=300s --timeout=5s --retries=3 --start-period=40s \
     CMD curl -fsS -H "User-Agent: Docker-Healthcheck" http://127.0.0.1/ || exit 1
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["apache2-foreground"]

@@ -899,7 +899,7 @@
         }
         formEl.dataset.noteFormInitialized = 'true';
 
-        console.log('Note form initialization started');
+        // console.log('Note form initialization started');
         config = getFormConfig();
 
         // Reset state so cached pages (Turbo) get fresh bindings
