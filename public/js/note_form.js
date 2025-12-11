@@ -878,20 +878,49 @@
     }
 
     // ========== Initialization ==========
+    function resetInitializationFlag() {
+        const form = document.querySelector('[data-note-form]');
+        if (form) {
+            delete form.dataset.noteFormInitialized;
+        }
+    }
+
     function init() {
         refreshElements();
-        // console.log('Note form initialization started');
+
+        // Guard against double-binding, especially with Turbo-driven navigation
+        const formEl = elements.form;
+        if (!formEl) {
+            // console.error('Note form not found - missing [data-note-form] attribute');
+            return;
+        }
+        if (formEl.dataset.noteFormInitialized === 'true') {
+            return;
+        }
+        formEl.dataset.noteFormInitialized = 'true';
+
+        console.log('Note form initialization started');
         config = getFormConfig();
+
+        // Reset state so cached pages (Turbo) get fresh bindings
+        formState.title = '';
+        formState.description = '';
+        formState.labels = [];
+        formState.visibility = config.initialVisibility || defaultConfig.initialVisibility;
+        formState.isSubmitting = false;
+        formState.isPreviewing = false;
+        formState.errors = {
+            title: [],
+            description: [],
+            labels: [],
+            visibility: [],
+            _request: []
+        };
+        clearAllErrors();
         // console.log('Form element:', elements.form);
         // console.log('Title input:', elements.titleInput);
         // console.log('Description textarea:', elements.descriptionTextarea);
         // console.log('Visibility inputs count:', elements.visibilityInputs.length);
-
-        // Check if form exists
-        if (!elements.form) {
-            console.error('Note form not found - missing [data-note-form] attribute');
-            return;
-        }
 
         if (!elements.titleInput) {
             console.error('Title input not found - missing [data-title-input] attribute');
@@ -912,10 +941,13 @@
         // console.log('Note form initialization completed');
     }
 
-    // Initialize when DOM is ready
+    // Initialize when DOM is ready or after Turbo-driven renders
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
         init();
     }
+
+    document.addEventListener('turbo:load', init);
+    document.addEventListener('turbo:before-cache', resetInitializationFlag);
 })();

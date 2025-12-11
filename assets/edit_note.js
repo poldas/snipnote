@@ -549,7 +549,31 @@
     }
 
     // ---------- Init ----------
+    function resetInitializationFlag() {
+        if (document.body) {
+            document.body.removeAttribute('data-edit-note-initialized');
+        }
+        closeConfirm();
+        currentConfirm = null;
+    }
+
     function init() {
+        const hasEditSurface = document.querySelector(selectors.confirmModal)
+            || document.querySelector(selectors.collaboratorsPanel)
+            || document.querySelector(selectors.dangerZone);
+
+        if (!hasEditSurface) {
+            return;
+        }
+
+        if (document.body?.dataset.editNoteInitialized === 'true') {
+            return;
+        }
+        if (document.body) {
+            document.body.dataset.editNoteInitialized = 'true';
+        }
+
+        currentConfirm = null;
         setupConfirmModal();
         setupCopyPublicLink();
         setupCollaborators();
@@ -561,6 +585,9 @@
     } else {
         init();
     }
+
+    document.addEventListener('turbo:load', init);
+    document.addEventListener('turbo:before-cache', resetInitializationFlag);
 })();
 
 
