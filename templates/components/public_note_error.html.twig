@@ -1,5 +1,5 @@
 {% set icon = errorCode == 0 ? '⚠️' : (errorCode == 403 ? '🔒' : '🔗') %}
-{% set errorTitle = errorCode == 403 ? 'Notatka niedostępna (prywatna)' : (errorCode == 404 ? 'Notatka niedostępna lub link nieprawidłowy' : 'Problem z połączeniem') %}
+{% set errorTitle = errorCode == 403 ? 'Notatka niedostępna (prywatna)' : (errorCode == 404 ? 'Notatka niedostępna lub nieprawidłowy link' : 'Problem z połączeniem') %}
 {% set errorDesc = errorCode == 403 ? 'Właściciel ograniczył dostęp do tej notatki.' : (errorCode == 404 ? 'Sprawdź, czy adres URL jest poprawny lub zapytaj właściciela o nowy link.' : 'Nie udało się pobrać danych. Spróbuj ponownie za chwilę.') %}
 
 <div id="public-note-shell" class="pn-error">

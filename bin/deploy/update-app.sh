@@ -12,6 +12,10 @@ echo ""
 echo "📦 Pulling latest image..."
 docker compose --env-file .env -f docker-compose.prod.yml pull app
 
+echo ""
+echo "📦 Pulling git code ..."
+git pull
+
 # 3. Sprawdź czy obraz się zmienił
 echo ""
 echo "📋 New image info:"
