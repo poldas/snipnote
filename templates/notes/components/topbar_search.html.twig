@@ -33,15 +33,6 @@
                 <option value="shared" {% if visibilityValue == 'shared' %}selected{% endif %}>For Me</option>
             </select>
         </div>
-        <button type="submit"
-                data-search-submit
-                class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 text-white px-4 py-2.5 text-sm font-semibold shadow-sm shadow-indigo-500/15 hover:bg-indigo-500 transition-colors w-full sm:w-auto">
-            <svg data-search-spinner class="h-4 w-4 animate-spin text-white hidden" viewBox="0 0 24 24" fill="none">
-                <circle class="opacity-30" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-90" d="M4 12a8 8 0 0 1 8-8" stroke="currentColor" stroke-width="4" stroke-linecap="round"></path>
-            </svg>
-            <span>Szukaj</span>
-        </button>
         {% if count is not null %}
             <span class="text-sm text-slate-500">Wyniki: {{ count }}</span>
         {% endif %}

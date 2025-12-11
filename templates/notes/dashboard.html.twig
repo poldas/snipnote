@@ -38,18 +38,32 @@
                         <div class="text-xs text-indigo-700/80">Twoje notatki</div>
                     </div>
                 </a>
-                <div class="flex flex-wrap items-center justify-center sm:justify-end gap-3 text-sm font-semibold text-slate-700 text-center sm:text-right w-full sm:w-auto">
-                    <a href="/notes/new" class="text-emerald-600 hover:text-emerald-500 text-base font-bold">
-                        + Dodaj notatkę
-                    </a>
-                    <span>{{ app.user.email ?? 'użytkownik' }}</span>
-                    <span class="text-slate-400">|</span>
-                    <form action="/logout" method="post" class="inline">
-                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
-                        <button type="submit" class="text-indigo-600 hover:text-indigo-500 bg-transparent border-0 p-0 cursor-pointer">
-                            Wyloguj
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 text-sm font-semibold text-slate-700 text-center sm:text-right w-full sm:w-auto">
+                    <div class="flex flex-wrap items-center justify-center sm:justify-end gap-2">
+                        <button type="button"
+                                hx-get="/notes/new"
+                                hx-target="#main-content"
+                                class="group px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg font-medium text-sm transition-all hover:bg-emerald-50 hover:border-emerald-500 hover:text-emerald-700 flex items-center gap-2"
+                                onclick="window.location.href='/notes/new'">
+                            <span class="w-6 h-6 bg-emerald-100 text-emerald-600 rounded-md flex items-center justify-center transition-colors group-hover:bg-emerald-500 group-hover:text-white">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                </svg>
+                            </span>
+                            Dodaj notatkę
                         </button>
-                    </form>
+                    </div>
+
+                    <div class="flex items-center justify-center sm:justify-end gap-3">
+                        <span>{{ app.user.email ?? 'użytkownik' }}</span>
+                        <span class="text-slate-400">|</span>
+                        <form action="/logout" method="post" class="inline">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
+                            <button type="submit" class="text-indigo-600 hover:text-indigo-500 bg-transparent border-0 p-0 cursor-pointer">
+                                Wyloguj
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </header>
             <div>
