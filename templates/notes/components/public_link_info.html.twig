@@ -3,6 +3,8 @@
   Displays current public URL with copy action
   Props: publicUrl (string), visibility (string)
 #}
+{% set publicHref = absolute_url(publicUrl) %}
+
 <section class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
     <div class="flex items-start justify-between gap-3">
         <div>
@@ -17,18 +19,18 @@
     </div>
     <div class="mt-3 flex flex-wrap items-center gap-3">
         <a 
-            href="{{ publicUrl }}" 
+            href="{{ publicHref }}" 
             class="font-mono text-sm text-indigo-700 hover:text-indigo-900 break-all underline decoration-dotted"
             target="_blank"
             rel="noopener noreferrer"
             data-public-link
         >
-            {{ publicUrl }}
+            {{ publicHref }}
         </a>
         <button
             type="button"
             data-copy-public-link
-            data-link="{{ publicUrl }}"
+            data-link="{{ publicHref }}"
             class="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-colors"
         >
             📋 Kopiuj link

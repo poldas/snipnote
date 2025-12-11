@@ -164,6 +164,57 @@
             opacity: 0.9;
         }
 
+        /* Utility brand bar (mirrors home / notes header styles) */
+        .pn-auth-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .pn-auth-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: #1e293b;
+            text-decoration: none;
+            transition: color 120ms ease, transform 120ms ease;
+        }
+
+        .pn-auth-logo:hover,
+        .pn-auth-logo:focus-visible {
+            color: #0f172a;
+            transform: translateY(-1px);
+        }
+
+        .pn-auth-logo__mark {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            background: #e0e7ff;
+            border: 1px solid #cbd5e1;
+            color: #4338ca;
+            font-weight: 700;
+            font-size: 18px;
+            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
+        }
+
+        .pn-auth-logo__title {
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.1;
+        }
+
+        .pn-auth-logo__subtitle {
+            font-size: 12px;
+            color: #475569;
+            line-height: 1.2;
+        }
+
         .pn-meta-row {
             display: flex;
             flex-wrap: wrap;
@@ -511,14 +562,17 @@
 <main class="public-note">
     <section class="public-note__container">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-4">
-            <header class="pn-brand">
-                <a href="/" class="pn-logo" aria-label="Snipnote — strona główna">
-                    <span class="pn-logo__mark">S</span>
-                    <span class="pn-logo__text">
-                        <span class="pn-logo__title">Snipnote</span>
-                        <span class="pn-logo__subtitle">Twoje notatki</span>
-                    </span>
+            <header class="pn-auth-header">
+                <a href="/" data-test-id="logo-home-link" class="pn-auth-logo">
+                    <span class="pn-auth-logo__mark">S</span>
+                    <div class="pn-auth-logo__text">
+                        <div class="pn-auth-logo__title">Snipnote</div>
+                        <div class="pn-auth-logo__subtitle">Twórz i udostępniaj notatki</div>
+                    </div>
                 </a>
+                <div>
+                    {% block auth_nav %}{% endblock %}
+                </div>
             </header>
         </div>
         {% if errorCode is not null %}

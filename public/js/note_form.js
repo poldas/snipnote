@@ -880,13 +880,12 @@
     // ========== Initialization ==========
     function init() {
         refreshElements();
-        console.log('Note form initialization started');
+        // console.log('Note form initialization started');
         config = getFormConfig();
-
-        console.log('Form element:', elements.form);
-        console.log('Title input:', elements.titleInput);
-        console.log('Description textarea:', elements.descriptionTextarea);
-        console.log('Visibility inputs count:', elements.visibilityInputs.length);
+        // console.log('Form element:', elements.form);
+        // console.log('Title input:', elements.titleInput);
+        // console.log('Description textarea:', elements.descriptionTextarea);
+        // console.log('Visibility inputs count:', elements.visibilityInputs.length);
 
         // Check if form exists
         if (!elements.form) {
@@ -910,7 +909,7 @@
         initializeEventListeners();
         updateButtonStates();
         announce('Formularz notatki gotowy do wypełnienia');
-        console.log('Note form initialization completed');
+        // console.log('Note form initialization completed');
     }
 
     // Initialize when DOM is ready
@@ -920,4 +919,3 @@
         init();
     }
 })();
-
