@@ -1,10 +1,8 @@
+import './styles/dist/tailwind.css';
+import htmx from 'htmx.org';
 import './stimulus_bootstrap.js';
-/*
- * Welcome to your app's main JavaScript file!
- *
- * This file will be included onto the page via the importmap() Twig function,
- * which should already be in your base.html.twig.
- */
-import './styles/app.css';
 
-// console.log('This log comes from assets/app.js - welcome to AssetMapper! 🎉');
+// Ensure HX requests always declare X-Requested-With for backend listeners
+document.body?.addEventListener('htmx:configRequest', (event) => {
+    event.detail.headers['X-Requested-With'] = 'XMLHttpRequest';
+});
