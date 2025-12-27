@@ -6,6 +6,7 @@
         <title>{% block title %}Welcome!{% endblock %}</title>
         <link rel="icon" type="image/svg+xml" href="/favicon.svg">
         {% block stylesheets %}
+            <link rel="stylesheet" href="{{ asset('app.css') }}">
         {% endblock %}
 
         {% block javascripts %}

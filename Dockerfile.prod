@@ -33,6 +33,13 @@ COPY docker/php-opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 FROM base AS builder
 # Composer needed only in builder stage, not in runtime
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl ca-certificates gnupg \
+ && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends nodejs \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 # Ensure prod env during build-time console commands (Dotenv disabled)
 ENV APP_ENV=prod \
     APP_DEBUG=0 \
@@ -40,8 +47,12 @@ ENV APP_ENV=prod \
 COPY . .
 RUN --mount=type=cache,target=/tmp/composer-cache \
     composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader --no-scripts \
+ && npm ci --ignore-scripts \
+ && npm run tailwind:build \
+ && npm run js:minify \
  && php bin/console importmap:install --no-interaction --env=prod \
- && php bin/console asset-map:compile --env=prod
+ && php bin/console asset-map:compile --env=prod \
+ && rm -rf node_modules
 # Uncomment if you want compiled env for prod
 # RUN composer dump-env prod
 # Uncomment if assets should be built

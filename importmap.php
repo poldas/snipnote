@@ -16,6 +16,9 @@ return [
         'path' => './assets/app.js',
         'entrypoint' => true,
     ],
+    'htmx.org' => [
+        'version' => '2.0.3',
+    ],
     '@hotwired/stimulus' => [
         'version' => '3.2.2',
     ],
