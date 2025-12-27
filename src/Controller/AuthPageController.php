@@ -8,9 +8,9 @@ use App\DTO\Auth\RegisterRequestDTO;
 use App\Exception\ValidationException;
 use App\Service\AuthService;
 use App\Service\EmailVerificationService;
+use App\Repository\UserRepository;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mailer\MailerInterface;
@@ -25,6 +25,7 @@ final class AuthPageController extends AbstractController
     public function __construct(
         private readonly AuthService $authService,
         private readonly EmailVerificationService $emailVerificationService,
+        private readonly UserRepository $userRepository,
         private readonly CsrfTokenManagerInterface $csrfTokenManager,
         private readonly MailerInterface $mailer,
         #[Autowire('%env(default::MAILER_FROM)%')]
@@ -103,9 +104,11 @@ final class AuthPageController extends AbstractController
                     $dto = new RegisterRequestDTO($email, $password, false);
                     $this->authService->register($dto);
                     $this->emailVerificationService->sendForEmail($email);
-                    $this->addFlash('success', 'Sprawdź skrzynkę – wysłaliśmy link aktywacyjny.');
 
-                    return new RedirectResponse('/login');
+                    return $this->redirectToRoute('app_verify_notice_page', [
+                        'state' => 'registered',
+                        'email' => $email,
+                    ]);
                 } catch (ValidationException $e) {
                     foreach ($e->getErrors() as $field => $messages) {
                         foreach ($messages as $msg) {
@@ -207,19 +210,130 @@ final class AuthPageController extends AbstractController
         throw new \LogicException('This should be intercepted by the firewall.');
     }
 
+    #[Route('/verify/email/resend', name: 'app_verify_email_resend', methods: ['POST'])]
+    public function resendVerification(Request $request): Response
+    {
+        $submittedToken = (string) $request->request->get('_csrf_token', '');
+        $email = (string) $request->request->get('email', '');
+        $errors = [];
+
+        if (!$this->csrfTokenManager->isTokenValid(new CsrfToken('verify_email_resend', $submittedToken))) {
+            $errors[] = ['message' => 'Nieprawidłowy token bezpieczeństwa. Spróbuj ponownie.'];
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = ['field' => 'email', 'message' => 'Podaj poprawny adres email.'];
+        }
+
+        if ($errors === []) {
+            $user = $this->userRepository->findOneByEmailCaseInsensitive($email);
+            if ($user !== null && $user->isVerified()) {
+                return $this->redirectToRoute('app_verify_notice_page', [
+                    'state' => 'already_verified',
+                    'email' => $email,
+                ]);
+            }
+
+            $this->emailVerificationService->sendForEmail($email);
+
+            return $this->redirectToRoute('app_verify_notice_page', [
+                'state' => 'resent',
+                'email' => $email,
+            ]);
+        }
+
+        $viewData = $this->verifyNoticeView('pending', $email);
+        $viewData['errors'] = $errors;
+
+        return $this->render('auth/verify_notice.html.twig', $viewData);
+    }
+
     #[Route('/verify/email/notice', name: 'app_verify_notice_page', methods: ['GET'])]
     public function verifyNotice(Request $request): Response
     {
-        $state = $request->query->get('state', 'pending');
+        $state = (string) $request->query->get('state', 'pending');
+        $email = (string) $request->query->get('email', '');
 
-        return $this->render('auth/verify_notice.html.twig', [
+        return $this->render('auth/verify_notice.html.twig', $this->verifyNoticeView($state, $email));
+    }
+
+    private function verifyNoticeView(string $state, string $email): array
+    {
+        $state = $state ?: 'pending';
+
+        $view = [
             'state' => $state,
-            'navSwitch' => $this->navToLogin(),
+            'prefill' => $email !== '' ? ['email' => $email] : [],
             'hero' => [
                 'headline' => 'Potwierdź swój adres email',
                 'subcopy' => 'Kliknij w link aktywacyjny, aby dokończyć rejestrację.',
             ],
-        ]);
+            'message' => 'Wysłaliśmy link aktywacyjny na Twój email.',
+            'steps' => [
+                'Sprawdź skrzynkę oraz folder spam/oznaczone.',
+                'Link jest jednorazowy i ma ograniczony czas ważności.',
+                'Jeśli link nie działa, wyślij go ponownie poniżej.',
+            ],
+            'variant' => 'info',
+            'navSwitch' => $this->navToLogin(),
+            'pending' => false,
+        ];
+
+        return match ($state) {
+            'registered' => [
+                ...$view,
+                'variant' => 'success',
+                'message' => 'Dziękujemy za rejestrację! Wysłaliśmy link potwierdzający.',
+                'hero' => [
+                    'headline' => 'Potwierdź adres email i aktywuj konto',
+                    'subcopy' => 'Sprawdź pocztę i kliknij link weryfikacyjny, aby zacząć korzystać ze Snipnote.',
+                ],
+                'steps' => [
+                    'Otwórz wiadomość od Snipnote w swojej skrzynce.',
+                    'Kliknij w link weryfikacyjny, aby aktywować konto.',
+                    'Nie widzisz maila? Wyślij go ponownie lub sprawdź folder spam.',
+                ],
+            ],
+            'resent' => [
+                ...$view,
+                'variant' => 'success',
+                'message' => 'Nowy link weryfikacyjny został wysłany.',
+                'hero' => [
+                    'headline' => 'Nowy link w drodze',
+                    'subcopy' => 'Sprawdź pocztę – wysłaliśmy kolejny email weryfikacyjny.',
+                ],
+                'steps' => [
+                    'Użyj najnowszego linku z wiadomości.',
+                    'Jeśli poprzedni wygasł, nowy zastępuje go w całości.',
+                    'Maila nadal nie ma? Sprawdź folder spam/oznaczone.',
+                ],
+            ],
+            'invalid' => [
+                ...$view,
+                'variant' => 'warning',
+                'message' => 'Link wygasł lub jest nieprawidłowy.',
+                'hero' => [
+                    'headline' => 'Potrzebujesz nowego linku',
+                    'subcopy' => 'Poproś o nową wiadomość, aby potwierdzić adres email.',
+                ],
+                'steps' => [
+                    'Wyślij nowy link poniżej – zajmie to tylko chwilę.',
+                    'Korzystaj z najnowszej wiadomości w skrzynce.',
+                ],
+            ],
+            'already_verified' => [
+                ...$view,
+                'variant' => 'info',
+                'message' => 'Konto jest już potwierdzone. Możesz się zalogować.',
+                'hero' => [
+                    'headline' => 'Email został już zweryfikowany',
+                    'subcopy' => 'Przejdź do logowania, aby korzystać z notatek.',
+                ],
+                'steps' => [
+                    'Przejdź do logowania i zaloguj się na swoje konto.',
+                    'Jeśli chcesz, możesz poprosić o przypomnienie hasła.',
+                ],
+            ],
+            default => $view,
+        };
     }
 
     private function navToLogin(): array

@@ -1,4 +1,4 @@
-{% set action = action ?? '/verify/email/resend' %}
+{% set action = action ?? path('app_verify_email_resend') %}
 {% set csrfToken = csrfToken ?? csrf_token('verify_email_resend') %}
 {% set errors = errors ?? [] %}
 {% set prefill = prefill ?? {} %}
