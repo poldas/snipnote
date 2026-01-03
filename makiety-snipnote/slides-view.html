@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Przysłowia – prezentacja</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    min-height: 100vh;
+    background: radial-gradient(circle at top, #7f7fd5, #3f2b96, #1b1b3a);
+    color: #fff;
+    overflow: hidden;
+}
+
+/* ===== CANVAS ===== */
+canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+}
+
+/* ===== LAYOUT ===== */
+.container {
+    position: relative;
+    z-index: 10;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.card {
+    max-width: 700px;
+    width: 100%;
+    padding: 48px 36px;
+    border-radius: 32px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(18px);
+    border: 1px solid rgba(255,255,255,0.25);
+    box-shadow: 0 30px 80px rgba(0,0,0,.4);
+    text-align: center;
+}
+
+.title {
+    font-size: 1.1rem;
+    opacity: .85;
+    margin-bottom: 24px;
+    letter-spacing: .08em;
+}
+
+.proverb {
+    font-size: clamp(1.4rem, 4vw, 1.9rem);
+    line-height: 1.55;
+    min-height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity .3s ease, transform .3s ease;
+}
+
+.proverb.fade {
+    opacity: 0;
+    transform: scale(.96);
+}
+
+/* ===== CONTROLS ===== */
+.controls {
+    margin-top: 36px;
+    display: flex;
+    gap: 18px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+button {
+    padding: 12px 26px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.35);
+    background: rgba(255,255,255,.22);
+    color: #fff;
+    font-size: .95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .25s ease;
+    backdrop-filter: blur(8px);
+}
+
+button:hover {
+    transform: translateY(-2px);
+    background: rgba(255,255,255,.35);
+    box-shadow: 0 10px 30px rgba(0,0,0,.3);
+}
+
+button.primary {
+    background: linear-gradient(135deg, rgba(255,255,255,.55), rgba(255,255,255,.25));
+    box-shadow: 0 0 25px rgba(255,255,255,.35);
+}
+
+button.primary:hover {
+    box-shadow: 0 0 40px rgba(255,255,255,.6);
+}
+
+/* ===== FOOT ===== */
+.counter {
+    margin-top: 18px;
+    font-size: .85rem;
+    opacity: .7;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="bg"></canvas>
+
+<div class="container">
+    <div class="card">
+        <div class="title">PRZYSŁOWIE DNIA</div>
+
+        <div id="proverb" class="proverb">
+            Mądrości na dziś
+        </div>
+
+        <div class="controls">
+            <button onclick="prev()">← Poprzednie</button>
+            <button class="primary" onclick="random()">🎲 Losuj</button>
+            <button onclick="next()">Następne →</button>
+        </div>
+
+        <div class="counter" id="counter"></div>
+    </div>
+</div>
+
+<script>
+/* ===== DANE ===== */
+const proverbs = [
+    "Zrobione jest lepsze od doskonałego.",
+    "Jeśli chcesz – znajdziesz sposób. Jeśli nie – znajdziesz powód.",
+    "Wszystko jest trudne, dopóki nie stanie się łatwe.",
+    "Nie czekaj z kopaniem studni, aż nadejdzie pragnienie.",
+    "Amatorzy ćwiczą, aż im wyjdzie. Eksperci – aż nie może im nie wyjść.",
+    "Brak czasu to tak naprawdę brak priorytetów.",
+    "Człowiek sukcesu buduje fundamenty z cegieł, którymi inni w niego rzucają.",
+    "Wszystko jest możliwe, niemożliwe wymaga tylko więcej czasu."
+];
+
+let index = 0;
+const proverbEl = document.getElementById("proverb");
+const counterEl = document.getElementById("counter");
+
+/* ===== LOGIKA SLIDERA ===== */
+function show(i) {
+    proverbEl.classList.add("fade");
+    setTimeout(() => {
+        index = i;
+        proverbEl.textContent = proverbs[index];
+        counterEl.textContent = `${index + 1} / ${proverbs.length}`;
+        proverbEl.classList.remove("fade");
+    }, 300);
+}
+
+function next() {
+    show((index + 1) % proverbs.length);
+}
+
+function prev() {
+    show((index - 1 + proverbs.length) % proverbs.length);
+}
+
+function random() {
+    let i;
+    do {
+        i = Math.floor(Math.random() * proverbs.length);
+    } while (i === index && proverbs.length > 1);
+    show(i);
+}
+
+show(0);
+
+/* ===== KLAWIATURA ===== */
+document.addEventListener("keydown", e => {
+    if (e.key === "ArrowRight") next();
+    if (e.key === "ArrowLeft") prev();
+    if (e.key === " ") random();
+});
+
+/* ===== CANVAS – ANIMACJA ===== */
+const canvas = document.getElementById("bg");
+const ctx = canvas.getContext("2d");
+
+let w, h, particles = [];
+
+function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resize);
+resize();
+
+for (let i = 0; i < 80; i++) {
+    particles.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        r: Math.random() * 2 + 1,
+        vx: (Math.random() - .5) * .3,
+        vy: (Math.random() - .5) * .3,
+        a: Math.random()
+    });
+}
+
+function draw() {
+    ctx.clearRect(0, 0, w, h);
+
+    for (const p of particles) {
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0) p.x = w;
+        if (p.x > w) p.x = 0;
+        if (p.y < 0) p.y = h;
+        if (p.y > h) p.y = 0;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,${0.15 + p.a * 0.4})`;
+        ctx.fill();
+    }
+
+    requestAnimationFrame(draw);
+}
+draw();
+</script>
+
+</body>
+</html>
+

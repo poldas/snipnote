@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Edytuj notatkę | Snipnote</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #e8eaf6 0%, #f3e5f5 50%, #e1f5fe 100%);
+            color: #0f172a;
+        }
+
+        .glass-surface {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .logo-mark {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 800;
+            font-size: 24px;
+            box-shadow: 0 10px 24px rgba(102, 126, 234, 0.28);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: transform 150ms ease, box-shadow 150ms ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.35);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .input-field {
+            transition: all 200ms ease;
+        }
+
+        .input-field:focus {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
+        }
+
+        .visibility-btn {
+            transition: all 200ms ease;
+            cursor: pointer;
+        }
+
+        .visibility-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .visibility-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .toolbar-btn {
+            transition: all 150ms ease;
+        }
+
+        .toolbar-btn:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .tag-pill {
+            transition: all 150ms ease;
+        }
+
+        .tag-pill:hover {
+            transform: scale(1.05);
+        }
+
+        .section-card {
+            transition: all 200ms ease;
+        }
+
+        .section-card:hover {
+            box-shadow: 0 15px 40px rgba(15, 23, 42, 0.15);
+        }
+
+        #toast-stack {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="toast-stack" aria-live="polite"></div>
+
+    <!-- Sticky Header -->
+    <div class="sticky top-0 z-40 glass-surface">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 py-4">
+            <header class="flex items-center justify-between gap-4">
+                <a href="/notes"
+                    class="inline-flex items-center gap-2 text-indigo-700 hover:text-indigo-900 transition-colors">
+                    <span class="logo-mark" aria-hidden="true">S</span>
+                    <div class="leading-tight">
+                        <div class="text-lg font-semibold text-indigo-900">Snipnote</div>
+                        <div class="text-sm text-indigo-700/80">Edycja notatki</div>
+                    </div>
+                </a>
+                <div class="flex items-center gap-3 text-sm font-semibold">
+                    <a href="/notes" class="text-indigo-600 hover:text-indigo-800 transition-colors">
+                        ← Powrót
+                    </a>
+                    <span class="text-slate-400">|</span>
+                    <span class="text-slate-700">poldas69@gmail.com</span>
+                </div>
+            </header>
+        </div>
+    </div>
+
+    <main class="min-h-screen pb-28">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+            <!-- Main Form Card -->
+            <div class="glass-surface rounded-2xl p-6 space-y-5">
+                <!-- Header with badges -->
+                <div class="flex items-center justify-between gap-3 pb-4 border-b border-slate-200">
+                    <h1 class="text-2xl font-semibold text-indigo-900">Edytuj notatkę</h1>
+                    <div class="flex items-center gap-2 text-xs font-semibold">
+                        <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                            ID: 12
+                        </span>
+                        <span class="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+                            🌐 Public
+                        </span>
+                    </div>
+                </div>
+
+                <form id="note-form" data-note-form
+                    data-note-config='{"mode":"edit","noteId":12,"submitUrl":"/api/notes/12","redirectUrl":"/notes","previewUrl":"/api/notes/preview","initialTitle":"Komórka","initialDescription":"Komórka","initialLabels":["Komórka"],"initialVisibility":"public"}'
+                    class="space-y-5" novalidate>
+                    <input type="hidden" name="csrf_token"
+                        value="c077743da23eb58bf1ba78b1c810b73073a86b03cc01985a17122664f6988e7c" data-csrf-token>
+
+                    <!-- Error Alert -->
+                    <div id="form-errors" data-form-errors class="hidden">
+                        <div role="alert" aria-live="assertive" class="bg-red-50 border border-red-200 rounded-xl p-4">
+                            <div class="flex items-start gap-3">
+                                <span class="text-red-500 text-xl">⚠️</span>
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-red-900 mb-2">Wystąpiły błędy</h3>
+                                    <ul data-error-list class="space-y-1 text-sm text-red-800"></ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Title -->
+                    <div data-field="title">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="note-title" class="text-sm font-semibold text-slate-800">
+                                Tytuł <span class="text-red-500">*</span>
+                            </label>
+                            <span id="title-counter" data-title-counter class="text-xs text-slate-500"
+                                aria-live="polite">0 / 255</span>
+                        </div>
+                        <input type="text" id="note-title" name="title" data-title-input maxlength="255" required
+                            value="Komórka"
+                            class="input-field w-full px-4 py-2.5 border rounded-xl bg-white text-slate-900 placeholder-slate-400 shadow-sm hover:shadow-md focus:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300 border-slate-200/80 hover:border-slate-300"
+                            placeholder="Wpisz tytuł notatki...">
+                    </div>
+
+                    <!-- Two column layout for Visibility and Labels -->
+                    <div class="grid sm:grid-cols-2 gap-5">
+                        <!-- Visibility -->
+                        <div data-field="visibility">
+                            <label class="block text-sm font-semibold text-slate-800 mb-2">Widoczność</label>
+                            <div role="radiogroup"
+                                class="inline-flex gap-1 rounded-lg border border-slate-300 bg-slate-50 p-1"
+                                data-visibility-toggle>
+                                <input type="radio" id="visibility-private" name="visibility" value="private"
+                                    data-visibility-input class="sr-only">
+                                <label for="visibility-private"
+                                    class="visibility-btn px-3 py-1.5 text-xs font-semibold rounded-md text-slate-600 hover:text-slate-900 bg-white"
+                                    data-visibility-label="private">
+                                    🔒 Prywatna
+                                </label>
+
+                                <input type="radio" id="visibility-public" name="visibility" value="public"
+                                    data-visibility-input class="sr-only" checked>
+                                <label for="visibility-public"
+                                    class="visibility-btn active px-3 py-1.5 text-xs font-semibold rounded-md"
+                                    data-visibility-label="public">
+                                    🌐 Publiczna
+                                </label>
+
+                                <input type="radio" id="visibility-draft" name="visibility" value="draft"
+                                    data-visibility-input class="sr-only">
+                                <label for="visibility-draft"
+                                    class="visibility-btn px-3 py-1.5 text-xs font-semibold rounded-md text-slate-600 hover:text-slate-900 bg-white"
+                                    data-visibility-label="draft">
+                                    📝 Szkic
+                                </label>
+                            </div>
+                            <p class="mt-2 text-xs text-slate-500">
+                                <span data-visibility-description>Widoczna publicznie</span>
+                            </p>
+                        </div>
+
+                        <!-- Labels -->
+                        <div data-field="labels">
+                            <label for="tag-input" class="block text-sm font-semibold text-slate-800 mb-2">
+                                Etykiety <span class="text-slate-500 text-xs font-normal">(opcjonalnie)</span>
+                            </label>
+                            <div class="flex gap-2">
+                                <input type="text" id="tag-input" data-tag-input maxlength="64"
+                                    class="input-field flex-1 px-3 py-1.5 border rounded-lg bg-white text-slate-900 placeholder-slate-400 shadow-sm hover:shadow-md focus:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300 border-slate-200/80 text-sm"
+                                    placeholder="Dodaj etykietę...">
+                                <button type="button" data-add-tag-btn
+                                    class="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 font-semibold text-sm border border-slate-300 shadow-sm hover:shadow-md transition-all">
+                                    + Dodaj
+                                </button>
+                            </div>
+                            <div id="tags-container" data-tags-container
+                                class="flex flex-wrap gap-1.5 mt-2 min-h-[24px]" role="list"></div>
+                            <input type="hidden" name="labels" data-labels-input value='["Komórka"]'>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div data-field="description">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="note-description" class="text-sm font-semibold text-slate-800">
+                                Opis (Markdown) <span class="text-red-500">*</span>
+                            </label>
+                            <span id="description-counter" data-description-counter class="text-xs text-slate-500"
+                                aria-live="polite">0 / 10000</span>
+                        </div>
+
+                        <!-- Markdown Toolbar -->
+                        <div class="flex flex-wrap items-center gap-1 p-1.5 bg-slate-50 border border-slate-300 rounded-t-lg"
+                            role="toolbar" data-markdown-toolbar>
+                            <button type="button" data-md-action="bold" title="Pogrubienie (Ctrl+B)"
+                                class="toolbar-btn px-2.5 py-1 text-xs font-bold text-slate-700 hover:text-white rounded border border-transparent hover:border-slate-200 bg-white">
+                                <strong>B</strong>
+                            </button>
+                            <button type="button" data-md-action="italic" title="Kursywa (Ctrl+I)"
+                                class="toolbar-btn px-2.5 py-1 text-xs italic text-slate-700 hover:text-white rounded border border-transparent hover:border-slate-200 bg-white">
+                                <em>I</em>
+                            </button>
+                            <button type="button" data-md-action="code" title="Kod"
+                                class="toolbar-btn px-2.5 py-1 text-xs font-mono text-slate-700 hover:text-white rounded border border-transparent hover:border-slate-200 bg-white">
+                                &lt;/&gt;
+                            </button>
+                            <button type="button" data-md-action="link" title="Link (Ctrl+K)"
+                                class="toolbar-btn px-2.5 py-1 text-xs text-slate-700 hover:text-white rounded border border-transparent hover:border-slate-200 bg-white">
+                                🔗
+                            </button>
+                            <span class="w-px h-5 bg-slate-300"></span>
+                            <button type="button" data-md-action="heading" title="Nagłówek"
+                                class="toolbar-btn px-2.5 py-1 text-xs font-bold text-slate-700 hover:text-white rounded border border-transparent hover:border-slate-200 bg-white">
+                                H
+                            </button>
+                            <button type="button" data-md-action="list" title="Lista"
+                                class="toolbar-btn px-2.5 py-1 text-xs text-slate-700 hover:text-white rounded border border-transparent hover:border-slate-200 bg-white">
+                                •••
+                            </button>
+                            <button type="button" data-md-action="quote" title="Cytat"
+                                class="toolbar-btn px-2.5 py-1 text-xs text-slate-700 hover:text-white rounded border border-transparent hover:border-slate-200 bg-white">
+                                "
+                            </button>
+                        </div>
+
+                        <textarea id="note-description" name="description" data-description-textarea rows="10"
+                            maxlength="10000" required
+                            class="input-field w-full px-4 py-3 border border-t-0 rounded-b-xl bg-white text-slate-900 placeholder-slate-400 font-mono text-sm resize-y shadow-sm hover:shadow-md focus:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300 border-slate-200/80"
+                            placeholder="Wpisz treść notatki w Markdown...">Komórka</textarea>
+                    </div>
+                </form>
+
+                <!-- Public Link (compact) -->
+                <div class="pt-4 border-t border-slate-200">
+                    <div class="flex items-center justify-between gap-3 mb-2">
+                        <p class="text-sm font-semibold text-slate-900">🔗 Link publiczny</p>
+                        <span
+                            class="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                            Aktywny
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <a href="https://snipnote.pl/n/e287cbbe-840b-4f79-a5be-ebe0065869a7"
+                            class="flex-1 font-mono text-xs text-indigo-700 hover:text-indigo-900 truncate underline decoration-dotted"
+                            target="_blank" data-public-link>
+                            https://snipnote.pl/n/e287cbbe-840b-4f79-a5be-ebe0065869a7
+                        </a>
+                        <button type="button" data-copy-public-link
+                            data-link="https://snipnote.pl/n/e287cbbe-840b-4f79-a5be-ebe0065869a7"
+                            class="px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-colors">
+                            📋 Kopiuj
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collaborators & Actions Grid -->
+            <div class="grid sm:grid-cols-2 gap-4 mt-4">
+                <!-- Collaborators -->
+                <div class="glass-surface rounded-2xl p-5 section-card" data-collaborators-panel data-note-id="12"
+                    data-add-url="/api/notes/12/collaborators" data-current-user-email="poldas69@gmail.com"
+                    data-owner-email="poldas69@gmail.com" data-can-edit="true">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-base font-semibold text-slate-900">👥 Współedytorzy</h2>
+                        <span
+                            class="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                            Dostęp
+                        </span>
+                    </div>
+
+                    <form class="flex gap-2 mb-4" data-collaborator-add-form>
+                        <input type="email" id="collaborator-email" name="email" required data-collaborator-email
+                            class="input-field flex-1 px-3 py-2 border rounded-lg bg-white text-slate-900 placeholder-slate-400 shadow-sm hover:shadow-md focus:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300 border-slate-200/80 text-sm"
+                            placeholder="email@przyklad.com">
+                        <button type="submit" data-collaborator-add
+                            class="btn-primary px-3 py-2 text-white rounded-lg font-semibold text-xs shadow-lg">
+                            + Dodaj
+                        </button>
+                    </form>
+
+                    <div class="border border-slate-200 rounded-lg divide-y divide-slate-200" data-collaborators-list>
+                        <div class="px-3 py-2.5 flex items-center justify-between" data-collaborator-row
+                            data-collaborator-id="owner">
+                            <div>
+                                <p class="font-semibold text-slate-900 text-sm">poldas69@gmail.com</p>
+                                <p class="text-xs text-slate-500">Właściciel</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Danger Zone -->
+                <div class="glass-surface rounded-2xl p-5 border border-red-200 section-card" data-danger-zone
+                    data-delete-url="/api/notes/12" data-redirect-url="/notes">
+                    <h2 class="text-base font-semibold text-red-700 mb-1">⚠️ Strefa zagrożenia</h2>
+                    <p class="text-xs text-red-600 mb-4">Operacje nieodwracalne</p>
+                    <button type="button" data-open-delete-modal
+                        class="w-full px-4 py-2 border border-red-300 text-red-700 bg-red-50 rounded-lg font-semibold text-sm hover:bg-red-100 transition-all">
+                        🗑️ Usuń notatkę
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Action Bar -->
+        <div class="fixed bottom-0 left-0 right-0 z-40 glass-surface border-t border-slate-200">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3">
+                <div class="flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3 text-sm">
+                        <span data-status-indicator class="text-slate-600"></span>
+                        <span data-saving-spinner class="hidden">
+                            <svg class="animate-spin h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                        </span>
+                    </div>
+                    <button type="button" data-submit-btn
+                        class="btn-primary px-6 py-2.5 text-white rounded-xl font-semibold text-sm shadow-lg">
+                        💾 Zapisz zmiany
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal"
+        class="hidden fixed inset-0 z-50 items-center justify-center bg-slate-900/50 backdrop-blur-sm" role="dialog"
+        data-confirm-modal>
+        <div class="max-w-md w-full mx-4 glass-surface rounded-2xl p-6" data-modal-surface>
+            <div class="mb-4">
+                <h3 id="confirm-modal-title" class="text-lg font-semibold text-slate-900 mb-1" data-modal-title>Tytuł
+                    operacji</h3>
+                <p id="confirm-modal-description" class="text-sm text-slate-600" data-modal-description></p>
+            </div>
+            <div class="flex items-center justify-end gap-3">
+                <button type="button" data-modal-cancel
+                    class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-semibold text-sm hover:bg-slate-200 transition-all">
+                    Anuluj
+                </button>
+                <button type="button" data-modal-confirm
+                    class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold text-sm hover:bg-red-700 transition-all">
+                    <span data-modal-confirm-label>Potwierdź</span>
+                    <span data-modal-spinner
+                        class="ml-2 h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin hidden"></span>
+                </button>
+            </div>
+            <p class="text-sm text-red-600 font-semibold mt-3 hidden" data-modal-error></p>
+        </div>
+    </div>
+
+    <script>
+        // Tag management
+        const tagsContainer = document.querySelector('[data-tags-container]');
+        const labelsInput = document.querySelector('[data-labels-input]');
+
+        function renderTags() {
+            try {
+                const labels = JSON.parse(labelsInput.value);
+                tagsContainer.innerHTML = labels.map(label => `
+                    <span class="tag-pill inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-semibold border border-indigo-200">
+                        <span>${label}</span>
+                        <button type="button" class="hover:text-indigo-900" onclick="removeTag('${label}')">✕</button>
+                    </span>
+                `).join('');
+            } catch (e) {
+                console.error('Error rendering tags:', e);
+            }
+        }
+
+        window.removeTag = function (label) {
+            try {
+                const labels = JSON.parse(labelsInput.value);
+                const newLabels = labels.filter(l => l !== label);
+                labelsInput.value = JSON.stringify(newLabels);
+                renderTags();
+            } catch (e) {
+                console.error('Error removing tag:', e);
+            }
+        };
+
+        // Visibility toggle
+        document.querySelectorAll('[data-visibility-input]').forEach(input => {
+            input.addEventListener('change', function () {
+                document.querySelectorAll('[data-visibility-label]').forEach(label => {
+                    label.classList.remove('active');
+                });
+                if (this.checked) {
+                    document.querySelector(`[data-visibility-label="${this.value}"]`).classList.add('active');
+                }
+            });
+        });
+
+        // Character counters
+        const titleInput = document.querySelector('[data-title-input]');
+        const descInput = document.querySelector('[data-description-textarea]');
+        const titleCounter = document.querySelector('[data-title-counter]');
+        const descCounter = document.querySelector('[data-description-counter]');
+
+        function updateCounter(input, counter, max) {
+            counter.textContent = `${input.value.length} / ${max}`;
+        }
+
+        if (titleInput && titleCounter) {
+            updateCounter(titleInput, titleCounter, 255);
+            titleInput.addEventListener('input', () => updateCounter(titleInput, titleCounter, 255));
+        }
+
+        if (descInput && descCounter) {
+            updateCounter(descInput, descCounter, 10000);
+            descInput.addEventListener('input', () => updateCounter(descInput, descCounter, 10000));
+        }
+
+        // Initialize
+        renderTags();
+
+        // Add tag functionality
+        const tagInput = document.querySelector('[data-tag-input]');
+        const addTagBtn = document.querySelector('[data-add-tag-btn]');
+
+        function addTag() {
+            const tag = tagInput.value.trim();
+            if (tag) {
+                try {
+                    const labels = JSON.parse(labelsInput.value);
+                    if (!labels.includes(tag)) {
+                        labels.push(tag);
+                        labelsInput.value = JSON.stringify(labels);
+                        renderTags();
+                    }
+                    tagInput.value = '';
+                } catch (e) {
+                    console.error('Error adding tag:', e);
+                }
+            }
+        }
+
+        if (addTagBtn) {
+            addTagBtn.addEventListener('click', addTag);
+        }
+
+        if (tagInput) {
+            tagInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                    addTag();
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

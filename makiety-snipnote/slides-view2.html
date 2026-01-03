@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daniel Polonis - Mądrości</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.15), transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.12), transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.1), transparent 40%),
+                linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: white;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle, rgba(99, 102, 241, 0.08) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            animation: float 25s infinite;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        @keyframes float {
+            0%, 100% { 
+                transform: translateY(0) translateX(0) scale(1);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            25% { transform: translateY(-150px) translateX(80px) scale(1.2); }
+            50% { transform: translateY(-300px) translateX(-50px) scale(0.8); }
+            75% { transform: translateY(-150px) translateX(-100px) scale(1.5); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .hero {
+            text-align: center;
+            animation: fadeInDown 1s ease;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 7vw, 4rem);
+            font-weight: 800;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #ffffff, #a5b4fc, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 3s ease-in-out infinite;
+            background-size: 200% 200%;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.1rem, 3vw, 1.4rem);
+            opacity: 0.8;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .proverb-wrapper {
+            width: 100%;
+            max-width: 700px;
+            animation: fadeInUp 1s ease 0.3s backwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .proverb-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-radius: 32px;
+            padding: 50px 40px;
+            box-shadow: 
+                0 30px 80px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            transition: all 400ms ease;
+        }
+
+        .proverb-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.08), 
+                transparent);
+            transition: left 600ms ease;
+        }
+
+        .proverb-card:hover::before {
+            left: 100%;
+        }
+
+        .proverb-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 35px 90px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+
+        .proverb-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 35px;
+            opacity: 0.7;
+        }
+
+        .proverb-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .sparkle {
+            animation: rotate 4s linear infinite;
+            font-size: 1.3rem;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .counter {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #a5b4fc;
+        }
+
+        .proverb-text {
+            font-size: clamp(1.25rem, 3.5vw, 1.75rem);
+            font-weight: 500;
+            text-align: center;
+            min-height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 10px;
+            line-height: 1.6;
+            transition: all 400ms ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .proverb-text.fade {
+            opacity: 0;
+            transform: scale(0.97) translateY(10px);
+            filter: blur(5px);
+        }
+
+        .controls {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 40px;
+            flex-wrap: wrap;
+            animation: fadeInUp 1s ease 0.6s backwards;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            padding: 14px 28px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 300ms ease;
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 400ms ease, height 400ms ease;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-icon {
+            position: relative;
+            z-index: 1;
+            font-size: 1.2rem;
+            transition: transform 300ms ease;
+        }
+
+        .btn:hover .btn-icon {
+            transform: scale(1.2);
+        }
+
+        .btn-text {
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-prev .btn-icon {
+            animation: slideLeft 1.5s ease-in-out infinite;
+        }
+
+        .btn-next .btn-icon {
+            animation: slideRight 1.5s ease-in-out infinite;
+        }
+
+        .btn-random {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(139, 92, 246, 0.3));
+            border-color: rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-random:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.4), rgba(139, 92, 246, 0.4));
+            border-color: rgba(139, 92, 246, 0.6);
+        }
+
+        .btn-random .btn-icon {
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes slideLeft {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(-3px); }
+        }
+
+        @keyframes slideRight {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(3px); }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 30px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+            border-radius: 2px;
+            transition: width 400ms ease;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
+        }
+
+        .quote-marks {
+            position: absolute;
+            font-size: 120px;
+            opacity: 0.05;
+            font-family: Georgia, serif;
+            pointer-events: none;
+        }
+
+        .quote-marks.left {
+            top: 20px;
+            left: 20px;
+        }
+
+        .quote-marks.right {
+            bottom: 20px;
+            right: 20px;
+            transform: rotate(180deg);
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 30px 15px;
+                gap: 30px;
+            }
+
+            .proverb-card {
+                padding: 35px 25px;
+            }
+
+            .proverb-text {
+                font-size: 1.15rem;
+                min-height: 150px;
+            }
+
+            .controls {
+                gap: 12px;
+            }
+
+            .btn {
+                font-size: 0.9rem;
+                padding: 12px 20px;
+            }
+
+            .quote-marks {
+                font-size: 80px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .proverb-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+
+            .counter {
+                align-self: stretch;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <div class="container">
+        <div class="hero">
+            <h1>✨ Witaj w moim zakątku ✨</h1>
+            <p class="hero-subtitle">Daniel Polonis</p>
+        </div>
+
+        <div class="proverb-wrapper">
+            <div class="proverb-card">
+                <div class="quote-marks left">"</div>
+                <div class="quote-marks right">"</div>
+                
+                <div class="proverb-header">
+                    <div class="proverb-label">
+                        <span class="sparkle">💡</span>
+                        <span>Mądrość dnia</span>
+                    </div>
+                    <div class="counter">
+                        <span id="currentNumber">1</span>
+                        <span>/</span>
+                        <span id="totalNumber">80</span>
+                    </div>
+                </div>
+
+                <div class="proverb-text" id="proverbText">
+                    Najpierw Cię ignorują. Potem śmieją się z Ciebie. Później z Tobą walczą. Później wygrywasz. - Gandhi
+                </div>
+
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 1.25%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-prev" id="prevBtn">
+                <span class="btn-icon">⬅️</span>
+                <span class="btn-text">Poprzednie</span>
+            </button>
+            <button class="btn btn-random" id="randomBtn">
+                <span class="btn-icon">🎲</span>
+                <span class="btn-text">Losuj</span>
+            </button>
+            <button class="btn btn-next" id="nextBtn">
+                <span class="btn-text">Następne</span>
+                <span class="btn-icon">➡️</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const proverbs = [
+            "Najpierw Cię ignorują. Potem śmieją się z Ciebie. Później z Tobą walczą. Później wygrywasz. - Gandhi",
+            "Przeszkody, to straszne rzeczy, które widzimy, kiedy spuszczamy z oczu cel.",
+            "Wszystko jest trudne, dopóki nie jest łatwe.",
+            "Podążaj za swoją siłą, zamiast próbować naprawić swoją słabość.",
+            "First do it, then do it right, then do it better - Addy Osmani",
+            "Amatorzy ćwiczą, aż im wyjdzie. Eksperci, aż nie może im nie wyjść.",
+            "Błąd jest przywilejem filozofów, tylko głupcy nie mylą się nigdy. - Sokrates",
+            "Co byś zrobił gdybyś się nie bał?",
+            "If you change the way you look at things... the things you look at, change. - Wayne Dyer",
+            "Wszyscy ludzie są mądrzy: jedni przedtem, inni potem",
+            "Różnica między mądrością, a inteligencją polega na tym, że inteligentny potrafi wyjść z sytuacji, w którą mądry nigdy się nie wpakuje.",
+            "Jeśli chcesz - znajdziesz sposób. Jeśli nie chcesz - znajdziesz powód.",
+            "Ludzie wytrwali zaczynają swój sukces tam, gdzie inni kończą niepowodzeniem. - Edward Eggleston",
+            "Nie mogłem się doczekać na sukces, więc ruszyłem naprzód bez niego. - Jonathan Winters",
+            "Gdy osądzasz innych - nie pokazujesz jakimi oni są - pokazujesz jaki Ty jesteś",
+            "Nie czekaj z kopaniem studni, aż nadejdzie pragnienie.",
+            "Jedź tam, dokąd zmierza krążek, a nie tam, gdzie jest.",
+            "Człowiek sukcesu to ktoś, kto potrafi zbudować solidne fundamenty z cegieł, którymi inni w niego rzucają.",
+            "Jeśli możesz znaleźć drogę, na której nie ma żadnych przeszkód - prawdopodobnie wiedzie ona donikąd.",
+            "Łzy to nie wstyd, to oznaka, że na czymś Ci bardzo zależy.",
+            "Cieśla, który chce dobrze robotę wykonać, musi wpierw naostrzyć swe narzędzia. - Konfucjusz",
+            "Jeżeli upadłeś siedem razy, podnieś się osiem razy. - Przysłowie Chińskie",
+            "Ludzie mogą wątpić w to co mówisz, ale uwierzą w to co robisz",
+            "Nie staraj się zostać człowiekiem sukcesu, lecz człowiekiem wartościowym - Albert Einstein",
+            "Nic nie jest szczególnie trudne do zrobienia, jeśli tylko rozłożyć to na etapy. - Henry Ford",
+            "Forget past mistakes. Forget failures. Forget everything except what you're going to do now and do it. - William Durant",
+            "Failure is the opportunity to begin again more intelligently. - Henry Ford",
+            "Sukces jest prosty. Zrób co należy, jak należy, kiedy należy. - Arnold Glascow",
+            "Dobroć jest silniejsza niż przemoc.",
+            "Sama wiedza nie wystarczy, trzeba jeszcze umieć ją stosować. - Goethe",
+            "Prawdziwa decyzja jest mierzona poprzez fakt podjęcia nowego działania. Jeśli nie ma działania - tak naprawdę nie podjąłeś decyzji. - Tony Robbins",
+            "Wielkie umysły mają cele, inni mają życzenia. - Washington Irving",
+            "Powiedz mi, a zapomnę. Pokaż mi, a zapamiętam. Pozwól mi zrobić, a zrozumiem. - Konfucjusz",
+            "Jeśli to, co robisz nie zbliża Cię do Twoich celów, oznacza to, że Cię od nich oddala. - Brian Tracy",
+            "Nasza największa słabość tkwi w rezygnowaniu. Najbardziej pewną rzeczą, aby odnieść sukces jest spróbować jeszcze raz. - Edison",
+            "Dla umysłu nie istnieją ograniczenia, poza tymi, które samodzielnie uznamy za prawdziwe. - Napoleon Hill",
+            "Większość ludzi omija możliwości, bo są one ubrane w fartuch roboczy i wyglądają jak praca. - Edison",
+            "Nie wolno zgadzać się na pełzanie, gdy czujemy potrzebę latania. - Helen Keller",
+            "Chęć wystarczy za tysiąc sposobów, brak chęci za tysiąc przeszkód.",
+            "Nie poniosłem porażki. Po prostu odkryłem 1000 błędnych rozwiązań. - Thomas Edison",
+            "Nie liczy się to, czy przewidziałeś deszcz. Liczy się, czy zbudowałeś arkę. - Warren Buffet",
+            "W konfrontacji strumienia ze skałą, strumień zawsze wygrywa – nie przez swoją siłę, ale przez wytrwałość. - Budda",
+            "Sprytna osoba rozwiązuje problem. Mądra ich unika. - Albert Einstein",
+            "Głupie myśli ma każdy, ale mądry je przemilcza. - Busch Wilhelm",
+            "Zamiast strachu przed porażką wzmagaj pragnienie sukcesu.",
+            "Brak czasu jest tak naprawdę brakiem priorytetów - Tim Ferriss",
+            "Weź tyle, ile potrzebujesz. Daj tyle, ile możesz.",
+            "Wiesz wystarczająco, żeby uznać coś za prawdę, ale nie wystarczająco, aby wiedzieć, że się mylisz.",
+            "Wszystko jest możliwe, niemożliwe wymaga po prostu więcej czasu.",
+            "It is the mark of an educated mind to be able to entertain a thought without accepting it. - Arystoteles",
+            "Zrobione jest lepsze od doskonałego.",
+            "Dobrych ludzi najłatwiej skrzywdzić.",
+            "Nikt nie jest tak bogaty, aby niczego nie potrzebował, ani nikt nie jest tak biedny, aby niczego nie miał dać.",
+            "Following your genuine intellectual curiosity is better than following whatever makes money.",
+            "Nie ma nic bardziej bezsensownego niż efektywna praca nad zadaniem, którego w ogóle nie powinno się wykonywać - Peter Drucker",
+            "Wszystko jest, a Nic nie zostaje.",
+            "W książkach jest wszystko napisane. - Dariusz Polonis",
+            "Różnica między profesjonalistą, a amatorem jest taka, że jeden to lubi, a drugi to umie.",
+            "Wiem ile jestem wart, w porywach... trochę.",
+            "Hmmm, w mojej głowie miało to sens.",
+            "Choć człowiek jest małym pyłkiem we wszechświecie, to jego głupota wybiega poza wszechświat. - Marek Matejeski",
+            "Jemu się zdaje, że coś wie, choć nic nie wie, a ja, ja nic nie wiem, tak mi się nawet i nie zdaje. - Sokrates",
+            "Szewc który chce mieć pieniądze będzie robił buty, a ten który chce robić buty będzie miał pieniądze.",
+            "Jeśli uczciwy człowiek odkrywa swój błąd, to albo go naprawia, albo przestaje być uczciwy.",
+            "Każdy ma swoje tempo...nie oceniajmy.",
+            "Ptak siedzący na drzewie, nie boi się, że gałąź się złamie, nie dlatego, że ufa gałęzi, ale dlatego, że ufa swoim skrzydłom.",
+            "Jeśli nie usłyszałeś czegoś własnymi uszami lub nie zobaczyłeś tego swoimi oczami, to nie przekazuj tego dalej swoimi ustami.",
+            "Wszyscy są święci, gdy mówią o grzechach kogoś innego.",
+            "Pycha kroczy przed upadkiem.",
+            "Lepsza sztuczna inteligencja, niż prawdziwa głupota.",
+            "Nie za każdy mecz dostajesz puchar.",
+            "Nie myślałem, że ktoś może o tym pomyśleć, dopóki Ty o tym nie pomyślałeś.",
+            "Nie każdy musi mnie lubić. W końcu nie każdy ma dobry gust.",
+            "Każdy myśli przez swoją mapę.",
+            "W byciu sobą najbardziej przeszkadza mi kodeks karny.",
+            "Zero nienawidzi innych liczb. - Zygmunt Freud",
+            "Pomyśl sobie marzenie, a ja ci to obiecam."
+        ];
+
+        let currentIndex = 0;
+        const proverbText = document.getElementById('proverbText');
+        const currentNumber = document.getElementById('currentNumber');
+        const totalNumber = document.getElementById('totalNumber');
+        const progressFill = document.getElementById('progressFill');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const randomBtn = document.getElementById('randomBtn');
+
+        // Ustawienie całkowitej liczby przysłów
+        totalNumber.textContent = proverbs.length;
+
+        function updateDisplay() {
+            currentNumber.textContent = currentIndex + 1;
+            const progressPercent = ((currentIndex + 1) / proverbs.length) * 100;
+            progressFill.style.width = progressPercent + '%';
+        }
+
+        function changeProverb(newIndex) {
+            proverbText.classList.add('fade');
+            setTimeout(() => {
+                currentIndex = newIndex;
+                proverbText.textContent = proverbs[currentIndex];
+                proverbText.classList.remove('fade');
+                updateDisplay();
+            }, 400);
+        }
+
+        function nextProverb() {
+            const newIndex = (currentIndex + 1) % proverbs.length;
+            changeProverb(newIndex);
+        }
+
+        function prevProverb() {
+            const newIndex = (currentIndex - 1 + proverbs.length) % proverbs.length;
+            changeProverb(newIndex);
+        }
+
+        function randomProverb() {
+            let newIndex;
+            do {
+                newIndex = Math.floor(Math.random() * proverbs.length);
+            } while (newIndex === currentIndex && proverbs.length > 1);
+            changeProverb(newIndex);
+        }
+
+        // Event listeners
+        prevBtn.addEventListener('click', prevProverb);
+        nextBtn.addEventListener('click', nextProverb);
+        randomBtn.addEventListener('click', randomProverb);
+
+        // Obsługa klawiatury
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') prevProverb();
+            if (e.key === 'ArrowRight') nextProverb();
+            if (e.key === ' ' || e.key === 'r') {
+                e.preventDefault();
+                randomProverb();
+            }
+        });
+
+        // Tworzenie cząsteczek
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 40; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 25 + 's';
+            particle.style.animationDuration = (20 + Math.random() * 15) + 's';
+            particlesContainer.appendChild(particle);
+        }
+
+        // Początkowe ustawienie
+        updateDisplay();
+    </script>
+</body>
+</html>

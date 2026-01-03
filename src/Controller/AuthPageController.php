@@ -8,14 +8,11 @@ use App\DTO\Auth\RegisterRequestDTO;
 use App\Exception\ValidationException;
 use App\Service\AuthService;
 use App\Service\EmailVerificationService;
+use App\Service\PasswordResetService;
 use App\Repository\UserRepository;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Address;
-use Symfony\Component\Mime\Email;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Routing\Attribute\Route;
@@ -25,11 +22,9 @@ final class AuthPageController extends AbstractController
     public function __construct(
         private readonly AuthService $authService,
         private readonly EmailVerificationService $emailVerificationService,
+        private readonly PasswordResetService $passwordResetService,
         private readonly UserRepository $userRepository,
         private readonly CsrfTokenManagerInterface $csrfTokenManager,
-        private readonly MailerInterface $mailer,
-        #[Autowire('%env(default::MAILER_FROM)%')]
-        private readonly string $mailerFrom,
     ) {}
 
     #[Route('/', name: 'app_landing', methods: ['GET'])]
@@ -157,8 +152,9 @@ final class AuthPageController extends AbstractController
                 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                     $errors[] = ['field' => 'email', 'message' => 'Podaj poprawny adres email'];
                 } else {
+                    // Always show success message for security (enumeration protection)
                     $success = 'Jeśli konto istnieje, wysłaliśmy instrukcje resetu hasła.';
-                    $this->sendResetEmail($email);
+                    $this->passwordResetService->requestPasswordReset($email);
                 }
             }
         }
@@ -176,26 +172,54 @@ final class AuthPageController extends AbstractController
         ]);
     }
 
-    private function sendResetEmail(string $email): void
+    #[Route('/reset-password/{token}', name: 'app_reset_password_page', methods: ['GET', 'POST'], defaults: ['token' => null])]
+    public function resetPassword(Request $request, ?string $token = null): Response
     {
-        $message = (new Email())
-            ->from(new Address($this->mailerFrom ?: 'no-reply@snipnote.local', 'SnipNote'))
-            ->to($email)
-            ->subject('Reset hasła')
-            ->text("Jeśli to Ty zainicjowałeś reset, użyj linku z aplikacji (placeholder MVP).");
-
-        try {
-            $this->mailer->send($message);
-        } catch (\Throwable) {
-            // Fail silently to keep neutral response.
+        if (!$token) {
+            return $this->redirectToRoute('app_forgot_password_page');
         }
-    }
 
-    #[Route('/reset-password/{token}', name: 'app_reset_password_page', methods: ['GET'], defaults: ['token' => null])]
-    public function resetPassword(?string $token = null): Response
-    {
+        $user = $this->passwordResetService->validateToken($token);
+        $errors = [];
+
+        if (!$user) {
+            $errors[] = ['message' => 'Link wygasł lub jest nieprawidłowy. Poproś o nowy.'];
+            // If token is invalid, we might want to disable the form or just show the error.
+            // We pass null token to view to indicate issue or just handle via errors.
+        }
+
+        if ($user && $request->isMethod('POST')) {
+            $submittedToken = (string) $request->request->get('_csrf_token', '');
+            if (!$this->csrfTokenManager->isTokenValid(new CsrfToken('reset_password', $submittedToken))) {
+                $errors[] = ['message' => 'Nieprawidłowy token bezpieczeństwa. Spróbuj ponownie.'];
+            } else {
+                $password = (string) $request->request->get('password', '');
+                $passwordConfirm = (string) $request->request->get('passwordConfirm', '');
+
+                if (strlen($password) < 8) {
+                    $errors[] = ['field' => 'password', 'message' => 'Hasło musi mieć min. 8 znaków.'];
+                }
+                if ($password !== $passwordConfirm) {
+                    $errors[] = ['field' => 'passwordConfirm', 'message' => 'Hasła muszą być identyczne.'];
+                }
+
+                if ($errors === []) {
+                    $this->passwordResetService->resetPassword($user, $password);
+                    
+                    // Redirect to login with success flash (simulated via query param or flash bag)
+                    // Using query param for simplicity in this MVP context if flash bag not configured, 
+                    // but AbstractController has addFlash.
+                    $this->addFlash('success', 'Hasło zostało zmienione. Zaloguj się nowym hasłem.');
+                    
+                    return $this->redirectToRoute('app_login_page');
+                }
+            }
+        }
+
         return $this->render('auth/reset_password.html.twig', [
             'token' => $token,
+            'errors' => $errors,
+            'action' => '/reset-password/' . $token,
             'hero' => [
                 'headline' => 'Ustaw nowe hasło',
                 'subcopy' => 'Skorzystaj z linku z maila, aby odzyskać dostęp do konta.',
