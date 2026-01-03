@@ -80,6 +80,7 @@ body.bg-notes-gradient {
 
 .btn-auth-primary {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
     transition: transform 150ms ease, box-shadow 150ms ease, background 160ms ease;
 }
 

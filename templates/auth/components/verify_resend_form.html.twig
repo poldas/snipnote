@@ -1,46 +1,44 @@
-{% set action = action ?? '/verify/email/resend' %}
+{% set action = action ?? path('app_verify_email_resend') %}
 {% set csrfToken = csrfToken ?? csrf_token('verify_email_resend') %}
 {% set errors = errors ?? [] %}
 {% set prefill = prefill ?? {} %}
 {% set pending = pending ?? false %}
 
-{% set emailError = (errors|filter(e => (e.field ?? null) == 'email')|first).message ?? null %}
-{% set globalErrors = errors|filter(e => e.field is not defined or e.field is null)|map(e => e.message) %}
+{% include 'auth/components/error_alert.html.twig' with {
+    messages: errors|filter(e => e.field is not defined or e.field is null)|map(e => e.message),
+    title: 'Błąd'
+} %}
 
-<form action="{{ action }}" method="post" class="space-y-3" hx-boost="false">
+<form action="{{ action }}" method="post" class="space-y-4" hx-boost="false">
     <input type="hidden" name="_csrf_token" value="{{ csrfToken }}">
 
-    {% include 'auth/components/global_error_banner.html.twig' with { messages: globalErrors } %}
-
     {% include 'auth/components/form_field.html.twig' with {
-        config: {
-            id: 'verify-email',
-            name: 'email',
-            label: 'Email do weryfikacji',
-            type: 'email',
-            placeholder: 'your@email.com',
-            autocomplete: 'email',
-            required: true,
-            pattern: '[^@\\s]+@[^@\\s]+\\.[^@\\s]+',
-            maxLength: 180
-        },
+        label: 'Adres email',
+        type: 'email',
+        name: 'email',
+        id: 'verify-email',
         value: prefill.email ?? '',
-        error: emailError,
-        autoFocus: true
+        placeholder: 'your@email.com',
+        required: true,
+        autoFocus: true,
+        error: (errors|filter(e => (e.field ?? null) == 'email')|first).message ?? null
     } %}
 
-    <div class="flex items-center justify-between gap-3 flex-wrap">
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <button type="submit"
-                class="inline-flex items-center justify-center rounded-xl text-white px-4 py-2.5 font-semibold shadow-md shadow-indigo-500/20 transition-all disabled:opacity-70 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#c7d2fe] focus:ring-offset-2 focus:ring-offset-white hover:translate-y-[-1px] active:translate-y-0.5 btn-auth-primary"
+                class="inline-flex items-center justify-center rounded-xl px-4 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base font-semibold shadow-lg shadow-indigo-500/25 transition-all disabled:opacity-70 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#c7d2fe] focus:ring-offset-2 focus:ring-offset-white hover:translate-y-[-1px] active:translate-y-0.5 btn-auth-primary"
                 {% if pending %}disabled{% endif %}
                 hx-disabled-elt="this">
             {% if pending %}
                 <span class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/60 border-t-transparent"></span>
             {% endif %}
-            Wyślij ponownie link
+            <span class="sm:hidden">Wyślij link</span>
+            <span class="hidden sm:inline">Wyślij ponownie link</span>
         </button>
 
-        <a href="/login" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800 underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-300 transition-colors">Wróć do logowania</a>
+        <a href="/login" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors text-center sm:text-left">
+            Wróć do logowania
+        </a>
     </div>
 </form>
 

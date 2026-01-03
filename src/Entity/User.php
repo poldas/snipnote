@@ -39,6 +39,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'updated_at', type: Types::DATETIMETZ_IMMUTABLE)]
     private \DateTimeImmutable $updatedAt;
 
+    #[ORM\Column(name: 'reset_token', type: Types::STRING, unique: true, nullable: true)]
+    private ?string $resetToken = null;
+
+    #[ORM\Column(name: 'reset_token_expires_at', type: Types::DATETIMETZ_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $resetTokenExpiresAt = null;
+
     /** @var Collection<int, Note> */
     #[ORM\OneToMany(mappedBy: 'owner', targetEntity: Note::class, orphanRemoval: true)]
     private Collection $notes;
@@ -73,6 +79,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getPassword(): string
     {
         return $this->passwordHash;
+    }
+
+    public function setPasswordHash(string $passwordHash): void
+    {
+        $this->passwordHash = $passwordHash;
+        $this->touchUpdatedAt();
     }
 
     public function isVerified(): bool
@@ -120,6 +132,28 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function touchUpdatedAt(\DateTimeImmutable $moment = new \DateTimeImmutable()): void
     {
         $this->updatedAt = $moment;
+    }
+
+    public function setResetToken(?string $token, ?\DateTimeImmutable $expiresAt): void
+    {
+        $this->resetToken = $token;
+        $this->resetTokenExpiresAt = $expiresAt;
+    }
+
+    public function getResetToken(): ?string
+    {
+        return $this->resetToken;
+    }
+
+    public function getResetTokenExpiresAt(): ?\DateTimeImmutable
+    {
+        return $this->resetTokenExpiresAt;
+    }
+
+    public function clearResetToken(): void
+    {
+        $this->resetToken = null;
+        $this->resetTokenExpiresAt = null;
     }
 
     /**

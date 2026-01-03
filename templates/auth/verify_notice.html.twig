@@ -1,53 +1,77 @@
-{% extends 'auth/base_auth.html.twig' %}
+{% extends 'auth/auth_layout.html.twig' %}
 
 {% block title %}Potwierdź email | Snipnote{% endblock %}
 
-{% block auth_nav %}
-    {% include 'auth/components/nav_links_auth.html.twig' with { nav: navSwitch ?? { href: '/login', label: 'Wróć do logowania' } } %}
-{% endblock %}
-
-{% block auth_hero %}
-    {% include 'auth/components/hero_intro.html.twig' with {
-        hero: hero ?? {
-            headline: 'Sprawdź skrzynkę i potwierdź adres email',
-            subcopy: 'Kliknij w link aktywacyjny, aby dokończyć rejestrację i korzystać z notatek.'
-        },
-        showCtas: false
-    } %}
-{% endblock %}
-
-{% block auth_card %}
+{% block auth_content %}
     {% set state = state ?? 'pending' %}
     {% set prefill = prefill ?? {} %}
     {% set errors = errors ?? [] %}
     {% set pending = pending ?? false %}
+    {% set variant = variant ?? (state == 'invalid' ? 'warning' : 'info') %}
     {% set message = message ?? (state == 'invalid' ? 'Link wygasł lub jest nieprawidłowy.' : 'Wysłaliśmy link aktywacyjny na Twój email.') %}
+    {% set steps = steps ?? [
+        'Sprawdź skrzynkę oraz folder spam/oznaczone.',
+        'Link jest jednorazowy i ma ograniczony czas ważności.',
+        'Jeśli link nie działa, wyślij go ponownie poniżej.'
+    ] %}
 
-    {% embed 'auth/components/auth_card.html.twig' with {
-        title: 'Potwierdź swój adres email',
-        subtitle: 'Bez aktywacji nie będziemy mogli udostępniać Twoich notatek.',
-        pending: pending
-    } %}
-        {% block auth_card_body %}
-            <div class="space-y-4">
-                <div class="rounded-xl border {{ state == 'invalid' ? 'border-amber-200 bg-amber-50 text-amber-900' : 'border-indigo-100 bg-indigo-50 text-indigo-900' }} px-4 py-3">
+    <!-- Navigation Bar -->
+    <div class="flex items-center justify-between w-full">
+        <a href="/login" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/60 text-indigo-600 hover:bg-white/80 backdrop-blur-sm border border-indigo-200/50 transition-all hover:scale-105">
+            ← Powrót do logowania
+        </a>
+        <div class="text-sm text-slate-600">
+            Krok 2 z 2
+        </div>
+    </div>
+
+    <div class="w-full max-w-sm sm:max-w-md lg:max-w-lg space-y-6 sm:space-y-8">
+        <!-- Header -->
+        <div class="text-center space-y-3 sm:space-y-4">
+            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-indigo-950 px-2">{{ hero.headline ?? 'Potwierdź swój adres email' }}</h1>
+            <p class="text-base sm:text-lg lg:text-xl text-slate-600 px-2">{{ hero.subcopy ?? 'Kliknij w link aktywacyjny, aby dokończyć rejestrację.' }}</p>
+        </div>
+
+        <!-- Notice Card -->
+        <div class="bg-white/90 backdrop-blur-lg rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200/50 p-6 sm:p-8">
+            <div class="space-y-6">
+                <!-- Status Message -->
+                {% set toneClasses = {
+                    'success': 'border-emerald-200 bg-emerald-50 text-emerald-800',
+                    'warning': 'border-amber-200 bg-amber-50 text-amber-900',
+                    'info': 'border-indigo-100 bg-indigo-50 text-indigo-900'
+                }[variant] ?? 'border-indigo-100 bg-indigo-50 text-indigo-900' %}
+                {% set stepsTextClasses = {
+                    'success': 'text-emerald-800',
+                    'warning': 'text-amber-900',
+                    'info': 'text-indigo-800'
+                }[variant] ?? 'text-indigo-800' %}
+
+                <div class="rounded-xl border {{ toneClasses }} px-4 py-3">
                     <p class="text-sm font-semibold">{{ message }}</p>
-                    <ul class="mt-2 text-sm space-y-1 text-indigo-800/80">
-                        <li>• Sprawdź skrzynkę oraz folder spam/oznaczone.</li>
-                        <li>• Link jest jednorazowy i ma ograniczony czas ważności.</li>
-                        <li>• Jeśli link nie działa, wyślij go ponownie poniżej.</li>
-                    </ul>
+                    {% if steps is not empty %}
+                        <ul class="mt-2 text-sm space-y-1 {{ stepsTextClasses }}">
+                            {% for item in steps %}
+                                <li>• {{ item }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
                 </div>
 
-                {% include 'auth/components/verify_resend_form.html.twig' with {
-                    action: action ?? '/verify/email/resend',
-                    prefill: prefill,
-                    errors: errors,
-                    pending: pending
-                } %}
+                <!-- Resend Form -->
+                <div class="border-t border-slate-200/50 pt-6">
+                    <h3 class="text-lg font-semibold text-slate-900 mb-4">Nie otrzymałeś linku?</h3>
+
+                    {% include 'auth/components/verify_resend_form.html.twig' with {
+                        action: action ?? path('app_verify_email_resend'),
+                        prefill: prefill,
+                        errors: errors,
+                        pending: pending
+                    } %}
+                </div>
             </div>
-        {% endblock %}
-    {% endembed %}
+        </div>
+    </div>
 {% endblock %}
 
 
