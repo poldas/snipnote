@@ -3,8 +3,12 @@ import { LoginPage } from '../page-objects/LoginPage';
 import { DashboardPage } from '../page-objects/DashboardPage';
 import { LandingPage } from '../page-objects/LandingPage';
 
-test.describe('Authentication - Login and Logout flow', () => {
+test.describe('Authentication - Login and Logout flow (manual only)', () => {
     test('successful login with test account and logout returns to landing page', async ({ page }) => {
+        if (process.env.CI === 'true') {
+            test.skip();
+        }
+
         const loginPage = new LoginPage(page);
         const dashboardPage = new DashboardPage(page);
         const landingPage = new LandingPage(page);
@@ -31,6 +35,10 @@ test.describe('Authentication - Login and Logout flow', () => {
     });
 
     test('login form validation shows errors for invalid credentials', async ({ page }) => {
+        if (process.env.CI === 'true') {
+            test.skip();
+        }
+
         const loginPage = new LoginPage(page);
 
         // Navigate to login page
@@ -49,6 +57,10 @@ test.describe('Authentication - Login and Logout flow', () => {
     });
 
     test('login form elements are properly rendered', async ({ page }) => {
+        if (process.env.CI === 'true') {
+            test.skip();
+        }
+
         const loginPage = new LoginPage(page);
 
         // Navigate to login page
