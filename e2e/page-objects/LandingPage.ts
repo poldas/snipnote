@@ -29,6 +29,7 @@ export class LandingPage {
     }
 
     async expectCTASectionVisible() {
+        // Check for CTA section by looking for the main heading
         await expect(this.page.getByRole('heading', { name: 'Gotowy na lepsze notatki?' })).toBeVisible();
     }
 
@@ -69,8 +70,10 @@ export class LandingPage {
     }
 
     async expectLoginFormVisible() {
-        await expect(this.page.getByRole('heading', { name: 'Zaloguj się do Snipnote' })).toBeVisible();
-        await expect(this.page.getByLabel('Adres email')).toBeVisible();
+        // Navigate to login page since form is no longer on landing page
+        await this.page.goto('/login');
+        await expect(this.page.getByRole('heading', { name: 'Wróć do swoich notatek' })).toBeVisible();
+        await expect(this.page.getByLabel('Email')).toBeVisible();
         await expect(this.page.getByLabel('Hasło')).toBeVisible();
         await expect(this.page.getByRole('button', { name: 'Zaloguj się' })).toBeVisible();
     }
@@ -158,8 +161,11 @@ export class LandingPage {
     }
 
     async expectLoginFormHoverEffects() {
+        // Navigate to login page since form is no longer on landing page
+        await this.page.goto('/login');
+
         const loginButton = this.page.getByRole('button', { name: 'Zaloguj się' });
-        const forgotPasswordLink = this.page.getByRole('link', { name: 'Zapomniałeś hasła?' });
+        const forgotPasswordLink = this.page.getByRole('link', { name: 'Nie pamiętasz hasła?' });
 
         // Test login button hover
         await this.takeScreenshot('login-button-baseline');
@@ -169,14 +175,15 @@ export class LandingPage {
         await expect(loginButton).toBeVisible();
 
         // Test forgot password link hover
+        const forgotPasswordLink2 = this.page.getByRole('link', { name: 'Zapomniałeś hasła?' });
         await this.takeScreenshot('forgot-password-baseline');
-        await forgotPasswordLink.hover();
+        await forgotPasswordLink2.hover();
         await this.page.waitForTimeout(300);
         await this.takeScreenshot('forgot-password-hover');
-        await expect(forgotPasswordLink).toBeVisible();
+        await expect(forgotPasswordLink2).toBeVisible();
 
         // Test register link hover
-        const registerLink = this.page.getByRole('link', { name: 'Zarejestruj się' });
+        const registerLink = this.page.getByRole('link', { name: 'Załóż konto' });
         await this.takeScreenshot('register-link-baseline');
         await registerLink.hover();
         await this.page.waitForTimeout(300);

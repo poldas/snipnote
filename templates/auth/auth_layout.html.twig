@@ -18,8 +18,16 @@
         </nav>
 
         <!-- Main Content -->
-        <div class="w-full max-w-sm sm:max-w-md mx-auto mt-16 sm:mt-20">
-            {% block auth_content %}{% endblock %}
+        <div class="w-full px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto mt-16 sm:mt-20">
+            <div class="grid lg:grid-cols-2 gap-10 items-center flex-1 w-full">
+                <div class="space-y-8">
+                    {% block auth_hero %}{% endblock %}
+                </div>
+
+                <div class="w-full">
+                    {% block auth_content %}{% endblock %}
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}

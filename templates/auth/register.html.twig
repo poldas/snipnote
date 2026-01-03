@@ -2,89 +2,87 @@
 
 {% block title %}Zarejestruj się | Snipnote{% endblock %}
 
+{% block auth_hero %}
+    <div class="text-center space-y-3 sm:space-y-4 lg:text-left">
+        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-indigo-950">Załóż konto w Snipnote</h1>
+        <p class="text-base sm:text-lg lg:text-xl text-slate-600 px-2 lg:px-0">Twórz notatki, zapraszaj współpracowników i dziel się publicznie.</p>
+    </div>
+{% endblock %}
+
 {% block auth_content %}
-    <div class="w-full space-y-6 sm:space-y-8">
-        <!-- Header -->
-        <div class="text-center space-y-3 sm:space-y-4">
-            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-indigo-950">Załóż konto w Snipnote</h1>
-            <p class="text-base sm:text-lg lg:text-xl text-slate-600 px-2">Twórz notatki, zapraszaj współpracowników i dziel się publicznie.</p>
-        </div>
+    <div class="bg-white/90 backdrop-blur-lg rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200/50 p-6 sm:p-8">
+        {% set errors = errors ?? [] %}
+        {% set prefill = prefill ?? {} %}
+        {% set pending = pending ?? false %}
 
-        <!-- Register Form -->
-        <div class="bg-white/90 backdrop-blur-lg rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200/50 p-6 sm:p-8">
-            {% set errors = errors ?? [] %}
-            {% set prefill = prefill ?? {} %}
-            {% set pending = pending ?? false %}
+        <form action="/register" method="post" class="space-y-6" hx-boost="false">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('register') }}">
 
-            <form action="/register" method="post" class="space-y-6" hx-boost="false">
-                <input type="hidden" name="_csrf_token" value="{{ csrf_token('register') }}">
+            {% include 'auth/components/error_alert.html.twig' with {
+                messages: errors|filter(e => e.field is not defined or e.field is null)|map(e => e.message),
+                title: 'Błąd rejestracji'
+            } %}
 
-                {% include 'auth/components/error_alert.html.twig' with {
-                    messages: errors|filter(e => e.field is not defined or e.field is null)|map(e => e.message),
-                    title: 'Błąd rejestracji'
+            <div class="space-y-4">
+                {% include 'auth/components/form_field.html.twig' with {
+                    label: 'Adres email',
+                    type: 'email',
+                    name: 'email',
+                    value: prefill.email ?? '',
+                    placeholder: 'your@email.com',
+                    required: true,
+                    autoFocus: true,
+                    error: (errors|filter(e => (e.field ?? null) == 'email')|first).message ?? null
                 } %}
 
-                <div class="space-y-4">
-                    {% include 'auth/components/form_field.html.twig' with {
-                        label: 'Adres email',
-                        type: 'email',
-                        name: 'email',
-                        value: prefill.email ?? '',
-                        placeholder: 'your@email.com',
-                        required: true,
-                        autoFocus: true,
-                        error: (errors|filter(e => (e.field ?? null) == 'email')|first).message ?? null
-                    } %}
+                {% include 'auth/components/form_field.html.twig' with {
+                    label: 'Hasło',
+                    type: 'password',
+                    name: 'password',
+                    placeholder: 'Minimum 8 znaków',
+                    required: true,
+                    minLength: 8,
+                    error: (errors|filter(e => (e.field ?? null) == 'password')|first).message ?? null
+                } %}
 
-                    {% include 'auth/components/form_field.html.twig' with {
-                        label: 'Hasło',
-                        type: 'password',
-                        name: 'password',
-                        placeholder: 'Minimum 8 znaków',
-                        required: true,
-                        minLength: 8,
-                        error: (errors|filter(e => (e.field ?? null) == 'password')|first).message ?? null
-                    } %}
+                {% include 'auth/components/form_field.html.twig' with {
+                    label: 'Potwierdź hasło',
+                    type: 'password',
+                    name: 'passwordConfirm',
+                    placeholder: 'Powtórz hasło',
+                    required: true,
+                    error: (errors|filter(e => (e.field ?? null) == 'passwordConfirm')|first).message ?? null
+                } %}
+            </div>
 
-                    {% include 'auth/components/form_field.html.twig' with {
-                        label: 'Potwierdź hasło',
-                        type: 'password',
-                        name: 'passwordConfirm',
-                        placeholder: 'Powtórz hasło',
-                        required: true,
-                        error: (errors|filter(e => (e.field ?? null) == 'passwordConfirm')|first).message ?? null
-                    } %}
+            <button
+                type="submit"
+                class="w-full py-3 btn-auth-primary rounded-xl font-semibold shadow-lg shadow-indigo-500/25 transition-all disabled:opacity-70 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#c7d2fe] focus:ring-offset-2 focus:ring-offset-white hover:translate-y-[-1px] active:translate-y-0.5"
+                {% if pending %}disabled{% endif %}
+                hx-disabled-elt="this"
+            >
+                {% if pending %}
+                    <span class="flex items-center justify-center gap-2">
+                        <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Tworzenie konta...
+                    </span>
+                {% else %}
+                    Załóż konto
+                {% endif %}
+            </button>
+
+            <div class="text-center">
+                <div class="text-sm text-slate-600">
+                    Masz już konto?
+                    <a href="/login" data-test-id="register-link-login" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
+                        Zaloguj się
+                    </a>
                 </div>
-
-                <button
-                    type="submit"
-                    class="w-full py-3 btn-auth-primary rounded-xl font-semibold shadow-lg shadow-indigo-500/25 transition-all disabled:opacity-70 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#c7d2fe] focus:ring-offset-2 focus:ring-offset-white hover:translate-y-[-1px] active:translate-y-0.5"
-                    {% if pending %}disabled{% endif %}
-                    hx-disabled-elt="this"
-                >
-                    {% if pending %}
-                        <span class="flex items-center justify-center gap-2">
-                            <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            Tworzenie konta...
-                        </span>
-                    {% else %}
-                        Załóż konto
-                    {% endif %}
-                </button>
-
-                <div class="text-center">
-                    <div class="text-sm text-slate-600">
-                        Masz już konto?
-                        <a href="/login" data-test-id="register-link-login" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
-                            Zaloguj się
-                        </a>
-                    </div>
-                </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
 {% endblock %}
 

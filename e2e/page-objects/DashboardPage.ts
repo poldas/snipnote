@@ -12,7 +12,7 @@ export class DashboardPage {
     }
 
     async expectPageLoaded() {
-        await expect(this.page.getByText('Twoje notatki')).toBeVisible();
+        await expect(this.page.getByRole('button', { name: 'Dodaj notatkę' })).toBeVisible();
         await expect(this.page.getByText('Snipnote')).toBeVisible();
     }
 

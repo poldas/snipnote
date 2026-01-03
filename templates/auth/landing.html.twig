@@ -357,15 +357,7 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div class="grid md:grid-cols-4 gap-8 mb-8">
                     <div class="md:col-span-2 space-y-4">
-                        <a href="/" class="inline-flex items-center gap-3">
-                            <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
-                                S
-                            </div>
-                            <div class="leading-tight">
-                                <div class="text-lg font-semibold text-indigo-900">Snipnote</div>
-                                <div class="text-sm text-indigo-700/80">Twórz i udostępniaj notatki</div>
-                            </div>
-                        </a>
+                        {% include 'components/logo.html.twig' with { 'dataTestId': 'logo-footer-link' } %}
                         <p class="text-slate-600 max-w-md">
                             Najlepsze narzędzie do tworzenia, organizowania i udostępniania notatek.
                             Proste, szybkie i bezpieczne.
