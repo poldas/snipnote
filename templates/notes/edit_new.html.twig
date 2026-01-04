@@ -1,0 +1,112 @@
+{% block title %}Edytuj notatkę | Snipnote{% endblock %}
+
+{% block stylesheets %}{% endblock %}
+
+{% set layoutData = {
+    subtitle: 'Edycja notatki',
+    currentUserEmail: app.user.email ?? 'użytkownik',
+    backUrl: view.dashboardUrl ?? '/notes'
+} %}
+
+{% set content %}
+<div data-controller="edit-note">
+        {% if view.error is defined %}
+            <div class="glass-card rounded-3xl shadow-2xl p-8 transform hover:scale-[1.01] transition-transform duration-300" role="alert" aria-live="assertive">
+                <h1 class="text-3xl font-black gradient-text mb-2">Notatka niedostępna</h1>
+                <p class="text-sm text-gray-600 font-medium mb-6">{{ view.error }}</p>
+                <a href="{{ view.dashboardUrl ?? '/notes' }}" class="inline-flex items-center gap-3 px-6 py-3 btn-gradient text-white rounded-xl font-bold shadow-lg hover:shadow-2xl transition-all">
+                    ← Wróć do listy notatek
+                </a>
+            </div>
+        {% else %}
+            <!-- Main Card -->
+            <div class="glass-card rounded-3xl shadow-2xl overflow-hidden transform hover:scale-[1.02] transition-all duration-300 hover:shadow-3xl">
+                <!-- Card Header -->
+                <div class="px-8 py-6 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-indigo-100/50">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <div>
+                            <h1 class="text-3xl font-black gradient-text mb-2">Edytuj notatkę</h1>
+                            <p class="text-sm text-gray-600 font-medium">Aktualizuj treść, widoczność i współedytorów</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white shadow-md border border-gray-200 text-sm font-bold text-gray-700">
+                                <span class="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></span>
+                                ID: {{ view.noteId }}
+                            </span>
+                            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 text-white shadow-lg text-sm font-bold">
+                                <span class="text-lg">🌐</span>
+                                {{ view.initialVisibility|capitalize }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Content -->
+                <div class="p-8 space-y-8">
+                    {% include 'notes/components/note_form.html.twig' with {
+                        csrfToken: view.csrfToken,
+                        initialTitle: view.initialTitle,
+                        initialDescription: view.initialDescription,
+                        initialLabels: view.initialLabels,
+                        initialVisibility: view.initialVisibility,
+                        noteId: view.noteId,
+                        submitUrl: view.patchUrl,
+                        redirectUrl: view.dashboardUrl,
+                        previewUrl: view.previewUrl,
+                        mode: 'edit'
+                    } %}
+
+                    {% if view.initialVisibility == 'public' and view.urlToken is not empty %}
+                        {% include 'notes/components/public_link_info.html.twig' with {
+                            publicUrl: view.publicUrl,
+                            visibility: view.initialVisibility
+                        } %}
+                    {% endif %}
+
+                    {% include 'notes/components/collaborators_panel.html.twig' with {
+                        noteId: view.noteId,
+                        items: view.collaborators,
+                        isOwner: view.isOwner,
+                        canEdit: view.canEdit,
+                        addUrl: '/api/notes/' ~ view.noteId ~ '/collaborators',
+                        redirectUrlOnSelfRemove: view.dashboardUrl,
+                        currentUserEmail: view.currentUserEmail
+                    } %}
+
+                    {% if view.isOwner %}
+                        {% include 'notes/components/danger_zone.html.twig' with {
+                            deleteUrl: view.deleteUrl,
+                            regenerateUrl: view.regenerateUrl,
+                            redirectUrl: view.dashboardUrl
+                        } %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Confirmation Modal -->
+            {% include 'notes/components/confirm_modal.html.twig' %}
+        {% endif %}
+
+        <!-- Floating Action Bar -->
+        <div class="fixed bottom-0 left-0 right-0 z-50 glass-header border-t-2 border-indigo-200 shadow-2xl">
+            <div class="max-w-6xl mx-auto px-6 py-5">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <span data-status-indicator class="text-sm text-gray-600 font-semibold"></span>
+                        <span data-saving-spinner class="hidden">
+                            <svg class="animate-spin h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </span>
+                    </div>
+                    {% include 'notes/components/sticky_action_bar.html.twig' with {
+                        saveLabel: 'Zapisz zmiany'
+                    } %}
+                </div>
+            </div>
+        </div>
+        </div>
+{% endset %}
+
+{% include 'notes/components/notes_layout.html.twig' with {content: content} + layoutData %}

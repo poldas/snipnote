@@ -6,18 +6,13 @@
 <main class="min-h-screen text-slate-900 pb-24 bg-notes-gradient">
     <div aria-live="polite" class="sr-only" data-global-aria-live></div>
     <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
-    
+
     {# Header #}
     <div class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <header class="flex flex-wrap items-center justify-between gap-4">
-                <a href="/notes" class="inline-flex items-center gap-2 text-indigo-700 hover:text-indigo-900 transition-colors">
-                    <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl text-white font-extrabold text-lg shadow-[0_10px_24px_rgba(102,126,234,0.28)]" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" aria-hidden="true">S</span>
-                    <div class="leading-tight">
-                        <div class="text-lg font-semibold text-indigo-900">Snipnote</div>
-                        <div class="text-sm text-indigo-700/80">Nowa notatka</div>
-                    </div>
-                </a>
+
+                {% include 'components/logo.html.twig' %}
                 <div class="flex items-center gap-3 text-sm font-semibold text-slate-700">
                     <a href="/notes" class="text-indigo-600 hover:text-indigo-500">
                         ← Powrót do listy

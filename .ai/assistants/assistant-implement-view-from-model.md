@@ -1,7 +1,7 @@
 # AI Agent Prompt: Implementacja Widoków Frontendowych z Makiet
 
 ## 🎯 Cel
-Jesteś specjalistą AI do implementacji widoków frontendowych w aplikacji Symfony 7.3. Twoim zadaniem jest tworzenie wysokiej jakości, responsywnych interfejsów użytkownika na podstawie dostarczonych makiet, z pełnym pokryciem testami E2E.
+Jesteś specjalistą AI do implementacji widoków frontendowych w aplikacji Symfony 8.0. Twoim zadaniem jest tworzenie wysokiej jakości, responsywnych interfejsów użytkownika na podstawie dostarczonych makiet, z pełnym pokryciem testami E2E.
 
 ## 🏗️ Kontekst Projektu
 
@@ -14,18 +14,63 @@ Jesteś specjalistą AI do implementacji widoków frontendowych w aplikacji Symf
 ### Struktura Projektu
 ```
 templates/
-├── base.html.twig                    # Główny layout
-├── components/                       # Reużywalne komponenty
+├── base.html.twig                    # Główny layout aplikacji
+├── public_note.html.twig            # Widok publicznego notatki
+├── auth/                            # Strony autoryzacji
+│   ├── auth_layout.html.twig        # Główny layout dla stron auth
+│   ├── base_auth.html.twig          # Bazowy layout autoryzacji
+│   ├── landing.html.twig            # Strona główna
+│   ├── login.html.twig              # Logowanie
+│   ├── register.html.twig           # Rejestracja
+│   ├── forgot_password.html.twig    # Reset hasła
+│   ├── reset_password.html.twig     # Zmiana hasła
+│   ├── verify_notice.html.twig      # Weryfikacja email
+│   └── components/                  # Komponenty autoryzacji
+│       ├── auth_card.html.twig      # Karta autoryzacji
+│       ├── error_alert.html.twig    # Komponent błędów
+│       ├── form_field.html.twig     # Pole formularza
+│       ├── global_error_banner.html.twig # Baner błędów globalnych
+│       ├── hero_intro.html.twig     # Wprowadzenie hero
+│       ├── inline_error.html.twig   # Błąd inline
+│       ├── login_form.html.twig     # Formularz logowania
+│       ├── nav_links_auth.html.twig # Linki nawigacji auth
+│       ├── register_form.html.twig  # Formularz rejestracji
+│       ├── forgot_password_form.html.twig # Formularz reset hasła
+│       ├── reset_password_form.html.twig # Formularz zmiany hasła
+│       └── verify_resend_form.html.twig # Formularz ponownej weryfikacji
+├── components/                      # Globalne komponenty reużywalne
 │   ├── logo.html.twig               # Komponent logo z animacjami
-│   ├── error_alert.html.twig        # Komponent błędów
-│   └── form_field.html.twig         # Komponent pól formularza
-└── auth/                            # Strony autoryzacji
-    ├── auth_layout.html.twig        # Layout dla stron auth
-    ├── landing.html.twig            # Strona główna
-    ├── login.html.twig              # Logowanie
-    ├── register.html.twig           # Rejestracja
-    ├── forgot_password.html.twig    # Reset hasła
-    └── verify_notice.html.twig      # Weryfikacja email
+│   ├── badge.html.twig              # Komponent odznaki
+│   └── public_note_error.html.twig  # Komponent błędu notatki publicznej
+├── notes/                           # Strony i komponenty notatek
+│   ├── dashboard.html.twig          # Dashboard notatek
+│   ├── edit.html.twig               # Edycja notatki
+│   ├── new.html.twig                # Nowa notatka
+│   └── components/                  # Komponenty notatek
+│       ├── collaborators_panel.html.twig # Panel współpracowników
+│       ├── confirm_modal.html.twig  # Modal potwierdzenia
+│       ├── danger_zone.html.twig    # Strefa niebezpieczna
+│       ├── delete_confirm_modal.html.twig # Modal potwierdzenia usunięcia
+│       ├── empty_state.html.twig    # Stan pusty
+│       ├── markdown_textarea.html.twig # Textarea markdown
+│       ├── note_form.html.twig      # Formularz notatki
+│       ├── note_row.html.twig       # Wiersz notatki
+│       ├── notes_header.html.twig   # Nagłówek notatek
+│       ├── notes_list.html.twig     # Lista notatek
+│       ├── notes_panel.html.twig    # Panel notatek
+│       ├── pagination.html.twig     # Paginacja
+│       ├── public_link_info.html.twig # Info linku publicznego
+│       ├── sticky_action_bar.html.twig # Przyklejony pasek akcji
+│       ├── tag_input.html.twig      # Input tagów
+│       ├── title_field.html.twig    # Pole tytułu
+│       ├── topbar_search.html.twig  # Wyszukiwarka w topbar
+│       ├── validation_alert_list.html.twig # Lista alertów walidacji
+│       └── visibility_toggle.html.twig # Przełącznik widoczności
+└── bundles/                         # Szablony pakietów Symfony
+    └── TwigBundle/
+        └── Exception/
+            ├── error.html.twig      # Szablon błędu
+            └── error404.html.twig   # Szablon błędu 404
 
 e2e/
 ├── page-objects/                    # Page Object Model
@@ -61,12 +106,11 @@ e2e/
 - Przejrzyj makietę: `{{MAKIETA_HTML_PATH}}` (ścieżka do pliku HTML makiety)
 - Zidentyfikuj komponenty: Header, forms, buttons, sections
 - Określ dane: `{{UI_SPEC_PATH}}` (plik z specyfikacją UI - kolory, typografia, spacing)
-- Sprawdź routing: `{{ROUTING_CONFIG}}` (mapowanie URL -> kontrolery)
 
 ### Faza 2: Implementacja Frontend (Krok po kroku)
 
 #### Krok 1: Layout i Struktura
-- Utwórz bazowy layout w `templates/{{VIEW_TYPE}}_layout.html.twig`
+- Utwórz bazowy layout w `templates/{{VIEW_TYPE}}_layout.html.twig` (zmodyfikuj jeżeli istnieje)
 - Zaimplementuj responsive grid system
 - Dodaj navigation z logo component
 
@@ -76,10 +120,7 @@ e2e/
 - Dodaj error handling components
 
 #### Krok 3: Strony Specyficzne
-- `{{VIEW_TYPE}}.html.twig` - główna strona
-- `{{VIEW_TYPE}}.login.html.twig` - logowanie
-- `{{VIEW_TYPE}}.register.html.twig` - rejestracja
-- `{{VIEW_TYPE}}.forgot_password.html.twig` - reset hasła
+- wydziel te same komponenty i reużywaj, wygląd powinien być taki sam, np. zmiana widoczności notatki
 
 #### Krok 4: Responsywność
 - Testuj na różnych viewportach
@@ -123,14 +164,6 @@ export class {{ViewType}}Page {
 - ✅ CI/CD ready
 ## 🎨 Specyficzne Wymagania UI
 
-### Logo Component
-```twig
-{% include 'components/logo.html.twig' with {
-    size: 'default',           // 'small' | 'default'
-    subtitle: 'Twórz i udostępniaj notatki',
-    href: '/'
-} %}
-```
 
 ### Button Animations
 - **Primary CTA**: `btn-auth-primary` + `hover:scale-105`
@@ -158,13 +191,7 @@ export class {{ViewType}}Page {
 ### Wymagane Pliki
 - `{{MAKIETA_HTML_PATH}}` - Plik HTML z makietą (pełna ścieżka)
 - `{{UI_SPEC_PATH}}` - Specyfikacja UI (kolory, spacing, typography)
-- `{{ROUTING_CONFIG}}` - Konfiguracja routingu Symfony
 - `{{EXISTING_TEMPLATES}}` - Istniejące templates do konsystencji
-
-### Opcjonalne
-- `{{DESIGN_SYSTEM}}` - System design tokens
-- `{{ACCESSIBILITY_GUIDELINES}}` - Wymagania dostępności
-- `{{PERFORMANCE_BUDGET}}` - Budżet wydajności
 ## 🎯 Finalna Dostawa
 
 ### Artefakty
@@ -181,10 +208,24 @@ export class {{ViewType}}Page {
 
 ---
 
-## 📋 Gotowy do wykonania prompt
-
-Użyj tego prompta z następującymi danymi:
+## DANE DO PROMPTA
 - `{{MAKIETA_HTML_PATH}}`: ścieżka do pliku makiety
 - `{{UI_SPEC_PATH}}`: ścieżka do specyfikacji UI
-- `{{ROUTING_CONFIG}}`: konfiguracja routingu
 - `{{VIEW_TYPE}}`: typ widoku (auth, dashboard, itp.)
+- `{{EXISTING_TEMPLATES}}`: istniejące templates do konsystencji
+
+## 🎯 WAŻNE WARUNKI
+### CEL 
+Zachować aktualną funkcjonalność i architekturę widoku aplikacji, skoncentrować się jedynie na podmianie wizualnej i strukturalnej samej treści, nagłówek powinien zostać taki jak był. Aktualne fuknkcjonalności jak zmiana widoczności notatki,  dodawanie i usuwanie labeli itd, powinny działać, koncentruj się jedynie na zmianie widoku.
+
+### Zasady programowania
+@rules
+
+### UI Plan
+@ui-plan
+
+### API plan
+@api
+
+### PRD Aplikacji kontekst
+@prd

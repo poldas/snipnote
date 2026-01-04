@@ -1,0 +1,53 @@
+{#
+  Notes Layout Component
+  Common layout, styles and structure for notes pages (edit, new)
+  Props:
+    - subtitle (string) - subtitle for the header
+    - currentUserEmail (string) - email of current user
+    - backUrl (string) - URL for back button
+    - content (string) - HTML content to render
+#}
+
+<main class="relative min-h-screen pb-32" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #667eea 100%); background-size: 400% 400%; animation: gradientShift 15s ease infinite;">
+    <div aria-live="polite" class="sr-only" data-global-aria-live></div>
+    <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
+
+    <!-- Animated Background Orbs -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-20 left-10 w-72 h-72 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
+        <div class="absolute top-40 right-20 w-96 h-96 bg-indigo-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse" style="animation-delay: 2s;"></div>
+        <div class="absolute bottom-20 left-1/3 w-80 h-80 bg-pink-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse" style="animation-delay: 4s;"></div>
+    </div>
+
+    <!-- Sticky Glass Header -->
+    <div class="sticky top-0 z-40 bg-white/85 backdrop-blur-2xl border-b border-white/30">
+        <div class="max-w-6xl mx-auto px-6 py-5">
+            <header class="flex flex-wrap items-center justify-between gap-4">
+                <a href="/notes" class="inline-flex items-center gap-3 group">
+                    <div class="relative">
+                        <div class="absolute inset-0 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl blur-md opacity-75 group-hover:opacity-100 transition-opacity"></div>
+                        <div class="relative inline-flex h-12 w-12 items-center justify-center rounded-2xl text-white font-black text-xl shadow-xl bg-gradient-to-br from-purple-500 to-indigo-600 transform group-hover:scale-110 transition-transform">
+                            S
+                        </div>
+                    </div>
+                    <div class="leading-tight">
+                        <div class="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Snipnote</div>
+                        <div class="text-sm text-indigo-600 font-medium">{{ subtitle ?? 'Notatki' }}</div>
+                    </div>
+                </a>
+                <div class="flex items-center gap-4 text-sm font-semibold">
+                    <a href="{{ backUrl ?? '/notes' }}" class="px-4 py-2 rounded-xl bg-white/60 text-indigo-600 hover:bg-white/80 backdrop-blur-sm border border-indigo-200/50 transition-all hover:scale-105">
+                        ← Powrót
+                    </a>
+                    <div class="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg">
+                        {{ currentUserEmail ?? 'użytkownik' }}
+                    </div>
+                </div>
+            </header>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-6 py-8 space-y-6">
+        {{ content|raw }}
+    </div>
+</main>

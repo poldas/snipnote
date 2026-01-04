@@ -38,6 +38,12 @@ export default class extends Controller {
         this.updateVisibilityDescription(this.state.visibility);
         this.updateVisibilityLabels();
         this.updateButtonStates();
+
+        // Ensure visibility buttons are properly initialized after DOM is ready
+        setTimeout(() => {
+            this.updateVisibilityLabels();
+        }, 0);
+
         this.announce('Formularz notatki gotowy do wypełnienia');
     }
 
@@ -79,7 +85,7 @@ export default class extends Controller {
             formErrors: scope.querySelector('[data-form-errors]'),
             errorList: scope.querySelector('[data-error-list]'),
             previewBtn: scope.querySelector('[data-preview-btn]') || document.querySelector('[data-preview-btn]'),
-            submitBtn: scope.querySelector('[data-submit-btn]') || document.querySelector('[data-submit-btn]'),
+            submitBtn: null, // Will be found dynamically when needed
             statusIndicator: scope.querySelector('[data-status-indicator]') || document.querySelector('[data-status-indicator]'),
             savingSpinner: scope.querySelector('[data-saving-spinner]') || document.querySelector('[data-saving-spinner]'),
             previewSection: scope.querySelector('[data-preview-section]'),
@@ -113,9 +119,6 @@ export default class extends Controller {
 
         this.elements.visibilityInputs.forEach((input) => {
             this.on(input, 'change', (event) => {
-                if (!event.target.checked) {
-                    return;
-                }
                 this.state.visibility = event.target.value;
                 this.updateVisibilityDescription(event.target.value);
                 this.updateVisibilityLabels();
@@ -169,8 +172,10 @@ export default class extends Controller {
             this.on(this.elements.previewBtn, 'click', () => this.previewNote());
         }
 
-        if (this.elements.submitBtn) {
-            this.on(this.elements.submitBtn, 'click', () => this.submitNote());
+        // Submit button is found dynamically to handle cases where it's outside the form scope
+        const submitBtn = document.querySelector('[data-submit-btn]');
+        if (submitBtn) {
+            this.on(submitBtn, 'click', () => this.submitNote());
         }
 
         if (this.elements.closePreview) {
@@ -421,12 +426,11 @@ export default class extends Controller {
         this.elements.visibilityLabels.forEach((label) => {
             const value = label.getAttribute('data-visibility-label');
             const isActive = value === this.state.visibility;
-            label.classList.toggle('bg-white', isActive);
-            label.classList.toggle('text-indigo-700', isActive);
-            label.classList.toggle('border', isActive);
-            label.classList.toggle('border-indigo-200', isActive);
-            label.classList.toggle('shadow-sm', isActive);
-            label.classList.toggle('text-slate-600', !isActive);
+            if (isActive) {
+                label.classList.add('active');
+            } else {
+                label.classList.remove('active');
+            }
         });
     }
 
@@ -605,9 +609,13 @@ export default class extends Controller {
         if (this.elements.previewBtn) {
             this.elements.previewBtn.disabled = busy;
         }
-        if (this.elements.submitBtn) {
-            this.elements.submitBtn.disabled = busy;
+
+        // Find submit button dynamically
+        const submitBtn = document.querySelector('[data-submit-btn]');
+        if (submitBtn) {
+            submitBtn.disabled = busy;
         }
+
         if (this.elements.statusIndicator) {
             if (this.state.isSubmitting) this.elements.statusIndicator.textContent = 'Zapisywanie...';
             else if (this.state.isPreviewing) this.elements.statusIndicator.textContent = 'Generowanie podglądu...';

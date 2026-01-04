@@ -1,0 +1,59 @@
+{#
+  Note Form Container Component
+  Main container for note editing/creation forms
+  Props:
+    - mode (string) - 'create' | 'edit'
+    - csrfToken (string)
+    - formConfig (object) - configuration object for form
+    - showPublicLink (bool) - whether to show public link section
+    - publicUrl (string) - public URL if available
+    - showCollaborators (bool) - whether to show collaborators panel
+    - collaborators (array) - collaborators data
+    - isOwner (bool) - whether current user is owner
+    - canEdit (bool) - whether user can edit
+    - showDangerZone (bool) - whether to show danger zone
+    - deleteUrl (string)
+    - regenerateUrl (string)
+    - redirectUrl (string)
+#}
+<div data-controller="{{ mode == 'create' ? 'note-form' : 'edit-note' }}">
+    <!-- Main Card -->
+    <div class="glass-card rounded-3xl shadow-2xl overflow-hidden transform hover:scale-[1.02] transition-all duration-300 hover:shadow-3xl">
+        {% block page_header %}{% endblock %}
+
+        <!-- Form Content -->
+        <div class="p-8 space-y-8">
+            {% block form_content %}{% endblock %}
+
+            {% if showPublicLink and publicUrl %}
+                {% include 'notes/components/public_link_info.html.twig' with {
+                    publicUrl: publicUrl,
+                    visibility: 'public'
+                } %}
+            {% endif %}
+
+            {% if showCollaborators %}
+                {% include 'notes/components/collaborators_panel.html.twig' with {
+                    noteId: formConfig.noteId ?? null,
+                    items: collaborators ?? [],
+                    isOwner: isOwner ?? false,
+                    canEdit: canEdit ?? false,
+                    addUrl: '/api/notes/' ~ (formConfig.noteId ?? 0) ~ '/collaborators',
+                    redirectUrlOnSelfRemove: redirectUrl ?? '/notes',
+                    currentUserEmail: currentUserEmail ?? ''
+                } %}
+            {% endif %}
+
+            {% if showDangerZone and isOwner %}
+                {% include 'notes/components/danger_zone.html.twig' with {
+                    deleteUrl: deleteUrl ?? '',
+                    regenerateUrl: regenerateUrl ?? '',
+                    redirectUrl: redirectUrl ?? '/notes'
+                } %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    {% include 'notes/components/confirm_modal.html.twig' %}
+</div>

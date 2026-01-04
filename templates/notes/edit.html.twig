@@ -10,13 +10,7 @@
     <div class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <header class="flex flex-wrap items-center justify-between gap-4">
-                <a href="/notes" class="inline-flex items-center gap-2 text-indigo-700 hover:text-indigo-900 transition-colors">
-                    <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl text-white font-extrabold text-lg shadow-[0_10px_24px_rgba(102,126,234,0.28)]" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" aria-hidden="true">S</span>
-                    <div class="leading-tight">
-                        <div class="text-lg font-semibold text-indigo-900">Snipnote</div>
-                        <div class="text-sm text-indigo-700/80">Edycja notatki</div>
-                    </div>
-                </a>
+                {% include 'components/logo.html.twig' %}
                 <div class="flex items-center gap-3 text-sm font-semibold text-slate-700">
                     <a href="{{ view.dashboardUrl ?? '/notes' }}" class="text-indigo-600 hover:text-indigo-500">
                         ← Powrót do listy
@@ -68,7 +62,7 @@
                         mode: 'edit'
                     } %}
 
-                    {% if view.initialVisibility == 'public' and view.urlToken is not empty %}
+                    {% if view.urlToken is not empty %}
                         {% include 'notes/components/public_link_info.html.twig' with {
                             publicUrl: view.publicUrl,
                             visibility: view.initialVisibility
@@ -97,7 +91,7 @@
 
             {% include 'notes/components/confirm_modal.html.twig' %}
             {% include 'notes/components/sticky_action_bar.html.twig' with {
-                saveLabel: '💾 Zapisz zmiany'
+                saveLabel: 'Zapisz zmiany'
             } %}
         {% endif %}
     </div>

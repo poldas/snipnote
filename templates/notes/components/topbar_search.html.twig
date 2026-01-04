@@ -1,60 +1,48 @@
 {% set value = q ?? '' %}
-{% set count = count ?? null %}
 {% set visibilityValue = visibility ?? 'owner' %}
-<form action="/notes" method="get" data-notes-search-form class="flex flex-col gap-3">
-    <div class="flex flex-col sm:flex-row gap-3 sm:items-center">
-        <div class="relative flex-1">
-            <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                🔍
-            </span>
-            <input
-                type="text"
-                name="q"
-                value="{{ value }}"
-                maxlength="200"
-                placeholder="Szukaj notatek lub użyj label:etykieta"
-                class="w-full rounded-xl border border-slate-300 bg-white px-10 py-2.5 text-sm text-slate-800 shadow-inner focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                aria-label="Szukaj notatek"
-                aria-describedby="search-hint"
-            >
-        </div>
-        <button
-            type="submit"
-            data-search-submit
-            class="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-100 px-4 py-2.5 text-sm font-semibold text-emerald-800 shadow-sm transition-colors hover:bg-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:ring-offset-0"
+<form id="notes-search-form" action="/notes" method="get" data-notes-search-form class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+    <div class="flex-1 relative">
+        <svg class="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input
+            type="text"
+            name="q"
+            value="{{ value }}"
+            maxlength="200"
+            placeholder="Szukaj notatek lub użyj label:etykieta"
+            class="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-3.5 bg-white border border-slate-200 rounded-xl text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 transition-all shadow-sm text-sm sm:text-base"
+            aria-label="Szukaj notatek"
         >
-            <svg data-search-spinner class="hidden h-4 w-4 animate-spin text-emerald-700" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+    </div>
+    <div class="w-full sm:w-auto">
+        <label for="visibility" class="sr-only">Widoczność notatek</label>
+        <div class="relative inline-flex items-center">
+            <select
+                id="visibility"
+                name="visibility"
+                class="appearance-none bg-white border border-slate-200 pr-8 pl-3 py-3 sm:py-3.5 text-sm font-semibold text-slate-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500 rounded-xl transition-all shadow-sm"
+                onchange="this.form.requestSubmit();"
+            >
+                <option value="owner" {{ visibility == 'owner' ? 'selected' : '' }}>Wszystkie notatki</option>
+                <option value="public" {{ visibility == 'public' ? 'selected' : '' }}>Publiczne</option>
+                <option value="private" {{ visibility == 'private' ? 'selected' : '' }}>Prywatne</option>
+                <option value="draft" {{ visibility == 'draft' ? 'selected' : '' }}>Drafty</option>
+                <option value="shared" {{ visibility == 'shared' ? 'selected' : '' }}>For Me</option>
+            </select>
+            <svg class="pointer-events-none absolute right-2 h-5 w-5 text-slate-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.96l3.71-3.73a.75.75 0 011.08 1.04l-4.25 4.28a.75.75 0 01-1.06 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
             </svg>
-            <span>Szukaj</span>
-        </button>
-    </div>
-    <div class="flex flex-col sm:flex-row sm:items-center gap-3 pt-2 border-t border-slate-100">
-        <div class="text-sm text-slate-500 flex items-center gap-2">
-            <span>Wyniki:</span>
-            <span class="font-semibold text-slate-800">{{ count is not null ? count : '—' }}</span>
-        </div>
-        <div class="w-full sm:w-auto">
-            <label for="visibility" class="sr-only">Widoczność notatek</label>
-            <div class="relative inline-flex items-center">
-                <select
-                    id="visibility"
-                    name="visibility"
-                    class="appearance-none bg-transparent border-0 pr-6 pl-0 py-1.5 text-sm font-semibold text-slate-700 cursor-pointer focus:outline-none focus:text-indigo-700"
-                    onchange="this.form.requestSubmit();"
-                >
-                    <option value="owner" {% if visibilityValue == 'owner' %}selected{% endif %}>Wszystkie notatki</option>
-                    <option value="public" {% if visibilityValue == 'public' %}selected{% endif %}>Publiczne</option>
-                    <option value="private" {% if visibilityValue == 'private' %}selected{% endif %}>Prywatne</option>
-                    <option value="draft" {% if visibilityValue == 'draft' %}selected{% endif %}>Drafty</option>
-                    <option value="shared" {% if visibilityValue == 'shared' %}selected{% endif %}>For Me</option>
-                </select>
-                <svg class="pointer-events-none absolute right-0 h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.96l3.71-3.73a.75.75 0 011.08 1.04l-4.25 4.28a.75.75 0 01-1.06 0L5.21 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
-                </svg>
-            </div>
         </div>
     </div>
+    <button type="submit"
+            data-search-submit
+            class="px-5 sm:px-6 py-3 sm:py-3.5 bg-white border-2 border-indigo-200 text-indigo-700 rounded-xl font-semibold shadow-sm hover:border-indigo-300 hover:bg-indigo-50 hover:shadow-md transition-all text-sm sm:text-base">
+        <svg data-search-spinner class="hidden h-4 w-4 animate-spin text-indigo-700 mr-2" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+        </svg>
+        Szukaj
+    </button>
 </form>
 

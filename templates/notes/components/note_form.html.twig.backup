@@ -1,17 +1,11 @@
 {#
-  Note Edit Form Component
-  Common form fields for creating and editing notes
-  Props:
+  NoteForm Component
+  Main form component that aggregates all fields and handles validation
+  Props: 
     - csrfToken (string)
-    - initialTitle (string)
-    - initialDescription (string)
-    - initialLabels (array)
-    - initialVisibility (string)
-    - noteId (int) - null for create mode
-    - submitUrl (string)
-    - redirectUrl (string)
-    - previewUrl (string)
-    - mode (string) - 'create' | 'edit'
+    - initialTitle, initialDescription, initialLabels, initialVisibility
+    - mode: 'create' | 'edit'
+    - noteId, submitUrl, redirectUrl, previewUrl
 #}
 {% set formConfig = {
     mode: mode ?? 'create',
@@ -25,27 +19,19 @@
     initialVisibility: initialVisibility ?? 'private'
 } %}
 
-<form
-    id="note-form"
+<form 
+    id="note-form" 
     data-controller="note-form"
     data-note-form
     data-note-config="{{ formConfig|json_encode|e('html_attr') }}"
-    class="space-y-8"
+    class="space-y-6"
     novalidate
 >
     <input type="hidden" name="csrf_token" value="{{ csrfToken }}" data-csrf-token>
-
+    
     {# Validation Alert List - Global form errors #}
     <div id="form-errors" data-form-errors class="hidden">
-        <div role="alert" aria-live="assertive" class="bg-gradient-to-r from-red-500 to-pink-500 border-0 rounded-2xl p-5 shadow-xl">
-            <div class="flex items-start gap-4">
-                <span class="text-white text-3xl flex-shrink-0">⚠️</span>
-                <div class="flex-1 text-white">
-                    <h3 class="font-bold text-lg mb-3">Wystąpiły błędy walidacji</h3>
-                    <ul data-error-list class="space-y-2 text-sm font-medium"></ul>
-                </div>
-            </div>
-        </div>
+        {% include 'notes/components/validation_alert_list.html.twig' %}
     </div>
 
     {# Title Field #}
@@ -77,15 +63,15 @@
     </div>
 
     {# Preview Section (hidden by default, shown after preview request) #}
-    <div
-        id="preview-section"
-        data-preview-section
+    <div 
+        id="preview-section" 
+        data-preview-section 
         class="hidden border-t border-slate-200 pt-6"
     >
         <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold text-slate-900">Podgląd</h3>
-            <button
-                type="button"
+            <button 
+                type="button" 
                 data-close-preview
                 class="text-sm text-slate-600 hover:text-slate-900"
                 aria-label="Zamknij podgląd"
@@ -93,12 +79,13 @@
                 ✕ Zamknij
             </button>
         </div>
-        <div
-            id="preview-content"
-            data-preview-content
+        <div 
+            id="preview-content" 
+            data-preview-content 
             class="prose prose-slate max-w-none bg-slate-50 rounded-lg p-6 border border-slate-200"
         >
             {# Preview HTML will be inserted here #}
         </div>
     </div>
 </form>
+

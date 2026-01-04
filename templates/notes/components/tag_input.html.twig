@@ -2,63 +2,32 @@
   TagInput Component
   Input for adding labels/tags with chip display and deduplication
 #}
-<div>
-    <label 
-        for="tag-input" 
-        class="block text-sm font-semibold text-slate-700 mb-2"
-    >
-        Etykiety (opcjonalnie)
+<div data-field="labels" class="group">
+    <label for="tag-input" class="block text-base font-bold text-gray-800 mb-4">
+        <span class="bg-gradient-to-r from-indigo-600 to-purple-600 text-transparent bg-clip-text">Etykiety</span>
+        <span class="text-gray-500 text-sm font-normal ml-2">(opcjonalnie)</span>
     </label>
-    
-    {# Tags display area #}
-    <div 
-        id="tags-container" 
-        data-tags-container
-        class="flex flex-wrap gap-2 mb-3 min-h-[32px]"
-        role="list"
-        aria-label="Lista etykiet"
-    >
+
+    <div id="tags-container" data-tags-container class="flex flex-wrap gap-2 mb-4 min-h-[40px] p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border-2 border-dashed border-indigo-200" role="list" aria-label="Lista etykiet">
         {# Tag chips will be inserted here dynamically #}
     </div>
 
-    {# Input for adding new tags #}
-    <div class="flex gap-2">
-        <input
-            type="text"
-            id="tag-input"
-            data-tag-input
-            maxlength="64"
-            aria-describedby="tag-hint"
-            class="flex-1 px-4 py-3 border rounded-2xl bg-white text-slate-900 placeholder-slate-400 shadow-sm hover:shadow-md focus:shadow-md transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300 border-slate-200/80 hover:border-slate-300"
-            placeholder="Dodaj etykietę i naciśnij Enter..."
-        >
-        <button
-            type="button"
-            data-add-tag-btn
-            class="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-all duration-150 font-medium text-sm border border-slate-300 shadow-sm hover:shadow-md"
-        >
+    <div class="flex gap-3">
+        <input type="text" id="tag-input" data-tag-input maxlength="64" aria-describedby="tag-hint"
+               class="input-modern flex-1 px-6 py-3 border-2 border-indigo-200 rounded-xl bg-white text-gray-900 placeholder-gray-400 shadow-md hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-indigo-300 focus:border-indigo-400 font-medium"
+               placeholder="🏷️ Dodaj etykietę...">
+        <button type="button" data-add-tag-btn class="btn-gradient px-6 py-3 text-white rounded-xl font-bold text-sm shadow-lg hover:shadow-2xl">
             + Dodaj
         </button>
     </div>
-    
-    <p id="tag-hint" class="mt-2 text-xs text-slate-500">
-        Oddziel etykiety naciskając Enter lub przecinek. Maksymalnie 64 znaki na etykietę.
+
+    <p id="tag-hint" class="mt-3 text-sm text-gray-600 font-medium">
+        Oddziel etykiety naciskając Enter. Maksymalnie 64 znaki na etykietę.
     </p>
 
-    {# Hidden input to store tags as JSON array for form submission #}
-    <input 
-        type="hidden" 
-        name="labels" 
-        data-labels-input
-        value="{{ initialLabels is defined ? initialLabels|json_encode|e('html_attr') : '[]' }}"
-    >
+    <input type="hidden" name="labels" data-labels-input value="{{ initialLabels is defined ? initialLabels|json_encode|e('html_attr') : '[]' }}">
 
-    <div 
-        id="labels-error" 
-        data-labels-error
-        class="hidden mt-2 text-sm text-red-600"
-        role="alert"
-    >
+    <div id="labels-error" data-labels-error class="hidden mt-3 text-sm text-red-600 font-medium" role="alert">
         {# Error messages will be inserted here by JavaScript #}
     </div>
 </div>

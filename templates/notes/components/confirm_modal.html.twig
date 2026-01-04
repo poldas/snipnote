@@ -2,30 +2,22 @@
   ConfirmModal Component
   Generic confirmation modal controlled via JS
 #}
-<div 
-    id="confirm-modal" 
-    class="hidden fixed inset-0 z-40 items-center justify-center bg-slate-900/50 backdrop-blur-sm"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="confirm-modal-title"
-    aria-describedby="confirm-modal-description"
-    data-confirm-modal
->
-    <div class="max-w-md w-full rounded-2xl bg-white shadow-2xl border border-slate-200 p-6 space-y-4" data-modal-surface>
-        <div class="space-y-1">
-            <h3 id="confirm-modal-title" class="text-lg font-semibold text-slate-900" data-modal-title>Tytuł operacji</h3>
-            <p id="confirm-modal-description" class="text-sm text-slate-600" data-modal-description></p>
+<div id="confirm-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/60 backdrop-blur-sm" role="dialog" data-confirm-modal>
+    <div class="max-w-lg w-full mx-4 bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl p-8 border border-white/30 transform scale-95 hover:scale-100 transition-transform" data-modal-surface>
+        <div class="mb-6">
+            <h3 id="confirm-modal-title" class="text-2xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2" data-modal-title>Tytuł operacji</h3>
+            <p id="confirm-modal-description" class="text-gray-600 font-medium" data-modal-description></p>
         </div>
         <div class="flex items-center justify-end gap-3">
-            <button type="button" data-modal-cancel class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-colors">
+            <button type="button" data-modal-cancel class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-200 transition-all hover:scale-105 shadow-md">
                 Anuluj
             </button>
-            <button type="button" data-modal-confirm class="inline-flex items-center justify-center rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 transition-colors">
+            <button type="button" data-modal-confirm class="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl font-bold text-sm shadow-lg hover:shadow-2xl hover:scale-105 transition-all">
                 <span data-modal-confirm-label>Potwierdź</span>
-                <span data-modal-spinner class="ml-2 h-4 w-4 border-2 border-red-200 border-t-red-600 rounded-full animate-spin hidden"></span>
+                <span data-modal-spinner class="ml-2 h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin hidden"></span>
             </button>
         </div>
-        <p class="text-sm text-red-600 hidden" data-modal-error></p>
+        <p class="text-sm text-red-600 font-semibold mt-4 hidden" data-modal-error></p>
     </div>
 </div>
 

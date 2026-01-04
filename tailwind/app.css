@@ -6,22 +6,16 @@
     color-scheme: light;
 }
 
-.bg-auth-gradient {
-    background: linear-gradient(135deg, #e8eaf6 0%, #f3e5f5 50%, #e1f5fe 100%);
-    background-size: 200% 200%;
-    animation: bgSoftShift 18s ease-in-out infinite;
-    color: #0f172a;
-    font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-
-body.bg-notes-gradient {
-    margin: 0;
-    min-height: 100vh;
-    background: linear-gradient(145deg, #f8fafc 0%, #eef2ff 35%, #f8fafc 100%);
-    background-size: 180% 180%;
-    animation: bgSoftShiftNotes 22s ease-in-out infinite;
-    color: #0f172a;
-    font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+@layer base {
+    body.bg-notes-gradient {
+        margin: 0;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #667eea 100%);
+        background-size: 400% 400%;
+        animation: gradientShift 15s ease infinite;
+        color: #0f172a;
+        font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
 }
 
 @keyframes bgSoftShift {
@@ -38,78 +32,193 @@ body.bg-notes-gradient {
     }
 }
 
-@keyframes bgSoftShiftNotes {
-    0% {
-        background-position: 20% 40%;
+@keyframes gradientShift {
+
+    0%,
+    100% {
+        background-position: 0% 50%;
     }
 
     50% {
-        background-position: 80% 60%;
+        background-position: 100% 50%;
+    }
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
     }
 
     100% {
-        background-position: 20% 40%;
+        background-position: 1000px 0;
     }
 }
 
-.toast-stack {
-    position: fixed;
-    top: 16px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    z-index: 9999;
+@keyframes pulse-glow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+    }
+
+    50% {
+        box-shadow: 0 0 40px rgba(102, 126, 234, 0.8), 0 0 60px rgba(102, 126, 234, 0.4);
+    }
 }
 
-.sticky-action-bar {
-    position: sticky;
-    bottom: 0;
-    z-index: 30;
-}
+@layer components {
+    .glass-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
 
-.glass-surface {
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(148, 163, 184, 0.25);
-    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-}
+    .glass-header {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    }
 
-.btn-auth-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #fff;
-    transition: transform 150ms ease, box-shadow 150ms ease, background 160ms ease;
-}
+    .gradient-text {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
 
-.btn-auth-primary:hover {
-    background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #38bdf8 100%);
-}
+    .input-modern {
+        transition: all 0.3s ease;
+    }
 
-.btn-auth-primary:active {
-    background: #4338ca;
-}
+    .input-modern:focus {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
 
-.logo-mark {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 12px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-weight: 800;
-    font-size: 24px;
-    box-shadow: 0 10px 24px rgba(102, 126, 234, 0.28);
-}
+    .btn-gradient {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        transition: all 0.3s ease;
+    }
 
-.fade-up-soft {
-    opacity: 0;
-    transform: translateY(10px);
-    animation: fadeUpSoft 900ms ease-out 360ms forwards;
+    .btn-gradient:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-gradient:active {
+        transform: translateY(-1px);
+    }
+
+    .floating-save {
+        animation: pulse-glow 2s ease-in-out infinite;
+    }
+
+    .tag-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 10px 15px -3px rgba(102, 126, 234, 0.3);
+        font-weight: 600;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+    }
+
+    .tag-pill:hover {
+        transform: scale(1.05);
+    }
+
+    .tag-pill button {
+        transition: transform 0.2s ease;
+    }
+
+    .tag-pill button:hover {
+        transform: scale(1.25);
+    }
+
+    .visibility-btn {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .visibility-btn.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        transform: scale(1.05);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .toolbar-btn {
+        transition: all 0.2s ease;
+    }
+
+    .toolbar-btn:hover {
+        transform: translateY(-2px);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .btn-auth-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        transition: transform 150ms ease, box-shadow 150ms ease, background 160ms ease;
+    }
+
+    .btn-auth-primary:hover {
+        background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #38bdf8 100%);
+    }
+
+    .btn-auth-primary:active {
+        background: #4338ca;
+    }
+
+    .logo-mark {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 800;
+        font-size: 24px;
+        box-shadow: 0 10px 24px rgba(102, 126, 234, 0.28);
+    }
+
+    .fade-up-soft {
+        opacity: 0;
+        transform: translateY(10px);
+        animation: fadeUpSoft 900ms ease-out 360ms forwards;
+    }
+
+    #toast-stack {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+        pointer-events: none;
+    }
+
+    #toast-stack>div {
+        pointer-events: auto;
+    }
 }
 
 @keyframes fadeUpSoft {

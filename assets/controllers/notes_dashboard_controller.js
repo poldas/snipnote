@@ -5,15 +5,17 @@ export default class extends Controller {
         this.abort = new AbortController();
         this.ariaLive = document.querySelector('[data-global-aria-live]');
         this.toastStack = document.getElementById('toast-stack');
-        this.modal = document.getElementById('delete-confirm-modal');
 
         this.bindSearchForm();
         this.bindDeleteFlow();
+        this.bindMobileMenu();
+        this.bindCopyLinks();
     }
 
     disconnect() {
         this.abort?.abort();
     }
+
 
     bindSearchForm() {
         const form = document.querySelector('[data-notes-search-form]');
@@ -31,51 +33,96 @@ export default class extends Controller {
         });
     }
 
+    bindCopyLinks() {
+        // Use delegation on the controller element for dynamically rendered buttons
+        this.on(this.element, 'click', async (event) => {
+            const copyBtn = event.target.closest('[data-copy-public-link]');
+            if (!copyBtn) return;
+
+            event.preventDefault();
+            // Removed stopPropagation to allow other handlers to work
+
+            const link = copyBtn.getAttribute('data-link');
+            if (!link) return;
+
+            try {
+                await navigator.clipboard.writeText(link);
+                this.showToast('Skopiowano link do notatki', 'success');
+                this.announce('Link do notatki skopiowany do schowka.');
+            } catch (error) {
+                console.warn('Clipboard error:', error);
+                this.showToast('Nie udało się skopiować linku', 'error');
+            }
+        });
+    }
+
+    bindMobileMenu() {
+        const toggleBtn = this.element.querySelector('[data-mobile-menu-toggle]');
+        const mobileMenu = this.element.querySelector('[data-mobile-menu]');
+
+        if (!toggleBtn || !mobileMenu) return;
+
+        this.on(toggleBtn, 'click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Close menu when clicking outside
+        this.on(document, 'click', (event) => {
+            if (!toggleBtn.contains(event.target) && !mobileMenu.contains(event.target)) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+    }
+
     bindDeleteFlow() {
-        const modal = this.modal;
-        if (!modal) return;
-
-        this.titleEl = modal.querySelector('[data-delete-note-title]');
-        this.errorEl = modal.querySelector('[data-modal-error]');
-        this.confirmBtn = modal.querySelector('[data-modal-confirm]');
-        this.cancelBtn = modal.querySelector('[data-modal-cancel]');
-        this.spinner = modal.querySelector('[data-modal-spinner]');
-        this.confirmLabel = modal.querySelector('[data-modal-confirm-label]');
-        this.focusables = [];
-        this.deleteUrl = null;
-        this.lastFocused = null;
-
         this.on(document, 'click', (event) => {
             const target = event.target;
             if (!(target instanceof HTMLElement)) return;
             const deleteBtn = target.closest('[data-delete-note]');
+            console.log('Delete check - target:', target, 'deleteBtn:', deleteBtn);
             if (!deleteBtn) return;
+
+            // Find modal dynamically
+            const modal = document.getElementById('delete-confirm-modal');
+            if (!modal) return;
 
             const url = deleteBtn.getAttribute('data-delete-url');
             const title = deleteBtn.getAttribute('data-note-title');
             if (!url) return;
+
+            // Set up modal elements dynamically
+            this.titleEl = modal.querySelector('[data-delete-note-title]');
+            this.errorEl = modal.querySelector('[data-modal-error]');
+            this.confirmBtn = modal.querySelector('[data-modal-confirm]');
+            this.cancelBtn = modal.querySelector('[data-modal-cancel]');
+            this.spinner = modal.querySelector('[data-modal-spinner]');
+            this.confirmLabel = modal.querySelector('[data-modal-confirm-label]');
+
+            // Set up event listeners for modal
+            this.cancelBtn?.addEventListener('click', () => this.closeModal());
+            this.on(modal, 'click', (event) => {
+                if (event.target === modal) {
+                    this.closeModal();
+                }
+            });
+
+            this.confirmBtn?.addEventListener('click', () => {
+                if (!this.deleteUrl) return;
+                this.confirmBtn.disabled = true;
+                this.confirmBtn.classList.add('opacity-70', 'cursor-not-allowed');
+                this.spinner?.classList.remove('hidden');
+                if (this.confirmLabel) this.confirmLabel.textContent = 'Usuwanie...';
+                this.performDelete(this.deleteUrl);
+            });
+
             this.openModal(url, title);
-        });
-
-        this.cancelBtn?.addEventListener('click', () => this.closeModal());
-        this.on(modal, 'click', (event) => {
-            if (event.target === modal) {
-                this.closeModal();
-            }
-        });
-
-        this.confirmBtn?.addEventListener('click', () => {
-            if (!this.deleteUrl) return;
-            this.confirmBtn.disabled = true;
-            this.confirmBtn.classList.add('opacity-70', 'cursor-not-allowed');
-            this.spinner?.classList.remove('hidden');
-            if (this.confirmLabel) this.confirmLabel.textContent = 'Usuwanie...';
-            this.performDelete(this.deleteUrl);
         });
     }
 
     openModal(url, title) {
-        if (!this.modal) return;
+        const modal = document.getElementById('delete-confirm-modal');
+        if (!modal) return;
+
         this.deleteUrl = url;
         this.lastFocused = document.activeElement;
         if (this.titleEl) {
@@ -85,8 +132,8 @@ export default class extends Controller {
             this.errorEl.classList.add('hidden');
             this.errorEl.textContent = '';
         }
-        this.modal.classList.remove('hidden');
-        this.modal.classList.add('flex');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
         this.refreshFocusables();
         this.confirmBtn?.focus();
         document.addEventListener('keydown', this.onKeydown);
@@ -94,10 +141,12 @@ export default class extends Controller {
     }
 
     closeModal() {
-        if (!this.modal) return;
+        const modal = document.getElementById('delete-confirm-modal');
+        if (!modal) return;
+
         this.deleteUrl = null;
-        this.modal.classList.add('hidden');
-        this.modal.classList.remove('flex');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
         document.removeEventListener('keydown', this.onKeydown);
         if (this.lastFocused instanceof HTMLElement) {
             this.lastFocused.focus();
@@ -127,12 +176,13 @@ export default class extends Controller {
     };
 
     refreshFocusables() {
-        if (!this.modal) {
+        const modal = document.getElementById('delete-confirm-modal');
+        if (!modal) {
             this.focusables = [];
             return;
         }
         this.focusables = Array.from(
-            this.modal.querySelectorAll('button, [href], [tabindex]:not([tabindex="-1"])'),
+            modal.querySelectorAll('button, [href], [tabindex]:not([tabindex="-1"])'),
         ).filter((el) => !el.hasAttribute('disabled') && !el.classList.contains('hidden'));
     }
 

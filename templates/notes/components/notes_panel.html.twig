@@ -37,9 +37,17 @@
             </div>
         </div>
     {% else %}
-        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
-            {% include 'notes/components/notes_list.html.twig' with { notes: notes } %}
-        </div>
+        {% if notes is empty and (q is empty or q is null) and labels is empty %}
+            <!-- Empty state for no notes at all -->
+            {% include 'notes/components/empty_state.html.twig' with { onAddHref: '/notes/new' } %}
+        {% else %}
+            <!-- Notes Gallery Grid -->
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                {% for note in notes %}
+                    {% include 'notes/components/note_card.html.twig' with { note: note } %}
+                {% endfor %}
+            </div>
+        {% endif %}
     {% endif %}
 
     {% include 'notes/components/pagination.html.twig' with { meta: meta, q: q, labels: labels, visibility: visibility } %}

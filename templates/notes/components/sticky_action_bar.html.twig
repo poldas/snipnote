@@ -1,50 +1,27 @@
 {#
   StickyActionBar Component
-  Bottom sticky bar with Preview and Save actions
+  Bottom sticky bar with Save action
   Props:
-    - previewLabel (string, optional)
     - saveLabel (string, optional)
 #}
-{% set previewLabel = previewLabel ?? '👁️ Podgląd' %}
-{% set saveLabel = saveLabel ?? '💾 Zapisz notatkę' %}
-<div class="sticky-action-bar bg-white/95 backdrop-blur border-t border-slate-200 shadow-lg">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+{% set saveLabel = saveLabel ?? 'Zapisz notatkę' %}
+
+<div class="fixed bottom-0 left-0 right-0 z-50 glass-header border-t-2 border-indigo-200 shadow-2xl">
+    <div class="max-w-6xl mx-auto px-6 py-5">
         <div class="flex flex-wrap items-center justify-between gap-4">
-            {# Status indicators #}
-            <div class="flex items-center gap-3 text-sm">
-                <span 
-                    data-status-indicator
-                    class="text-slate-600"
-                >
-                </span>
-                <span 
-                    data-saving-spinner
-                    class="hidden"
-                >
-                    <svg class="animate-spin h-5 w-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <div class="flex items-center gap-4">
+                <span data-status-indicator class="text-sm text-gray-600 font-semibold"></span>
+                <span data-saving-spinner class="hidden">
+                    <svg class="animate-spin h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                 </span>
             </div>
-
-            {# Action buttons #}
-            <div class="flex items-center gap-3">
-                <button
-                    type="button"
-                    data-preview-btn
-                    class="px-5 py-3 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-2xl shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:ring-offset-2 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    {{ previewLabel }}
-                </button>
-                <button
-                    type="button"
-                    data-submit-btn
-                    class="px-6 py-3 text-sm font-semibold text-white bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-500/20 hover:bg-indigo-500 active:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:ring-offset-2 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    {{ saveLabel }}
-                </button>
-            </div>
+            <button type="button" data-submit-btn class="btn-gradient inline-flex items-center gap-3 px-8 py-4 text-white rounded-2xl font-black text-base shadow-2xl hover:scale-105 transition-all">
+                <span class="text-2xl">💾</span>
+                {{ saveLabel }}
+            </button>
         </div>
     </div>
 </div>

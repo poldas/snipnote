@@ -156,6 +156,9 @@ final class NotesPageController extends AbstractController
         $page = max(1, (int) $request->query->get('page', 1));
         $visibility = $this->normalizeVisibility($request->query->get('visibility'));
 
+        // Debug logging
+        error_log("NotesPageController: raw visibility = '" . ($request->query->get('visibility') ?? 'null') . "', normalized = '" . ($visibility ?? 'null') . "'");
+
         $parsed = $this->notesSearchParser->parse($q);
 
         $notes = [];
@@ -208,7 +211,7 @@ final class NotesPageController extends AbstractController
         ]);
     }
 
-    private function normalizeVisibility(mixed $raw): ?string
+    private function normalizeVisibility(mixed $raw): string
     {
         if (!is_string($raw)) {
             return 'owner';
