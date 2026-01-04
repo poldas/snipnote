@@ -12,7 +12,7 @@ export class VerifyNoticePage {
     }
 
     async expectPageLoaded() {
-        await expect(this.page.getByRole('heading', { name: /Potwierdź swój adres email/ })).toBeVisible();
+        await expect(this.page.getByRole('heading', { name: /Sprawdź swoją skrzynkę email/ })).toBeVisible();
     }
 
     async expectPendingState() {

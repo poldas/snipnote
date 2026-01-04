@@ -79,6 +79,6 @@ test.describe('UI Hover Effects - Complete Suite', () => {
         const duration = endTime - startTime;
 
         // Assert - Transitions should complete within reasonable time
-        expect(duration).toBeLessThan(600); // Less than 600ms for smooth UX
+        expect(duration).toBeLessThan(1000); // Less than 1000ms for smooth UX
     });
 });

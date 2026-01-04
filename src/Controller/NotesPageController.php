@@ -128,7 +128,8 @@ final class NotesPageController extends AbstractController
             'previewUrl' => '/api/notes/preview',
             'regenerateUrl' => null,
             'dashboardUrl' => '/notes',
-            'publicUrl' => '/n/' . $note->getUrlToken(),
+            // Dodano absolutny URL bazujący na bieżącym żądaniu
+            'publicUrl' => $request->getSchemeAndHttpHost() . '/n/' . $note->getUrlToken(),
             'collaborators' => $collaboratorsView,
             'currentUserEmail' => $user->getUserIdentifier(),
         ];
@@ -155,9 +156,6 @@ final class NotesPageController extends AbstractController
         $q = $this->sanitizeSearch($rawQ);
         $page = max(1, (int) $request->query->get('page', 1));
         $visibility = $this->normalizeVisibility($request->query->get('visibility'));
-
-        // Debug logging
-        error_log("NotesPageController: raw visibility = '" . ($request->query->get('visibility') ?? 'null') . "', normalized = '" . ($visibility ?? 'null') . "'");
 
         $parsed = $this->notesSearchParser->parse($q);
 

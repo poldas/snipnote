@@ -3,7 +3,8 @@
 {% block title %}Edytuj notatkę | Snipnote{% endblock %}
 
 {% block body %}
-<main class="min-h-screen text-slate-900 pb-24 bg-notes-gradient" data-controller="edit-note">
+
+<main class="min-h-screen text-slate-900 pb-24 bg-gradient-to-br from-indigo-50 via-purple-50 to-cyan-50" data-controller="edit-note">
     <div aria-live="polite" class="sr-only" data-global-aria-live></div>
     <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
 
@@ -42,8 +43,9 @@
                         <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 border border-slate-200 font-semibold">
                             ID: {{ view.noteId }}
                         </span>
-                        <span class="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-3 py-1 border border-indigo-200 font-semibold text-indigo-700">
-                            {{ view.initialVisibility|capitalize }}
+                        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-white shadow-lg text-sm font-bold {% if view.initialVisibility|lower == 'public' %}bg-gradient-to-r from-emerald-400 to-green-500{% elseif view.initialVisibility|lower == 'draft' %}bg-gradient-to-r from-orange-400 to-orange-500{% else %}bg-gradient-to-r from-red-400 to-red-500{% endif %}">
+                            <span class="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                             {{ view.initialVisibility|capitalize }}
                         </span>
                     </div>
                 </div>
@@ -59,15 +61,11 @@
                         submitUrl: view.patchUrl,
                         redirectUrl: view.dashboardUrl,
                         previewUrl: view.previewUrl,
-                        mode: 'edit'
+                        mode: 'edit',
+                        urlToken: view.urlToken,
+                        publicUrl: view.publicUrl
                     } %}
 
-                    {% if view.urlToken is not empty %}
-                        {% include 'notes/components/public_link_info.html.twig' with {
-                            publicUrl: view.publicUrl,
-                            visibility: view.initialVisibility
-                        } %}
-                    {% endif %}
 
                     {% include 'notes/components/collaborators_panel.html.twig' with {
                         noteId: view.noteId,

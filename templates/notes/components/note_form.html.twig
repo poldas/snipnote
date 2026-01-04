@@ -62,6 +62,12 @@
         } %}
     </div>
 
+    {# Public Link Section #}
+    {% include 'notes/components/public_link_section.html.twig' with {
+        publicUrl: publicUrl ?? null,
+        urlToken: urlToken ?? null
+    } %}
+
     {# Markdown Textarea #}
     <div data-field="description">
         {% include 'notes/components/markdown_textarea.html.twig' with {

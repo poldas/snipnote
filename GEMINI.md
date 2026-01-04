@@ -1,67 +1,78 @@
-# Gemini Project Context: Snipnote
+# Snipnote - Project Context for Gemini
 
-This document provides a comprehensive overview of the Snipnote project, its architecture, and development conventions to be used as instructional context for AI-powered development.
+## Project Overview
+**Snipnote** is a Notes Sharing MVP web application. It allows users to create, edit, share, and co-edit notes with markdown support. It features per-note visibility settings (private/public), collaborator management, and a public catalog.
 
-## 1. Project Overview
+### Tech Stack
+*   **Backend:** PHP 8.4, Symfony 8.0 (Attributes, DI), Doctrine ORM 3.5.
+*   **Frontend:** Twig (templating), HTMX 2+ (interactivity), Tailwind CSS (styling), Stimulus (minimal JS).
+*   **Database:** PostgreSQL (Dockerized).
+*   **Authentication:** Symfony Security, JWT (Lexik bundle), Refresh Tokens (Gesdinet bundle).
+*   **Testing:** PHPUnit (Backend/Integration), Playwright (E2E).
+*   **Infrastructure:** Docker Compose (Apache/PHP, PostgreSQL, Mailpit).
 
-Snipnote is a lightweight, full-stack web application for creating, sharing, and co-editing notes. It is built with a service-oriented architecture and is fully containerized using Docker.
+## Building and Running
 
--   **Purpose**: To provide a fast and minimal application for markdown-based note-taking with features like public/private visibility, collaborator access, and shareable URLs.
--   **Backend**: A **PHP (8.4+)** application built on the **Symfony (8+)** framework. It uses **Doctrine ORM** for database interaction with a **PostgreSQL** database. Authentication is handled via JWTs (Access and Refresh tokens).
--   **Frontend**: The frontend is rendered using **Twig** templates. It is progressively enhanced for dynamic interactions using **HTMX** and small **Stimulus** JavaScript controllers. Styling is done with **Tailwind CSS**.
--   **Architecture**: The application follows a "Thin Controller, Fat Service" model. Business logic is encapsulated in `Service` classes, database queries are handled by `Repository` classes, and `Controller` classes manage the HTTP request/response cycle. The entire environment is orchestrated with **Docker Compose**.
+The project is fully Dockerized. All backend commands should generally be run inside the `app` container.
 
-## 2. Building and Running
+### Prerequisites
+*   Docker & Docker Compose
+*   Node.js 18+ (for frontend assets & E2E tests)
 
-The project is designed to be run within Docker containers. The primary commands are executed via `docker compose`.
-
-### First-Time Setup
-
-1.  **Start Services**:
+### Quick Start
+1.  **Configure Environment:**
+    ```bash
+    cp local.env.example .env
+    # Adjust DATABASE_URL, JWT_SECRET, etc. if needed
+    ```
+2.  **Start Services:**
     ```bash
     docker compose up -d
     ```
-2.  **Install Dependencies**:
+3.  **Install Dependencies:**
     ```bash
     docker compose exec app composer install
+    npm install
     ```
-3.  **Configure Environment**: Copy `env.example` to `.env` and fill in the required values (especially for the database and JWT secrets).
-4.  **Run Database Migrations**:
+4.  **Setup Database:**
     ```bash
     docker compose exec app php bin/console doctrine:migrations:migrate
     ```
-
-### Common Commands
-
--   **Start/Stop Application**:
+5.  **Build Frontend:**
     ```bash
-    docker compose up -d
-    docker compose down
+    npm run tailwind:build   # Build CSS
+    docker compose exec app php bin/console importmap:install
+    docker compose exec app php bin/console asset-map:compile
     ```
--   **Run Backend Tests (PHPUnit)**:
-    ```bash
-    docker compose exec app ./bin/phpunit
-    ```
--   **Run End-to-End Tests (Playwright)**:
-    ```bash
-    # First, install node modules if you haven't
-    # npm install
-    npm run e2e
-    ```
--   **Run Symfony Console Commands**:
-    ```bash
-    docker compose exec app php bin/console <command>
-    ```
+6.  **Access App:** `http://localhost:8080`
 
-## 3. Development Conventions
+### Useful Development Commands
+*   **Watch Tailwind:** `npm run tailwind:watch`
+*   **Watch Symfony Assets:** `docker compose exec app php bin/console asset-map:compile --watch`
+*   **Run PHPUnit Tests:** `docker compose exec app ./bin/phpunit`
+*   **Run E2E Tests:** `npm run e2e` (Headless), `npm run e2e:ui` (UI Mode)
+*   **Access Shell:** `docker compose exec app bash`
 
--   **Coding Style**: The project adheres to the **PSR-12** standard. Code should pass checks from `PHP-CS-Fixer` and `PHPStan`.
--   **Architectural Pattern**: All new logic should follow the established **Entity -> Repository -> Service -> Controller** pattern. Business logic belongs in services, not controllers.
--   **Database Changes**: Any modification to a Doctrine entity that affects the schema **must** be accompanied by a database migration file, generated with `bin/console doctrine:migrations:diff`.
--   **Data Transfer**: Use **DTOs (Data Transfer Objects)** for handling API request and response data. Request DTOs should be validated using the Symfony Validator component.
--   **Frontend Interactions**:
-    -   Use **HTMX** for simple, server-rendered partial page updates.
-    -   Use **Stimulus** controllers for more complex client-side interactions that require JavaScript state.
--   **Testing**:
-    -   Backend business logic in services should be covered by **PHPUnit** tests.
-    -   User-facing features and core flows should be covered by **Playwright** end-to-end tests.
+## Project Structure & Key Files
+
+*   **`src/`**: Symfony backend source code.
+    *   `Entity/`: Doctrine entities (Note, User, etc.).
+    *   `Controller/`: Request handlers (HTML & API).
+    *   `Service/`: Business logic.
+    *   `Repository/`: Database queries.
+*   **`templates/`**: Twig templates for views.
+*   **`assets/`**: Frontend source (CSS, JS, Controllers).
+    *   `app.css` -> Tailwind entry.
+*   **`migrations/`**: Database schema changes.
+*   **`tests/`**: PHPUnit backend/integration tests.
+*   **`e2e/`**: Playwright End-to-End tests.
+*   **`docker/`**: Docker configuration files.
+*   **`docs/`**: Project documentation (See `local-setup.md` for detailed setup).
+
+## Development Conventions
+*   **Code Style:** PSR-12 (PHP-CS-Fixer).
+*   **Static Analysis:** PHPStan (Level 5).
+*   **Architecture:**
+    *   Uses Symfony Attributes for routing and ORM mapping.
+    *   HTMX is preferred over heavy JS frameworks for interactivity.
+    *   Tailwind CSS for all styling.

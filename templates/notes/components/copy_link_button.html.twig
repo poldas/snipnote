@@ -1,0 +1,17 @@
+{#
+  CopyLinkButton Component
+  Simple button to copy a link to clipboard
+  Props: link (string), class (string, optional), title (string, optional)
+#}
+{% set buttonClass = class ?? 'p-2 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-100 rounded-lg transition-colors' %}
+{% set buttonTitle = title ?? 'Kopiuj link' %}
+
+<button type="button"
+        data-copy-public-link
+        data-link="{{ link }}"
+        class="{{ buttonClass }}"
+        title="{{ buttonTitle }}">
+    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+    </svg>
+</button>

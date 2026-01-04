@@ -2,6 +2,16 @@
 
 {% block title %}Potwierdź email | Snipnote{% endblock %}
 
+{% block auth_hero %}
+    <div class="text-center space-y-3 sm:space-y-4 lg:text-left">
+        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-indigo-950">Sprawdź swoją skrzynkę email</h1>
+        <p class="text-base sm:text-lg lg:text-xl text-slate-600 px-2 lg:px-0">Wysłaliśmy link aktywacyjny na podany adres email.</p>
+        <p class="text-sm text-indigo-600 bg-indigo-50 px-3 sm:px-4 py-2 rounded-lg mx-2 sm:mx-0 lg:mx-0">
+            Krok 2 z 2 - potwierdź rejestrację
+        </p>
+    </div>
+{% endblock %}
+
 {% block auth_content %}
     {% set state = state ?? 'pending' %}
     {% set prefill = prefill ?? {} %}
@@ -15,25 +25,7 @@
         'Jeśli link nie działa, wyślij go ponownie poniżej.'
     ] %}
 
-    <!-- Navigation Bar -->
-    <div class="flex items-center justify-between w-full">
-        <a href="/login" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/60 text-indigo-600 hover:bg-white/80 backdrop-blur-sm border border-indigo-200/50 transition-all hover:scale-105">
-            ← Powrót do logowania
-        </a>
-        <div class="text-sm text-slate-600">
-            Krok 2 z 2
-        </div>
-    </div>
-
-    <div class="w-full max-w-sm sm:max-w-md lg:max-w-lg space-y-6 sm:space-y-8">
-        <!-- Header -->
-        <div class="text-center space-y-3 sm:space-y-4">
-            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-indigo-950 px-2">{{ hero.headline ?? 'Potwierdź swój adres email' }}</h1>
-            <p class="text-base sm:text-lg lg:text-xl text-slate-600 px-2">{{ hero.subcopy ?? 'Kliknij w link aktywacyjny, aby dokończyć rejestrację.' }}</p>
-        </div>
-
-        <!-- Notice Card -->
-        <div class="bg-white/90 backdrop-blur-lg rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200/50 p-6 sm:p-8">
+    <div class="bg-white/90 backdrop-blur-lg rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200/50 p-6 sm:p-8">
             <div class="space-y-6">
                 <!-- Status Message -->
                 {% set toneClasses = {

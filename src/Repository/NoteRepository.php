@@ -71,9 +71,6 @@ class NoteRepository extends ServiceEntityRepository
         $search = $query->q !== null ? trim($query->q) : null;
         $visibility = $query->visibility ?? 'owner';
 
-        // Debug logging
-        error_log("NoteRepository: visibility parameter = " . ($visibility ?? 'null'));
-
         $dbalFilters = $conn->createQueryBuilder()
             ->from('notes', 'n');
 
@@ -91,7 +88,6 @@ class NoteRepository extends ServiceEntityRepository
                 $dbalFilters
                     ->andWhere('n.visibility = :visibility')
                     ->setParameter('visibility', $visibility, Types::STRING);
-                error_log("NoteRepository: filtering by visibility = '$visibility'");
             } else {
                 error_log("NoteRepository: not filtering by visibility, value = '$visibility'");
             }
@@ -120,7 +116,7 @@ class NoteRepository extends ServiceEntityRepository
         $idsQb = clone $dbalFilters;
         $ids = $idsQb
             ->select('n.id')
-            ->orderBy('n.created_at', 'DESC')
+            ->orderBy('n.updated_at', 'DESC')
             ->setMaxResults($query->perPage)
             ->setFirstResult(($query->page - 1) * $query->perPage)
             ->executeQuery()
@@ -134,7 +130,7 @@ class NoteRepository extends ServiceEntityRepository
         $items = $this->createQueryBuilder('n')
             ->andWhere('n.id IN (:ids)')
             ->setParameter('ids', $ids)
-            ->orderBy('n.createdAt', 'DESC')
+            ->orderBy('n.updatedAt', 'DESC')
             ->getQuery()
             ->getResult();
 

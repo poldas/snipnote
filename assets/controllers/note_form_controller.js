@@ -622,7 +622,8 @@ export default class extends Controller {
             else this.elements.statusIndicator.textContent = '';
         }
         if (this.elements.savingSpinner) {
-            this.elements.savingSpinner.classList.toggle('hidden', !busy);
+            this.elements.savingSpinner.classList.toggle('opacity-0', !busy);
+            this.elements.savingSpinner.classList.toggle('opacity-100', busy);
         }
     }
 
