@@ -89,6 +89,34 @@ class NoteService
         return $note;
     }
 
+    public function getNotePreview(string $urlToken, ?User $user): Note
+    {
+        try {
+            $note = $this->noteRepository->findByUrlToken($urlToken);
+        } catch (DBALException $exception) {
+            throw new NotFoundHttpException('Note not found', $exception);
+        }
+
+        if ($note === null) {
+            throw new NotFoundHttpException('Note not found');
+        }
+
+        if ($note->getVisibility() === NoteVisibility::Draft) {
+            throw new NotFoundHttpException('Note not found');
+        }
+
+        if ($note->getVisibility() === NoteVisibility::Public) {
+            return $note;
+        }
+
+        // Private note handling
+        if ($user !== null && $this->isOwnerOrCollaborator($note, $user)) {
+            return $note;
+        }
+
+        throw new NotFoundHttpException('Note not found');
+    }
+
     public function updateNote(int $id, UpdateNoteCommand $command, User $requester): Note
     {
         $note = $this->getNoteById($id, $requester);
@@ -132,7 +160,7 @@ class NoteService
 
     private function isOwnerOrCollaborator(Note $note, User $user): bool
     {
-        if ($note->getOwner() === $user) {
+        if ($note->getOwner() === $user || ($note->getOwner()->getId() !== null && $note->getOwner()->getId() === $user->getId())) {
             return true;
         }
 

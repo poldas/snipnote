@@ -9,19 +9,19 @@
     <label class="block text-base font-bold text-gray-800 mb-4">
         <span class="bg-gradient-to-r from-indigo-600 to-purple-600 text-transparent bg-clip-text">Widoczność</span>
     </label>
-    <div role="radiogroup" class="inline-flex gap-3 p-2 rounded-2xl bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 shadow-inner" data-visibility-toggle>
+    <div role="radiogroup" class="flex flex-wrap items-center gap-3 p-2 rounded-2xl bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 shadow-inner w-fit" data-visibility-toggle>
         <input type="radio" id="visibility-private" name="visibility" value="private" data-visibility-input class="sr-only"{% if currentValue == 'private' %} checked{% endif %}>
-        <label for="visibility-private" class="visibility-btn px-6 py-3 text-sm font-bold rounded-xl cursor-pointer bg-white text-gray-700 hover:text-indigo-600 shadow-sm transition-all duration-300 hover:scale-105" data-visibility-label="private">
+        <label for="visibility-private" class="visibility-btn px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-bold rounded-xl cursor-pointer bg-white text-gray-700 hover:text-indigo-600 shadow-sm transition-all duration-300 hover:scale-105" data-visibility-label="private">
             🔒 Prywatna
         </label>
 
         <input type="radio" id="visibility-public" name="visibility" value="public" data-visibility-input class="sr-only"{% if currentValue == 'public' %} checked{% endif %}>
-        <label for="visibility-public" class="visibility-btn px-6 py-3 text-sm font-bold rounded-xl cursor-pointer bg-white text-gray-700 hover:text-indigo-600 shadow-sm transition-all duration-300 hover:scale-105" data-visibility-label="public">
+        <label for="visibility-public" class="visibility-btn px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-bold rounded-xl cursor-pointer bg-white text-gray-700 hover:text-indigo-600 shadow-sm transition-all duration-300 hover:scale-105" data-visibility-label="public">
             🌐 Publiczna
         </label>
 
         <input type="radio" id="visibility-draft" name="visibility" value="draft" data-visibility-input class="sr-only"{% if currentValue == 'draft' %} checked{% endif %}>
-        <label for="visibility-draft" class="visibility-btn px-6 py-3 text-sm font-bold rounded-xl cursor-pointer bg-white text-gray-700 hover:text-indigo-600 shadow-sm transition-all duration-300 hover:scale-105" data-visibility-label="draft">
+        <label for="visibility-draft" class="visibility-btn px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-bold rounded-xl cursor-pointer bg-white text-gray-700 hover:text-indigo-600 shadow-sm transition-all duration-300 hover:scale-105" data-visibility-label="draft">
             📝 Szkic
         </label>
     </div>

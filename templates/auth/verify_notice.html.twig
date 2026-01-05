@@ -3,12 +3,19 @@
 {% block title %}Potwierdź email | Snipnote{% endblock %}
 
 {% block auth_hero %}
-    <div class="text-center space-y-3 sm:space-y-4 lg:text-left">
-        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-indigo-950">Sprawdź swoją skrzynkę email</h1>
-        <p class="text-base sm:text-lg lg:text-xl text-slate-600 px-2 lg:px-0">Wysłaliśmy link aktywacyjny na podany adres email.</p>
-        <p class="text-sm text-indigo-600 bg-indigo-50 px-3 sm:px-4 py-2 rounded-lg mx-2 sm:mx-0 lg:mx-0">
+    <div class="space-y-4">
+        <h1 class="text-3xl lg:text-4xl font-bold text-indigo-950">Sprawdź swoją skrzynkę email</h1>
+        <p class="text-lg lg:text-xl text-slate-600">Wysłaliśmy link aktywacyjny na podany adres email.</p>
+        <p class="text-sm text-indigo-600 bg-indigo-50 px-4 py-2 rounded-lg inline-block">
             Krok 2 z 2 - potwierdź rejestrację
         </p>
+    </div>
+{% endblock %}
+
+{% block auth_hero_mobile %}
+    <div class="space-y-2">
+        <h1 class="text-2xl font-bold text-indigo-950">Potwierdź e-mail</h1>
+        <p class="text-sm text-slate-600">Sprawdź swoją skrzynkę.</p>
     </div>
 {% endblock %}
 

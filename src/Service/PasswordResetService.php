@@ -9,9 +9,9 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
-use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -86,11 +86,14 @@ final class PasswordResetService
             UrlGeneratorInterface::ABSOLUTE_URL
         );
 
-        $message = (new Email())
-            ->from(new Address($this->mailerFrom ?: 'no-reply@snipnote.local', 'SnipNote'))
+        $message = (new TemplatedEmail())
+            ->from(new Address($this->mailerFrom ?: 'no-reply@snipnote.local', 'Snipnote'))
             ->to($user->getEmail())
-            ->subject('Reset hasła')
-            ->text(sprintf("Kliknij poniższy link, aby zresetować hasło:\n%s\n\nLink jest ważny przez 1 godzinę.", $url));
+            ->subject('Zresetuj swoje hasło | Snipnote')
+            ->htmlTemplate('emails/password_reset.html.twig')
+            ->context([
+                'url' => $url,
+            ]);
 
         try {
             $this->mailer->send($message);

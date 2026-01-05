@@ -7,20 +7,21 @@
 {% set saveLabel = saveLabel ?? 'Zapisz notatkę' %}
 
 <div class="fixed bottom-0 left-0 right-0 z-50 glass-header border-t-2 border-indigo-200 shadow-2xl">
-    <div class="max-w-6xl mx-auto px-6 py-5">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-5">
         <div class="flex items-center justify-between gap-4">
-            <div class="flex items-center gap-4 min-w-[120px]">
-                <span data-status-indicator class="text-sm text-gray-600 font-semibold whitespace-nowrap"></span>
+            <div class="flex items-center gap-2 sm:gap-4 min-w-[80px] sm:min-w-[120px]">
+                <span data-status-indicator class="text-xs sm:text-sm text-gray-600 font-semibold whitespace-nowrap"></span>
                 <span data-saving-spinner class="hidden">
-                    <svg class="animate-spin h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24">
+                    <svg class="animate-spin h-5 w-5 sm:h-6 sm:w-6 text-indigo-600" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                 </span>
             </div>
-            <button type="button" data-submit-btn class="btn-gradient inline-flex items-center gap-3 px-8 py-4 text-white rounded-2xl font-black text-base shadow-2xl transition-all" style="transform-origin: center;">
-                <span class="text-2xl">💾</span>
-                {{ saveLabel }}
+            <button type="button" data-submit-btn class="btn-gradient inline-flex items-center gap-2 sm:gap-3 px-5 sm:px-8 py-3 sm:py-4 text-white rounded-xl sm:rounded-2xl font-black text-sm sm:text-base shadow-2xl transition-all" style="transform-origin: center;">
+                <span class="text-xl sm:text-2xl">💾</span>
+                <span class="hidden xs:inline">{{ saveLabel }}</span>
+                <span class="xs:hidden">Zapisz</span>
             </button>
         </div>
     </div>

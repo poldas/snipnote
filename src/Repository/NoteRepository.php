@@ -63,6 +63,15 @@ class NoteRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    public function findByUrlToken(string $token): ?Note
+    {
+        return $this->createQueryBuilder('n')
+            ->andWhere('n.urlToken = :token')
+            ->setParameter('token', $token)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function findPaginatedForOwnerWithFilters(ListNotesQuery $query): PaginatedResult
     {
         $em = $this->getEntityManager();
@@ -77,8 +86,9 @@ class NoteRepository extends ServiceEntityRepository
         if ($visibility === 'shared') {
             $dbalFilters
                 ->innerJoin('n', 'note_collaborators', 'c', 'c.note_id = n.id')
-                ->where('c.user_id = :userId')
-                ->setParameter('userId', $query->ownerId, Types::INTEGER);
+                ->where('(c.user_id = :userId OR c.email = :email)')
+                ->setParameter('userId', $query->ownerId, Types::INTEGER)
+                ->setParameter('email', $query->ownerEmail, Types::STRING);
         } else {
             $dbalFilters
                 ->where('n.owner_id = :ownerId')

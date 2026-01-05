@@ -1,0 +1,18 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block content %}
+    <h1>Witaj w Snipnote!</h1>
+    <p>Cieszymy się, że jesteś z nami. Snipnote to miejsce, gdzie Twoje notatki stają się przejrzyste i łatwe do udostępnienia.</p>
+    <p>Aby w pełni korzystać z konta i zacząć tworzyć swoje pierwsze snipy, potwierdź proszę swój adres e-mail, klikając w poniższy przycisk:</p>
+    
+    <div style="text-align: center; margin: 40px 0;">
+        <a href="{{ url }}" class="button">Potwierdź adres e-mail</a>
+    </div>
+    
+    <p style="font-size: 14px; color: #64748b;">Link jest ważny przez 24 godziny. Jeśli przycisk nie działa, skopiuj poniższy adres do przeglądarki:</p>
+    <p style="font-size: 12px; color: #94a3b8; word-break: break-all;">{{ url }}</p>
+    
+    <div class="divider"></div>
+    
+    <p>Pozdrawiamy,<br>Zespół Snipnote</p>
+{% endblock %}

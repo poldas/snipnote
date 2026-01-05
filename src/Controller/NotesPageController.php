@@ -23,7 +23,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 final class NotesPageController extends AbstractController
 {
-    private const PER_PAGE = 10;
+    private const PER_PAGE = 100;
     private const MAX_SEARCH_LENGTH = 200;
     private const ALLOWED_VISIBILITIES = [
         'owner',
@@ -177,6 +177,7 @@ final class NotesPageController extends AbstractController
                     q: $parsed['text'],
                     labels: $parsed['labels'],
                     visibility: $visibility,
+                    ownerEmail: $user->getUserIdentifier(),
                 )
             );
 

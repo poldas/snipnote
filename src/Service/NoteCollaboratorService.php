@@ -124,15 +124,30 @@ final class NoteCollaboratorService
     {
         $owner = $note->getOwner();
 
-        if ($collaborator->getUser() !== null && $collaborator->getUser() === $owner) {
+        // 1. Protection for the owner
+        $isOwnerManaged = $collaborator->getUser() !== null && (
+            $collaborator->getUser() === $owner || 
+            ($collaborator->getUser()->getId() !== null && $collaborator->getUser()->getId() === $owner->getId())
+        );
+        $isOwnerEmail = strtolower($collaborator->getEmail()) === strtolower($owner->getUserIdentifier());
+        
+        if ($isOwnerManaged || $isOwnerEmail) {
             throw new AccessDeniedException('Owner cannot be removed as collaborator');
         }
 
-        if ($currentUser === $owner) {
+        // 2. Owner can remove anyone
+        if ($currentUser === $owner || ($owner->getId() !== null && $currentUser->getId() === $owner->getId())) {
             return;
         }
 
-        if ($collaborator->getUser() !== null && $collaborator->getUser() === $currentUser) {
+        // 3. Collaborator can remove themselves
+        $isSelfManaged = $collaborator->getUser() !== null && (
+            $collaborator->getUser() === $currentUser || 
+            ($collaborator->getUser()->getId() !== null && $collaborator->getUser()->getId() === $currentUser->getId())
+        );
+        $isSelfEmail = strtolower($collaborator->getEmail()) === strtolower($currentUser->getUserIdentifier());
+
+        if ($isSelfManaged || $isSelfEmail) {
             return;
         }
 

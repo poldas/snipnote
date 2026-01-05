@@ -9,9 +9,9 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
-use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
@@ -43,7 +43,7 @@ final class EmailVerificationService
         }
 
         $user = $this->userRepository->findOneByEmailCaseInsensitive($email);
-        if ($user === null || $user->isVerified()) {
+        if ($user === null) {
             return;
         }
 
@@ -99,11 +99,14 @@ final class EmailVerificationService
 
     private function sendEmail(string $email, string $url): void
     {
-        $message = (new Email())
-            ->from(new Address($this->mailerFrom ?: 'no-reply@example.com', 'SnipNote'))
+        $message = (new TemplatedEmail())
+            ->from(new Address($this->mailerFrom ?: 'no-reply@example.com', 'Snipnote'))
             ->to($email)
-            ->subject('Verify your email')
-            ->text(sprintf("Click to verify your email: %s\nLink expires in 24h.", $url));
+            ->subject('Potwierdź swój adres e-mail | Snipnote')
+            ->htmlTemplate('emails/verify_email.html.twig')
+            ->context([
+                'url' => $url,
+            ]);
 
         try {
             $this->mailer->send($message);
