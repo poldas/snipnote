@@ -122,17 +122,27 @@ main.public-note {
     color: currentColor;
 }
 
-h1 {
-    margin: 14px 0 18px;
-    font-size: 36px;
+/* --- Tytuł Notatki --- */
+.pn-card h1 {
+    margin: 14px 0 20px;
+    font-size: 48px;
     line-height: 1.15;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--pn-text);
 }
 
-@media (min-width: 640px) {
-    h1 {
-        font-size: 44px;
+@media (max-width: 640px) {
+    .pn-card h1 {
+        font-size: 32px;
+        line-height: 1.2;
+        margin: 8px 0 16px;
+    }
+    .pn-card {
+        padding: 20px;
+        border-radius: 20px;
+    }
+    main.public-note {
+        padding: 32px 12px;
     }
 }
 
@@ -216,29 +226,6 @@ article.prose pre {
 }
 
 @media (max-width: 640px) {
-    main.public-note {
-        padding: 32px 12px;
-    }
-
-    .pn-card {
-        padding: 20px;
-        border-radius: 20px;
-    }
-
-    .pn-meta-row {
-        gap: 8px;
-    }
-
-    .pn-date-pill {
-        font-size: 12px;
-    }
-
-    h1 {
-        font-size: 24px;
-        line-height: 1.2;
-        margin: 8px 0 12px;
-    }
-
     .pn-labels {
         gap: 6px;
     }

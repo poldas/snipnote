@@ -45,7 +45,7 @@
                 - .pn-labels / .pn-label: Tagi
                 - article.prose: Wyrenderowana treść Markdown
             #}
-            <div id="public-note-shell" class="pn-shell hover:scale-105 transition-all" {% if theme == 'todo' %}data-controller="public-todo"{% endif %}>
+            <div id="public-note-shell" class="pn-shell" {% if theme == 'todo' %}data-controller="public-todo"{% endif %}>
                 <div class="pn-card">
                     {% if theme == 'todo' %}
                         <div class="todo-header">
