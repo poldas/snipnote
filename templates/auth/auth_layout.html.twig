@@ -30,6 +30,15 @@
                     </div>
 
                     <div class="w-full max-w-md mx-auto lg:max-w-none">
+                        {# Flash messages #}
+                        {% for label, messages in app.flashes %}
+                            {% include 'components/alert.html.twig' with {
+                                type: label == 'success' ? 'success' : (label == 'error' ? 'error' : 'info'),
+                                messages: messages,
+                                class: 'mb-6'
+                            } %}
+                        {% endfor %}
+
                         {% block auth_content %}{% endblock %}
                     </div>
                 </div>

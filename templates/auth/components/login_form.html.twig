@@ -5,14 +5,17 @@
 {% set pending = pending ?? false %}
 {% set redirect = redirect ?? null %}
 
+{# Symfony Security Form Login uses _target_path for redirection #}
+{% set targetPath = redirect %}
+
 {% set emailError = (errors|filter(e => (e.field ?? null) == 'email')|first).message ?? null %}
 {% set passwordError = (errors|filter(e => (e.field ?? null) == 'password')|first).message ?? null %}
 {% set globalErrors = errors|filter(e => e.field is not defined or e.field is null)|map(e => e.message) %}
 
-<form action="{{ action }}" method="post" class="space-y-4" hx-boost="false">
+<form action="{{ action }}" method="post" class="space-y-4" hx-boost="false" data-turbo="false">
     <input type="hidden" name="_csrf_token" value="{{ csrfToken }}">
-    {% if redirect %}
-        <input type="hidden" name="redirect" value="{{ redirect }}">
+    {% if targetPath %}
+        <input type="hidden" name="_target_path" value="{{ targetPath }}">
     {% endif %}
 
     {% include 'components/alert.html.twig' with { messages: globalErrors } %}
@@ -51,12 +54,7 @@
 
     <button type="submit"
             data-testid="login-submit-btn"
-            class="w-full inline-flex items-center justify-center rounded-2xl text-white px-4 py-3 font-semibold shadow-lg shadow-indigo-500/25 transition-all disabled:opacity-70 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#c7d2fe] focus:ring-offset-2 focus:ring-offset-white hover:translate-y-[-1px] active:translate-y-0.5 btn-auth-primary"
-            {% if pending %}disabled{% endif %}
-            hx-disabled-elt="this">
-        {% if pending %}
-            <span class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/60 border-t-transparent"></span>
-        {% endif %}
+            class="w-full inline-flex items-center justify-center rounded-2xl text-white px-4 py-3 font-semibold shadow-lg shadow-indigo-500/25 transition-all disabled:opacity-70 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#c7d2fe] focus:ring-offset-2 focus:ring-offset-white hover:translate-y-[-1px] active:translate-y-0.5 btn-auth-primary">
         Zaloguj się
     </button>
 

@@ -7,6 +7,7 @@ namespace App\Tests\Controller\Api;
 use App\DTO\Note\PublicNoteListItemDto;
 use App\DTO\Note\PublicNoteListResponseDto;
 use App\DTO\Note\PublicNotesPaginationMetaDto;
+use App\DTO\Note\PublicNotesQueryDto;
 use App\Service\PublicNotesCatalogService;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,7 +22,7 @@ final class PublicUserNotesControllerIntegrationTest extends WebTestCase
         $service = $this->createMock(PublicNotesCatalogService::class);
         $service->expects(self::once())
             ->method('getPublicNotes')
-            ->with(self::callback(static function (\App\DTO\Note\PublicNotesQueryDto $dto): bool {
+            ->with(self::callback(static function (PublicNotesQueryDto $dto): bool {
                 return $dto->labels === ['demo', 'kod'];
             }))
             ->willReturn(

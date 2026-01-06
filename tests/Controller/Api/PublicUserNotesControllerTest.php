@@ -10,6 +10,7 @@ use App\DTO\Note\PublicNoteListResponseDto;
 use App\DTO\Note\PublicNotesPaginationMetaDto;
 use App\DTO\Note\PublicNotesQueryDto;
 use App\Exception\ValidationException;
+use App\Mapper\PublicNoteJsonMapper;
 use App\Service\PublicNotesCatalogService;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -49,7 +50,7 @@ final class PublicUserNotesControllerTest extends TestCase
         $validator = $this->createStub(ValidatorInterface::class);
         $validator->method('validate')->willReturn(new ConstraintViolationList());
 
-        $mapper = new \App\Mapper\PublicNoteJsonMapper();
+        $mapper = new PublicNoteJsonMapper();
         $controller = new PublicUserNotesController($service, $mapper, $validator);
 
         $request = new Request(query: [
@@ -82,7 +83,7 @@ final class PublicUserNotesControllerTest extends TestCase
         $validator = $this->createStub(ValidatorInterface::class);
         $validator->method('validate')->willReturn($violations);
 
-        $mapper = new \App\Mapper\PublicNoteJsonMapper();
+        $mapper = new PublicNoteJsonMapper();
         $controller = new PublicUserNotesController($service, $mapper, $validator);
 
         $request = new Request(query: ['page' => 0]);

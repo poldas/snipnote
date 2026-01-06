@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Routing\Attribute\Route;
 
 final class AuthPageController extends AbstractController
@@ -44,15 +45,25 @@ final class AuthPageController extends AbstractController
     }
 
     #[Route('/login', name: 'app_login_page', methods: ['GET', 'POST'])]
-    public function login(Request $request): Response
+    public function login(Request $request, AuthenticationUtils $authUtils): Response
     {
         if ($this->getUser()) {
             return $this->redirect('/notes');
         }
 
+        $error = $authUtils->getLastAuthenticationError();
+        $lastUsername = $authUtils->getLastUsername();
         $redirect = $request->query->get('redirect');
 
+        $errors = [];
+        if ($error) {
+            $errors[] = ['message' => $error->getMessageKey()];
+        }
+
         return $this->render('auth/login.html.twig', [
+            'last_username' => $lastUsername,
+            'errors' => $errors,
+            'prefill' => ['email' => $lastUsername],
             'redirect' => $redirect,
             'hero' => [
                 'headline' => 'Wróć do swoich notatek',

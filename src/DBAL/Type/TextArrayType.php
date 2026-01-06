@@ -36,7 +36,7 @@ final class TextArrayType extends Type
             return null;
         }
 
-        if (!\is_array($value)) {
+        if (!is_array($value)) {
             throw ConversionException::conversionFailedInvalidType($value, self::NAME, ['array', 'null']);
         }
 
@@ -49,11 +49,11 @@ final class TextArrayType extends Type
             return [];
         }
 
-        if (\is_array($value)) {
+        if (is_array($value)) {
             return array_values($value);
         }
 
-        if (!\is_string($value)) {
+        if (!is_string($value)) {
             throw ConversionException::conversionFailed($value, self::NAME);
         }
 
@@ -67,7 +67,7 @@ final class TextArrayType extends Type
     {
         $escaped = array_map(
             static function ($item): string {
-                if (!\is_string($item)) {
+                if (!is_string($item)) {
                     throw ConversionException::conversionFailedInvalidType($item, self::NAME, ['string']);
                 }
 
