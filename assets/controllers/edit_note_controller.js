@@ -1,5 +1,5 @@
 import { Controller } from '@hotwired/stimulus';
-import { showToast, announce, copyToClipboard } from '../ui_utils.js';
+import { showToast, announce, copyToClipboard } from 'ui_utils';
 
 export default class extends Controller {
     connect() {
