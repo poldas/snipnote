@@ -77,9 +77,10 @@ class NoteCollaboratorRepository extends ServiceEntityRepository
         return (bool) $this->createQueryBuilder('c')
             ->select('1')
             ->where('c.note = :note')
-            ->andWhere('c.user = :user')
+            ->andWhere('(c.user = :user OR LOWER(c.email) = LOWER(:email))')
             ->setParameter('note', $note)
             ->setParameter('user', $user)
+            ->setParameter('email', $user->getUserIdentifier())
             ->getQuery()
             ->getOneOrNullResult();
     }

@@ -1,11 +1,11 @@
 import { Controller } from '@hotwired/stimulus';
+import { showToast, announce } from '../ui_utils.js';
 
 const defaultConfig = {
     mode: 'create',
     noteId: null,
     submitUrl: '/api/notes',
     redirectUrl: '/notes',
-    previewUrl: '/api/notes/preview',
     initialTitle: '',
     initialDescription: '',
     initialLabels: [],
@@ -23,7 +23,6 @@ export default class extends Controller {
             labels: [],
             visibility: this.config.initialVisibility || 'private',
             isSubmitting: false,
-            isPreviewing: false,
             errors: {
                 title: [],
                 description: [],
@@ -39,19 +38,17 @@ export default class extends Controller {
         this.updateVisibilityLabels();
         this.updateButtonStates();
 
-        // Ensure visibility buttons are properly initialized after DOM is ready
         setTimeout(() => {
             this.updateVisibilityLabels();
         }, 0);
 
-        this.announce('Formularz notatki gotowy do wypełnienia');
+        announce('Formularz notatki gotowy do wypełnienia');
     }
 
     disconnect() {
         this.abort?.abort();
     }
 
-    // ---------- Setup ----------
     readConfig() {
         try {
             const raw = this.element.dataset.noteConfig;
@@ -84,21 +81,14 @@ export default class extends Controller {
             labelsError: scope.querySelector('[data-labels-error]'),
             formErrors: scope.querySelector('[data-form-errors]'),
             errorList: scope.querySelector('[data-error-list]'),
-            previewBtn: scope.querySelector('[data-preview-btn]') || document.querySelector('[data-preview-btn]'),
-            submitBtn: null, // Will be found dynamically when needed
             statusIndicator: scope.querySelector('[data-status-indicator]') || document.querySelector('[data-status-indicator]'),
             savingSpinner: scope.querySelector('[data-saving-spinner]') || document.querySelector('[data-saving-spinner]'),
-            previewSection: scope.querySelector('[data-preview-section]'),
-            previewContent: scope.querySelector('[data-preview-content]'),
-            closePreview: scope.querySelector('[data-close-preview]'),
             markdownToolbar: scope.querySelector('[data-markdown-toolbar]'),
-            ariaLive: document.querySelector('[data-global-aria-live]'),
             csrfToken: scope.querySelector('[data-csrf-token]'),
         };
     }
 
     bindEvents() {
-        // Prevent native submit
         this.on(this.elements.form, 'submit', (event) => event.preventDefault());
 
         if (this.elements.titleInput) {
@@ -168,20 +158,9 @@ export default class extends Controller {
             });
         }
 
-        if (this.elements.previewBtn) {
-            this.on(this.elements.previewBtn, 'click', () => this.previewNote());
-        }
-
-        // Submit button is found dynamically to handle cases where it's outside the form scope
         const submitBtn = document.querySelector('[data-submit-btn]');
         if (submitBtn) {
             this.on(submitBtn, 'click', () => this.submitNote());
-        }
-
-        if (this.elements.closePreview) {
-            this.on(this.elements.closePreview, 'click', () => {
-                this.elements.previewSection?.classList.add('hidden');
-            });
         }
 
         this.on(document, 'keydown', (event) => {
@@ -223,7 +202,7 @@ export default class extends Controller {
         }
 
         const parsedLabels = this.parseLabelsInputValue();
-        this.state.labels = this.deduplicateLabels(this.config.initialLabels.length ? this.config.initialLabels : parsedLabels);
+        this.state.labels = this.deduplicateLabels(this.config.initialLabels && this.config.initialLabels.length ? this.config.initialLabels : parsedLabels);
         this.updateLabelsInput();
         this.renderTags();
 
@@ -235,7 +214,6 @@ export default class extends Controller {
         }
     }
 
-    // ---------- Validation ----------
     validateField(field, value) {
         const errors = [];
         if (field === 'title') {
@@ -264,7 +242,6 @@ export default class extends Controller {
         return { valid: !hasErrors, errors };
     }
 
-    // ---------- Errors ----------
     showFieldError(field, messages) {
         const errorEl = this.elements[`${field}Error`];
         const inputEl = this.elements[`${field}Input`] || this.elements[`${field}Textarea`] || this.elements[`${field}Inputs`]?.[0];
@@ -292,19 +269,27 @@ export default class extends Controller {
 
     showGlobalErrors(errors) {
         if (!this.elements.formErrors || !this.elements.errorList) return;
+        
+        // Clear list safely
+        this.elements.errorList.textContent = '';
+        
         const allErrors = [];
         Object.values(errors).forEach((messages) => {
             if (Array.isArray(messages)) {
                 allErrors.push(...messages);
             }
         });
+
         if (allErrors.length) {
-            this.elements.errorList.innerHTML = allErrors.map((msg) => `<li>${this.escapeHtml(msg)}</li>`).join('');
+            allErrors.forEach(msg => {
+                const li = document.createElement('li');
+                li.textContent = msg;
+                this.elements.errorList.appendChild(li);
+            });
             this.elements.formErrors.classList.remove('hidden');
-            this.announce('Wykryto błędy walidacji. Sprawdź formularz.');
+            announce('Wykryto błędy walidacji. Sprawdź formularz.');
         } else {
             this.elements.formErrors.classList.add('hidden');
-            this.elements.errorList.innerHTML = '';
         }
     }
 
@@ -312,9 +297,9 @@ export default class extends Controller {
         this.state.errors = { title: [], description: [], labels: [], visibility: [], _request: [] };
         ['title', 'description', 'labels', 'visibility'].forEach((f) => this.clearFieldError(f));
         this.elements.formErrors?.classList.add('hidden');
+        if (this.elements.errorList) this.elements.errorList.textContent = '';
     }
 
-    // ---------- Counters ----------
     updateTitleCounter() {
         if (!this.elements.titleCounter) return;
         const length = this.state.title.length;
@@ -331,7 +316,6 @@ export default class extends Controller {
         this.elements.descriptionCounter.classList.toggle('font-semibold', length > 10000);
     }
 
-    // ---------- Labels ----------
     deduplicateLabels(labels) {
         const seen = new Set();
         return labels.filter((label) => {
@@ -367,21 +351,39 @@ export default class extends Controller {
 
     renderTags() {
         if (!this.elements.tagsContainer) return;
+        
+        // Clear container safely
+        this.elements.tagsContainer.textContent = '';
+
         if (!this.state.labels.length) {
-            this.elements.tagsContainer.innerHTML = '<span class="text-sm text-slate-400">Brak etykiet</span>';
+            const emptyHint = document.createElement('span');
+            emptyHint.className = 'text-sm text-slate-400';
+            emptyHint.textContent = 'Brak etykiet';
+            this.elements.tagsContainer.appendChild(emptyHint);
             return;
         }
-        this.elements.tagsContainer.innerHTML = this.state.labels
-            .map((label, index) => `
-                <span class="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-100 text-indigo-800 rounded-lg text-sm font-medium border border-indigo-200" role="listitem">
-                    <span>${this.escapeHtml(label)}</span>
-                    <button type="button" data-remove-tag="${index}" aria-label="Usuń etykietę ${this.escapeHtml(label)}" class="text-indigo-600 hover:text-indigo-900 font-bold">✕</button>
-                </span>
-            `)
-            .join('');
+
+        this.state.labels.forEach((label, index) => {
+            const span = document.createElement('span');
+            span.className = 'inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-100 text-indigo-800 rounded-lg text-sm font-medium border border-indigo-200';
+            span.setAttribute('role', 'listitem');
+
+            const labelText = document.createElement('span');
+            labelText.textContent = label;
+
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.setAttribute('data-remove-tag', index.toString());
+            btn.setAttribute('aria-label', `Usuń etykietę ${label}`);
+            btn.className = 'text-indigo-600 hover:text-indigo-900 font-bold';
+            btn.textContent = '✕';
+
+            span.appendChild(labelText);
+            span.appendChild(btn);
+            this.elements.tagsContainer.appendChild(span);
+        });
     }
 
-    // ---------- Markdown ----------
     insertMarkdown(action) {
         const textarea = this.elements.descriptionTextarea;
         if (!textarea) return;
@@ -391,13 +393,13 @@ export default class extends Controller {
         const withDefault = (fallback) => selected || fallback;
 
         const replacements = {
-            bold: `**${withDefault('pogrubiony tekst')}**`,
-            italic: `*${withDefault('tekst kursywą')}*`,
-            code: `\`${withDefault('kod')}\``,
-            link: `[${withDefault('tekst linku')}](https://example.com)`,
-            heading: `\n## ${withDefault('Nagłówek')}\n`,
-            list: `\n- ${withDefault('Element listy')}\n`,
-            quote: `\n> ${withDefault('Cytat')}\n`,
+            bold: '**' + withDefault('pogrubiony tekst') + '**',
+            italic: '*' + withDefault('tekst kursywą') + '*',
+            code: '`' + withDefault('kod') + '`',
+            link: '[' + withDefault('tekst linku') + '](https://example.com)',
+            heading: '\n## ' + withDefault('Nagłówek') + '\n',
+            list: '\n- ' + withDefault('Element listy') + '\n',
+            quote: '\n> ' + withDefault('Cytat') + '\n',
         };
 
         const replacement = replacements[action];
@@ -411,13 +413,12 @@ export default class extends Controller {
         textarea.focus();
     }
 
-    // ---------- Visibility ----------
     updateVisibilityDescription(value) {
         if (!this.elements.visibilityDescription) return;
         const descriptions = {
-            private: 'Notatka widoczna tylko dla Ciebie i współpracowników.',
-            public: 'Notatka będzie widoczna publicznie pod unikalnym linkiem.',
-            draft: 'Szkic - notatka niewidoczna dla nikogo poza Tobą.',
+            private: 'Notatka widoczna dla Ciebie i współpracowników',
+            public: 'Notatka będzie widoczna publicznie pod unikalnym linkiem',
+            draft: 'Szkic - notatka niewidoczna dla nikogo poza Tobą',
         };
         this.elements.visibilityDescription.textContent = descriptions[value] || descriptions.private;
     }
@@ -434,14 +435,16 @@ export default class extends Controller {
         });
     }
 
-    // ---------- Network ----------
     async submitNote() {
         const validation = this.validateForm();
         if (!validation.valid) {
             this.state.errors = validation.errors;
             Object.entries(validation.errors).forEach(([field, messages]) => this.showFieldError(field, messages));
             this.showGlobalErrors(validation.errors);
-            this.announce('Formularz zawiera błędy. Popraw je przed zapisaniem.');
+            announce('Formularz zawiera błędy. Popraw je przed zapisaniem.');
+            
+            // Smooth scroll to the top of the form where errors are displayed
+            this.elements.form.scrollIntoView({ behavior: 'smooth', block: 'start' });
             return;
         }
 
@@ -472,8 +475,8 @@ export default class extends Controller {
             });
 
             if (response.ok) {
-                this.announce(this.config.mode === 'edit' ? 'Notatka została zaktualizowana' : 'Notatka została utworzona pomyślnie');
-                this.showToast(this.config.mode === 'edit' ? 'Zapisano zmiany!' : 'Notatka utworzona!', 'success');
+                announce(this.config.mode === 'edit' ? 'Notatka została zaktualizowana' : 'Notatka została utworzona pomyślnie');
+                showToast(this.config.mode === 'edit' ? 'Zapisano zmiany' : 'Notatka utworzona', 'success');
                 setTimeout(() => {
                     window.location.href = this.config.redirectUrl || '/notes';
                 }, 500);
@@ -481,12 +484,12 @@ export default class extends Controller {
             }
 
             if (response.status === 401) {
-                this.redirectToLogin('Sesja wygasła lub brak autoryzacji.');
+                this.redirectToLogin('Sesja wygasła. Zaloguj się ponownie.');
                 return;
             }
             if (response.status === 403) {
-                this.showToast('Brak uprawnień do zapisania tej notatki.', 'error');
-                this.announce('Brak uprawnień do zapisania tej notatki.');
+                showToast('Brak uprawnień do zapisania tej notatki.', 'error');
+                announce('Brak uprawnień do zapisania tej notatki.');
                 return;
             }
             if (response.status === 400) {
@@ -499,118 +502,31 @@ export default class extends Controller {
                         }
                     });
                     this.showGlobalErrors(this.state.errors);
-                    this.announce('Formularz zawiera błędy walidacji');
+                    announce('Formularz zawiera błędy walidacji');
                 }
                 return;
             }
             if (response.status === 409) {
-                this.showToast('Kolizja URL. Spróbuj zapisać ponownie.', 'error');
-                this.announce('Kolizja URL. Spróbuj zapisać ponownie.');
+                showToast('Kolizja URL. Spróbuj zapisać ponownie.', 'error');
+                announce('Kolizja URL. Spróbuj zapisać ponownie.');
                 return;
             }
 
-            this.showToast('Nie udało się zapisać notatki. Spróbuj ponownie.', 'error');
-            this.announce('Błąd serwera. Spróbuj ponownie.');
+            showToast('Nie udało się zapisać notatki. Spróbuj ponownie.', 'error');
+            announce('Błąd serwera. Spróbuj ponownie.');
         } catch (error) {
             console.error('Submit error:', error);
-            this.showToast('Błąd sieci. Sprawdź połączenie i spróbuj ponownie.', 'error');
-            this.announce('Błąd sieci. Sprawdź połączenie.');
+            showToast('Błąd sieci. Sprawdź połączenie i spróbuj ponownie.', 'error');
+            announce('Błąd sieci. Sprawdź połączenie.');
         } finally {
             this.state.isSubmitting = false;
             this.updateButtonStates();
         }
     }
 
-    async previewNote() {
-        const titleErrors = this.validateField('title', this.state.title);
-        const descriptionErrors = this.validateField('description', this.state.description);
-        if (titleErrors.length || descriptionErrors.length) {
-            this.showFieldError('title', titleErrors);
-            this.showFieldError('description', descriptionErrors);
-            this.announce('Uzupełnij wymagane pola przed podglądem');
-            return;
-        }
-
-        this.state.isPreviewing = true;
-        this.updateButtonStates();
-
-        const headers = { 'Content-Type': 'application/json' };
-        if (this.elements.csrfToken?.value) headers['X-CSRF-Token'] = this.elements.csrfToken.value;
-
-        const payload = {
-            title: this.state.title.trim(),
-            description: this.state.description.trim(),
-            labels: this.state.labels,
-            visibility: this.state.visibility,
-        };
-
-        try {
-            const response = await fetch(this.config.previewUrl || '/api/notes/preview', {
-                method: 'POST',
-                headers,
-                body: JSON.stringify(payload),
-                credentials: 'same-origin',
-            });
-
-            if (response.ok) {
-                const data = await response.json().catch(() => ({}));
-                const html = data?.data?.html;
-                if (html) {
-                    this.renderPreviewHtml(html);
-                    this.announce('Podgląd wygenerowany');
-                    return;
-                }
-                this.renderLocalPreview('Brak danych podglądu z serwera, użyto wersji lokalnej.');
-                return;
-            }
-
-            if (response.status === 401 || response.status === 403) {
-                this.announce('Brak dostępu do podglądu.');
-                this.showToast('Brak dostępu do podglądu.', 'error');
-                return;
-            }
-
-            this.renderLocalPreview('Nie udało się pobrać podglądu, pokazano wersję lokalną.');
-        } catch (error) {
-            console.error('Preview error:', error);
-            this.renderLocalPreview('Błąd podglądu, pokazano wersję lokalną.');
-        } finally {
-            this.state.isPreviewing = false;
-            this.updateButtonStates();
-        }
-    }
-
-    renderPreviewHtml(html) {
-        if (this.elements.previewContent) {
-            this.elements.previewContent.innerHTML = html;
-        }
-        this.elements.previewSection?.classList.remove('hidden');
-        this.elements.previewSection?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-
-    renderLocalPreview(message) {
-        if (this.elements.previewContent) {
-            const basicHtml = this.escapeHtml(this.state.description)
-                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\*(.+?)\*/g, '<em>$1</em>')
-                .replace(/`(.+?)`/g, '<code>$1</code>')
-                .replace(/\n/g, '<br>');
-            this.elements.previewContent.innerHTML = `<h2>${this.escapeHtml(this.state.title || 'Podgląd')}</h2><div>${basicHtml || '<p class="text-slate-500">(Brak treści)</p>'}</div>`;
-        }
-        this.elements.previewSection?.classList.remove('hidden');
-        this.elements.previewSection?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        this.announce(message);
-        this.showToast(message, 'info');
-    }
-
-    // ---------- UI ----------
     updateButtonStates() {
-        const busy = this.state.isSubmitting || this.state.isPreviewing;
-        if (this.elements.previewBtn) {
-            this.elements.previewBtn.disabled = busy;
-        }
+        const busy = this.state.isSubmitting;
 
-        // Find submit button dynamically
         const submitBtn = document.querySelector('[data-submit-btn]');
         if (submitBtn) {
             submitBtn.disabled = busy;
@@ -618,7 +534,6 @@ export default class extends Controller {
 
         if (this.elements.statusIndicator) {
             if (this.state.isSubmitting) this.elements.statusIndicator.textContent = 'Zapisywanie...';
-            else if (this.state.isPreviewing) this.elements.statusIndicator.textContent = 'Generowanie podglądu...';
             else this.elements.statusIndicator.textContent = '';
         }
         if (this.elements.savingSpinner) {
@@ -627,7 +542,6 @@ export default class extends Controller {
         }
     }
 
-    // ---------- Helpers ----------
     on(target, event, handler) {
         if (!target) return;
         target.addEventListener(event, handler, { signal: this.abort.signal });
@@ -650,31 +564,11 @@ export default class extends Controller {
         return div.innerHTML;
     }
 
-    announce(message) {
-        if (this.elements.ariaLive) {
-            this.elements.ariaLive.textContent = message;
-        }
-    }
-
-    showToast(message, variant = 'info') {
-        const stack = document.getElementById('toast-stack');
-        if (!stack) return;
-        const el = document.createElement('div');
-        el.className = 'min-w-[240px] max-w-sm rounded-xl border px-4 py-3 text-sm font-semibold shadow-lg flex items-start gap-2 ' +
-            (variant === 'success'
-                ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-                : 'border-red-200 bg-red-50 text-red-800');
-        el.textContent = message;
-        stack.appendChild(el);
-        setTimeout(() => el.remove(), 3000);
-    }
-
     redirectToLogin(message = 'Sesja wygasła. Zaloguj się ponownie.') {
-        this.showToast(message, 'error');
-        this.announce(message);
+        showToast(message, 'error');
+        announce(message);
         setTimeout(() => {
             window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
         }, 1200);
     }
 }
-

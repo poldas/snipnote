@@ -13,23 +13,23 @@ export class ForgotPasswordPage {
 
     async expectPageLoaded() {
         await expect(this.page.getByRole('heading', { name: 'Odzyskaj dostęp do konta' })).toBeVisible();
-        await expect(this.page.getByLabel('Adres email')).toBeVisible();
-        await expect(this.page.getByRole('button', { name: 'Wyślij link resetu' })).toBeVisible();
+        await expect(this.page.getByLabel('Email')).toBeVisible();
+        await expect(this.page.getByRole('button', { name: 'Wyślij instrukcje resetu' })).toBeVisible();
     }
 
     async expectFormElements() {
         await expect(this.page.locator('input[name="email"]')).toBeVisible();
-        await expect(this.page.getByRole('button', { name: 'Wyślij link resetu' })).toBeVisible();
-        await expect(this.page.locator('[data-test-id="forgot-link-login"]')).toBeVisible();
-        await expect(this.page.getByRole('link', { name: 'Zarejestruj się' })).toBeVisible();
+        await expect(this.page.getByRole('button', { name: 'Wyślij instrukcje resetu' })).toBeVisible();
+        await expect(this.page.getByTestId('forgot-link-login')).toBeVisible();
+        await expect(this.page.getByRole('link', { name: 'Załóż konto' })).toBeVisible();
     }
 
     async clickLoginLink() {
-        await this.page.locator('[data-test-id="forgot-link-login"]').click();
+        await this.page.getByTestId('forgot-link-login').click();
     }
 
     async clickLogoHome() {
-        await this.page.locator('[data-test-id="logo-home-link"]').click();
+        await this.page.getByTestId('logo-home-link').click();
     }
 
     async takeScreenshot(name: string) {

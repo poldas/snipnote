@@ -16,5 +16,6 @@ final readonly class ListNotesQuery
         public ?string $q,
         public array $labels = [],
         public string $visibility = 'owner',
+        public ?string $ownerEmail = null,
     ) {}
 }

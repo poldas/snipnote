@@ -1,0 +1,12 @@
+{% set isFixed = isFixed ?? false %}
+<nav class="w-full max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4 sm:py-6 {{ isFixed ? 'lg:fixed lg:top-0 lg:left-0 lg:right-0 lg:z-10' : '' }}">
+    {% include 'components/logo.html.twig' with {size: 'small'} %}
+    <div class="flex items-center gap-2 sm:gap-4">
+        <a href="/login" data-testid="nav-login-link" data-turbo="false" class="text-xs sm:text-sm font-semibold text-indigo-700 hover:text-indigo-900 transition-colors">
+            Zaloguj się
+        </a>
+        <a href="/register" data-testid="nav-register-link" data-turbo="false" class="px-3 py-1.5 sm:px-6 sm:py-2.5 btn-auth-primary rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all">
+            Załóż konto
+        </a>
+    </div>
+</nav>

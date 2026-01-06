@@ -100,6 +100,34 @@ final class NoteCollaboratorServiceTest extends TestCase
 
         $service->removeById(new RemoveCollaboratorByIdCommand(1, 5), $collaboratorUser);
     }
+
+    public function testCollaboratorCanRemoveSelfByEmailOnly(): void
+    {
+        $owner = new User('owner@example.com', 'hash');
+        $collaboratorUser = new User('collab@example.com', 'hash');
+        $note = new Note($owner, 't', 'd');
+        // No user linked in entity
+        $collaboratorEntity = new \App\Entity\NoteCollaborator($note, 'collab@example.com', null);
+
+        $noteRepository = $this->createStub(NoteRepository::class);
+        $noteRepository->method('find')->willReturn($note);
+
+        $collaboratorRepository = $this->createStub(NoteCollaboratorRepository::class);
+        $collaboratorRepository->method('findByNoteAndId')->willReturn($collaboratorEntity);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects(self::once())->method('remove')->with($collaboratorEntity);
+        $entityManager->expects(self::once())->method('flush');
+
+        $service = new NoteCollaboratorService(
+            $entityManager,
+            $noteRepository,
+            $collaboratorRepository,
+            $this->userRepository,
+        );
+
+        $service->removeById(new RemoveCollaboratorByIdCommand(1, 5), $collaboratorUser);
+    }
 }
 
 

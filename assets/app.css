@@ -1,3 +1,2 @@
-/* Entry CSS for all pages, includes compiled Tailwind output */
-@import "./styles/dist/tailwind.css";
-
+/* Global Entry CSS - minimal common styles */
+@import "./styles/dist/common.css";

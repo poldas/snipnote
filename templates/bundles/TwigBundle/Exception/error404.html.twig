@@ -3,155 +3,24 @@
 {% block title %}Strona nie została znaleziona | Snipnote{% endblock %}
 
 {% block stylesheets %}
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            margin: 0;
-            min-height: 100vh;
-            background: radial-gradient(120% 120% at 10% 20%, #e0e7ff 0%, #eef2ff 35%, #f8fafc 70%);
-            color: #0f172a;
-            font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        }
-
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.92);
-            border: 1px solid rgba(148, 163, 184, 0.25);
-            box-shadow: 0 20px 70px rgba(79, 70, 229, 0.15), 0 10px 30px rgba(15, 23, 42, 0.08);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-        }
-
-        .pill-muted {
-            background: rgba(99, 102, 241, 0.08);
-            border: 1px solid rgba(99, 102, 241, 0.18);
-        }
-
-        .orb {
-            position: absolute;
-            filter: blur(50px);
-            opacity: 0.65;
-            transform: rotate(8deg);
-        }
-
-        .orb--1 {
-            width: 360px;
-            height: 360px;
-            background: #c7d2fe;
-            top: -80px;
-            left: -60px;
-        }
-
-        .orb--2 {
-            width: 440px;
-            height: 440px;
-            background: #e0f2fe;
-            bottom: -120px;
-            right: -80px;
-        }
-
-        .glow-dot {
-            animation: pulseGlow 2.4s ease-in-out infinite;
-        }
-
-        @keyframes pulseGlow {
-            0%, 100% {
-                opacity: 0.55;
-                transform: scale(1);
-            }
-            50% {
-                opacity: 1;
-                transform: scale(1.08);
-            }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .orb, .glow-dot {
-                animation: none;
-                filter: none;
-                opacity: 0.2;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{{ asset('styles/dist/public.css') }}">
 {% endblock %}
 
 {% block body %}
-<main class="relative min-h-screen flex items-center justify-center px-4 py-12 overflow-hidden bg-gradient-to-b from-slate-50/70 to-white">
-    <div class="orb orb--1" aria-hidden="true"></div>
-    <div class="orb orb--2" aria-hidden="true"></div>
-
-    <div class="relative max-w-5xl w-full space-y-6">
-        <a href="/" class="inline-flex items-center gap-3 text-sm font-semibold text-indigo-800 hover:text-indigo-900 transition-colors" aria-label="Przejdź do strony głównej">
-            <span class="inline-flex h-11 w-11 items-center justify-center rounded-xl text-white shadow-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" aria-hidden="true">S</span>
-            <div class="leading-tight">
-                <div class="text-base text-slate-900">Snipnote</div>
-                <div class="text-xs text-slate-500">Twórz i udostępniaj notatki</div>
-            </div>
-        </a>
-
-        <section class="glass-panel rounded-3xl border overflow-hidden">
-            <div class="flex flex-col lg:flex-row items-start gap-10 p-8 sm:p-10">
-                <div class="flex-1 space-y-5">
-                    <div class="flex items-center gap-3 text-xs uppercase tracking-[0.25em] text-indigo-500 font-semibold">
-                        <span class="pill-muted px-3 py-1 rounded-full text-indigo-700">Błąd 404</span>
-                        <span class="text-slate-400">Strona nie istnieje</span>
-                    </div>
-                    <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 leading-tight">
-                        Nie znaleźliśmy strony, której szukasz.
-                    </h1>
-                    <p class="text-base text-slate-600 leading-relaxed">
-                        {% if app.request is defined and app.request.pathinfo is defined %}
-                            Adres <span class="font-semibold text-slate-900">{{ app.request.pathinfo }}</span> nie prowadzi do dostępnej strony.
-                        {% else %}
-                            Wygląda na to, że podany adres nie prowadzi do dostępnej strony.
-                        {% endif %}
-                        Sprawdź pisownię lub przejdź do głównego widoku aplikacji.
-                    </p>
-
-                    <div class="flex flex-wrap items-center gap-3 pt-1">
-                        <a href="/" class="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-indigo-600 text-white font-semibold shadow-lg shadow-indigo-200 hover:bg-indigo-500 transition-colors">
-                            <span>Strona główna</span>
-                        </a>
-                        {% if app.user %}
-                            <a href="/notes" class="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-white text-indigo-700 font-semibold border border-slate-200 hover:border-indigo-300 hover:text-indigo-900 transition-colors">
-                                Panel notatek
-                            </a>
-                        {% else %}
-                            <a href="/login" class="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-white text-indigo-700 font-semibold border border-slate-200 hover:border-indigo-300 hover:text-indigo-900 transition-colors">
-                                Zaloguj się
-                            </a>
-                        {% endif %}
-                        <button type="button" class="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-800 transition-colors" onclick="history.back()">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                            </svg>
-                            Wróć
-                        </button>
-                    </div>
-
-                    <div class="text-sm text-slate-500 flex items-center gap-2 pt-2">
-                        <span class="glow-dot inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
-                        <span>Jeśli problem się powtarza, daj nam znać.</span>
-                    </div>
+<main class="public-note">
+    <section class="public-note__container">
+        <div class="max-w-6xl mx-auto px-4 pt-4 sm:pt-6 pb-4">
+            <header class="pn-auth-header">
+                {% include 'components/logo.html.twig' with {size: 'small'} %}
+                <div>
                 </div>
-
-                <div class="w-full lg:w-80">
-                    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-sky-400 text-white shadow-2xl p-6">
-                        <div class="absolute inset-0 bg-white/10 blur-3xl" aria-hidden="true"></div>
-                        <div class="relative space-y-4">
-                            <div class="text-6xl font-black leading-none drop-shadow-sm">404</div>
-                            <p class="text-sm text-indigo-50 leading-relaxed">
-                                Szukana strona mogła zostać przeniesiona, usunięta albo nigdy nie istniała.
-                            </p>
-                            <div class="flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-indigo-100">
-                                <span class="h-2 w-2 rounded-full bg-emerald-300 animate-pulse" aria-hidden="true"></span>
-                                <span>Status: Not Found</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </div>
+            </header>
+        </div>
+        {% include 'components/public_note_error.html.twig' with { errorCode: 404 } %}
+    </section>
 </main>
 {% endblock %}
 
+{% block javascripts %}
+    <script src="https://unpkg.com/htmx.org@2.0.3"></script>
+{% endblock %}

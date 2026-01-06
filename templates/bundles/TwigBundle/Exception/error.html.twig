@@ -94,13 +94,7 @@
     <div class="orb orb--2" aria-hidden="true"></div>
 
     <div class="relative max-w-5xl w-full space-y-6">
-        <a href="/" class="inline-flex items-center gap-3 text-sm font-semibold text-indigo-800 hover:text-indigo-900 transition-colors" aria-label="Przejdź do strony głównej">
-            <span class="inline-flex h-11 w-11 items-center justify-center rounded-xl text-white shadow-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" aria-hidden="true">S</span>
-            <div class="leading-tight">
-                <div class="text-base text-slate-900">Snipnote</div>
-                <div class="text-xs text-slate-500">Twórz i udostępniaj notatki</div>
-            </div>
-        </a>
+        {% include 'components/logo.html.twig' with {size: 'small', href: '/'} %}
 
         <section class="glass-panel rounded-3xl border overflow-hidden">
             <div class="flex flex-col lg:flex-row items-start gap-10 p-8 sm:p-10">

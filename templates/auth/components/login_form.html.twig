@@ -15,13 +15,13 @@
         <input type="hidden" name="redirect" value="{{ redirect }}">
     {% endif %}
 
-    {% include 'auth/components/global_error_banner.html.twig' with { messages: globalErrors } %}
+    {% include 'components/alert.html.twig' with { messages: globalErrors } %}
 
     {% include 'auth/components/form_field.html.twig' with {
         config: {
             id: 'email',
             name: 'email',
-            label: 'Email',
+            label: 'Adres email',
             type: 'email',
             placeholder: 'your@email.com',
             autocomplete: 'email',
@@ -50,6 +50,7 @@
     } %}
 
     <button type="submit"
+            data-testid="login-submit-btn"
             class="w-full inline-flex items-center justify-center rounded-2xl text-white px-4 py-3 font-semibold shadow-lg shadow-indigo-500/25 transition-all disabled:opacity-70 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#c7d2fe] focus:ring-offset-2 focus:ring-offset-white hover:translate-y-[-1px] active:translate-y-0.5 btn-auth-primary"
             {% if pending %}disabled{% endif %}
             hx-disabled-elt="this">
@@ -59,14 +60,21 @@
         Zaloguj się
     </button>
 
+    {% set showRegisterLink = showRegisterLink ?? true %}
+    {% set showForgotPasswordLink = showForgotPasswordLink ?? true %}
+
     <div class="text-sm text-slate-700 text-center space-y-1">
-        <p>
-            Nie masz konta?
-            <a href="/register" data-test-id="login-link-register" class="text-indigo-600 hover:text-indigo-800 font-semibold underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-300 transition-colors">Załóż konto</a>
-        </p>
-        <p>
-            <a href="/forgot-password" data-test-id="login-link-forgot-password" class="text-indigo-600 hover:text-indigo-800 font-semibold underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-300 transition-colors">Nie pamiętasz hasła?</a>
-        </p>
+        {% if showRegisterLink %}
+            <p>
+                Nie masz konta?
+                <a href="/register" data-test-id="login-link-register" class="text-indigo-600 hover:text-indigo-800 font-semibold underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-300 transition-colors">Zarejestruj się</a>
+            </p>
+        {% endif %}
+        {% if showForgotPasswordLink %}
+            <p>
+                <a href="/forgot-password" data-test-id="login-link-forgot-password" class="text-indigo-600 hover:text-indigo-800 font-semibold underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-300 transition-colors">Zapomniałeś hasła?</a>
+            </p>
+        {% endif %}
     </div>
 </form>
 

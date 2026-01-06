@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus';
+import { showToast, announce, copyToClipboard } from '../ui_utils.js';
 
 export default class extends Controller {
     connect() {
@@ -19,16 +20,18 @@ export default class extends Controller {
     setupCopyPublicLink() {
         const btn = this.q('[data-copy-public-link]');
         if (!btn) return;
-        this.on(btn, 'click', async () => {
+        this.on(btn, 'click', async (event) => {
+            event.preventDefault();
+            // Stop propagation to prevent duplicate toasts from dashboard controller
+            event.stopPropagation();
+
             const link = btn.getAttribute('data-link');
-            if (!link) return;
-            try {
-                await navigator.clipboard.writeText(link);
-                this.showToast('Skopiowano publiczny link', 'success');
-                this.announce('Link publiczny skopiowany do schowka.');
-            } catch (error) {
-                console.warn('Clipboard error', error);
-                this.showToast('Nie udało się skopiować linku', 'error');
+            const success = await copyToClipboard(link);
+            if (success) {
+                showToast('Skopiowano link do notatki', 'success');
+                announce('Link do notatki skopiowany do schowka.');
+            } else {
+                showToast('Nie udało się skopiować linku', 'error');
             }
         });
     }
@@ -53,11 +56,11 @@ export default class extends Controller {
                 if (!emailInput) return;
                 const email = emailInput.value.trim();
                 if (!email) {
-                    this.showMessage(panel, 'Podaj email współedytora.', 'error');
+                    this.showMessage(panel, 'Podaj email współpracownika', 'error');
                     return;
                 }
                 if (this.isDuplicateEmail(listEl, email)) {
-                    this.showMessage(panel, 'Ten współedytor już istnieje.', 'error');
+                    this.showMessage(panel, 'Ten współpracownik już istnieje', 'error');
                     return;
                 }
                 this.toggleLoading(addBtn, true);
@@ -82,28 +85,28 @@ export default class extends Controller {
                             };
                             this.appendCollaboratorRow(listEl, collaborator, { canEdit, currentUserEmail, ownerEmail, redirectUrl });
                             emailInput.value = '';
-                            this.showMessage(panel, 'Dodano współedytora.', 'success');
-                            this.announce('Dodano współedytora.');
+                            this.showMessage(panel, 'Dodano współpracownika', 'success');
+                            announce('Dodano współpracownika');
                         } else {
-                            this.showMessage(panel, 'Dodano współedytora.', 'success');
+                            this.showMessage(panel, 'Dodano współpracownika', 'success');
                         }
                         return;
                     }
 
                     if (res.status === 400) {
                         const data = await this.safeJson(res);
-                        const message = this.firstErrorMessage(data) || 'Nie udało się dodać współedytora.';
+                        const message = this.firstErrorMessage(data) || 'Nie udało się dodać współpracownika';
                         this.showMessage(panel, message, 'error');
-                        this.announce(message);
+                        announce(message);
                         return;
                     }
                     if (res.status === 401 || res.status === 403) {
                         this.showMessage(panel, 'Brak dostępu. Zaloguj się ponownie.', 'error');
-                        this.announce('Brak dostępu.');
+                        announce('Brak dostępu.');
                         setTimeout(() => window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname), 500);
                         return;
                     }
-                    this.showMessage(panel, 'Nie udało się dodać współedytora.', 'error');
+                    this.showMessage(panel, 'Nie udało się dodać współpracownika.', 'error');
                 } catch (error) {
                     console.error('Add collaborator error', error);
                     this.showMessage(panel, 'Błąd sieci. Spróbuj ponownie.', 'error');
@@ -130,9 +133,9 @@ export default class extends Controller {
         if (deleteBtn && deleteUrl) {
             this.on(deleteBtn, 'click', () => {
                 this.openConfirm({
-                    title: 'Usuń notatkę',
+                    title: 'Usunąć notatkę?',
                     description: 'Operacja jest nieodwracalna. Czy chcesz kontynuować?',
-                    confirmLabel: 'Usuń notatkę',
+                    confirmLabel: 'Tak, usuń notatkę',
                     onConfirm: () => this.deleteNote(deleteUrl, redirectUrl),
                 });
             });
@@ -192,6 +195,10 @@ export default class extends Controller {
                 const url = btn.getAttribute('data-remove-url');
                 const isSelf = btn.getAttribute('data-self-remove') === 'true';
                 if (!url) return;
+
+                const row = btn.closest('[data-collaborator-row]');
+                const email = row?.getAttribute('data-collaborator-email') || 'tego współpracownika';
+
                 if (isSelf) {
                     this.openConfirm({
                         title: 'Usuń swój dostęp',
@@ -199,10 +206,14 @@ export default class extends Controller {
                         confirmLabel: 'Usuń mój dostęp',
                         onConfirm: () => this.removeCollaborator(url, true, ctx.redirectUrl),
                     });
-                    return;
+                } else {
+                    this.openConfirm({
+                        title: 'Usuń współpracownika',
+                        description: `Czy na pewno chcesz usunąć dostęp dla ${email}?`,
+                        confirmLabel: 'Usuń współpracownika',
+                        onConfirm: () => this.removeCollaborator(url, false, ctx.redirectUrl, listEl, row),
+                    });
                 }
-                const row = btn.closest('[data-collaborator-row]');
-                this.removeCollaborator(url, false, ctx.redirectUrl, listEl, row);
             });
         });
     }
@@ -217,9 +228,9 @@ export default class extends Controller {
             });
 
             if (res.ok || res.status === 204) {
-                const msg = isSelf ? 'Usunięto Twój dostęp.' : 'Usunięto współedytora.';
-                this.showToast(msg, 'success');
-                this.announce(msg);
+                const msg = isSelf ? 'Usunięto Twój dostęp' : 'Usunięto współpracownika';
+                showToast(msg, 'success');
+                announce(msg);
                 if (isSelf) {
                     setTimeout(() => window.location.href = redirectUrl || '/notes', 400);
                 } else {
@@ -231,19 +242,19 @@ export default class extends Controller {
             }
 
             if (res.status === 401 || res.status === 403) {
-                this.showToast('Brak uprawnień.', 'error');
-                this.announce('Brak uprawnień.');
+                showToast('Brak uprawnień', 'error');
+                announce('Brak uprawnień');
                 setTimeout(() => window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname), 500);
                 return;
             }
 
             const data = await this.safeJson(res);
-            const message = this.firstErrorMessage(data) || 'Nie udało się usunąć współedytora.';
-            this.showToast(message, 'error');
-            this.announce(message);
+            const message = this.firstErrorMessage(data) || 'Nie udało się usunąć współpracownika';
+            showToast(message, 'error');
+            announce(message);
         } catch (error) {
             console.error('Remove collaborator error', error);
-            this.showToast('Błąd sieci przy usuwaniu.', 'error');
+            showToast('Błąd sieci przy usuwaniu', 'error');
         } finally {
             this.toggleConfirmLoading(false);
         }
@@ -258,23 +269,23 @@ export default class extends Controller {
                 credentials: 'same-origin',
             });
             if (res.ok || res.status === 204) {
-                this.showToast('Notatka została usunięta.', 'success');
-                this.announce('Notatka została usunięta.');
+                showToast('Notatka została usunięta', 'success');
+                announce('Notatka została usunięta');
                 setTimeout(() => window.location.href = redirectUrl || '/notes', 400);
                 return;
             }
             if (res.status === 401 || res.status === 403) {
-                this.showToast('Brak uprawnień do usunięcia.', 'error');
-                this.announce('Brak uprawnień do usunięcia.');
+                showToast('Brak uprawnień do usunięcia', 'error');
+                announce('Brak uprawnień do usunięcia');
                 return;
             }
             const data = await this.safeJson(res);
-            const message = this.firstErrorMessage(data) || 'Nie udało się usunąć notatki.';
-            this.showToast(message, 'error');
-            this.announce(message);
+            const message = this.firstErrorMessage(data) || 'Nie udało się usunąć notatki';
+            showToast(message, 'error');
+            announce(message);
         } catch (error) {
             console.error('Delete note error', error);
-            this.showToast('Błąd sieci przy usuwaniu.', 'error');
+            showToast('Błąd sieci przy usuwaniu', 'error');
         } finally {
             this.toggleConfirmLoading(false);
         }
@@ -289,18 +300,18 @@ export default class extends Controller {
                 credentials: 'same-origin',
             });
             if (res.ok) {
-                this.showToast('Wygenerowano nowy URL.', 'success');
-                this.announce('Wygenerowano nowy URL.');
+                showToast('Wygenerowano nowy URL', 'success');
+                announce('Wygenerowano nowy URL');
                 setTimeout(() => window.location.reload(), 400);
                 return;
             }
             const data = await this.safeJson(res);
-            const message = this.firstErrorMessage(data) || 'Nie udało się wygenerować nowego URL.';
-            this.showToast(message, 'error');
-            this.announce(message);
+            const message = this.firstErrorMessage(data) || 'Nie udało się wygenerować nowego URL';
+            showToast(message, 'error');
+            announce(message);
         } catch (error) {
             console.error('Regenerate URL error', error);
-            this.showToast('Błąd sieci przy regeneracji.', 'error');
+            showToast('Błąd sieci przy regeneracji', 'error');
         } finally {
             this.toggleConfirmLoading(false);
         }
@@ -325,7 +336,7 @@ export default class extends Controller {
 
         const confirmBtn = this.q('[data-modal-confirm]', modal);
         confirmBtn?.focus();
-        this.announce(title || 'Potwierdź operację');
+        announce(title || 'Potwierdź operację');
     }
 
     closeConfirm() {
@@ -393,7 +404,7 @@ export default class extends Controller {
     showMessage(panel, message, variant = 'info') {
         const el = this.q('[data-collaborators-message]', panel);
         if (!el) {
-            this.showToast(message, variant === 'success' ? 'success' : 'error');
+            showToast(message, variant === 'success' ? 'success' : 'error');
             return;
         }
         const closeBtn = this.q('[data-collaborators-message-close]', el);
@@ -428,49 +439,67 @@ export default class extends Controller {
         const row = document.createElement('div');
         row.className = 'px-4 py-3 flex flex-wrap items-center justify-between gap-3';
         row.setAttribute('data-collaborator-row', 'true');
-        row.setAttribute('data-collaborator-id', collaborator.id ?? 'new');
+        row.setAttribute('data-collaborator-id', (collaborator.id ?? 'new').toString());
         row.setAttribute('data-collaborator-email', (collaborator.email || '').toLowerCase());
 
-        const role = collaborator.isOwner ? 'Właściciel' : collaborator.isSelf ? 'Ty' : 'Współedytor';
-        const canRemove = ctx.canEdit && !collaborator.isOwner;
-        const removeBtnHtml = canRemove
-            ? `<div class="flex items-center gap-2">
-                    <button type="button" class="text-sm text-red-600 hover:text-red-800 font-semibold" data-remove-collaborator data-remove-url="${collaborator.removeUrl || ''}" ${collaborator.isSelf ? 'data-self-remove="true"' : ''}>
-                        ${collaborator.isSelf ? 'Usuń mój dostęp' : 'Usuń'}
-                    </button>
-               </div>`
-            : '';
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'space-y-0.5';
 
-        row.innerHTML = `
-            <div class="space-y-0.5">
-                <p class="font-semibold text-slate-900">${this.escapeHtml(collaborator.email || '')}</p>
-                <p class="text-xs text-slate-500">${role}</p>
-            </div>
-            ${removeBtnHtml}
-        `;
+        const emailP = document.createElement('p');
+        emailP.className = 'font-semibold text-slate-900';
+        emailP.textContent = collaborator.email || '';
+
+        const roleP = document.createElement('p');
+        roleP.className = 'text-xs text-slate-500';
+        roleP.textContent = collaborator.isOwner ? 'Właściciel' : collaborator.isSelf ? 'Ty' : 'Współedytor';
+
+        infoDiv.appendChild(emailP);
+        infoDiv.appendChild(roleP);
+        row.appendChild(infoDiv);
+
+        const canRemove = ctx.canEdit && !collaborator.isOwner;
+        if (canRemove) {
+            const btnDiv = document.createElement('div');
+            btnDiv.className = 'flex items-center gap-2';
+
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'text-sm text-red-600 hover:text-red-800 font-semibold';
+            btn.setAttribute('data-remove-collaborator', '');
+            btn.setAttribute('data-remove-url', collaborator.removeUrl || '');
+            if (collaborator.isSelf) btn.setAttribute('data-self-remove', 'true');
+            btn.textContent = collaborator.isSelf ? 'Usuń mój dostęp' : 'Usuń';
+
+            btnDiv.appendChild(btn);
+            row.appendChild(btnDiv);
+
+            this.on(btn, 'click', (event) => {
+                event.preventDefault();
+                const url = btn.getAttribute('data-remove-url');
+                const isSelf = btn.getAttribute('data-self-remove') === 'true';
+                if (!url) return;
+
+                const email = collaborator.email || 'tego współedytora';
+
+                if (isSelf) {
+                    this.openConfirm({
+                        title: 'Usuń swój dostęp',
+                        description: 'Utracisz możliwość edycji tej notatki.',
+                        confirmLabel: 'Usuń mój dostęp',
+                        onConfirm: () => this.removeCollaborator(url, true, ctx.redirectUrl),
+                    });
+                } else {
+                    this.openConfirm({
+                        title: 'Usuń współedytora',
+                        description: `Czy na pewno chcesz usunąć dostęp dla ${email}?`,
+                        confirmLabel: 'Usuń współedytora',
+                        onConfirm: () => this.removeCollaborator(url, false, ctx.redirectUrl, listEl, row),
+                    });
+                }
+            });
+        }
 
         listEl.appendChild(row);
-        if (canRemove) {
-            const btn = row.querySelector('[data-remove-collaborator]');
-            if (btn) {
-                this.on(btn, 'click', (event) => {
-                    event.preventDefault();
-                    const url = btn.getAttribute('data-remove-url');
-                    const isSelf = btn.getAttribute('data-self-remove') === 'true';
-                    if (!url) return;
-                    if (isSelf) {
-                        this.openConfirm({
-                            title: 'Usuń swój dostęp',
-                            description: 'Utracisz możliwość edycji tej notatki.',
-                            confirmLabel: 'Usuń mój dostęp',
-                            onConfirm: () => this.removeCollaborator(url, true, ctx.redirectUrl),
-                        });
-                        return;
-                    }
-                    this.removeCollaborator(url, false, ctx.redirectUrl, listEl, row);
-                });
-            }
-        }
     }
 
     ensureEmptyState(listEl) {
@@ -480,7 +509,7 @@ export default class extends Controller {
             const empty = document.createElement('div');
             empty.className = 'px-4 py-3 text-sm text-slate-500';
             empty.setAttribute('data-collaborators-empty', 'true');
-            empty.textContent = 'Brak współedytorów.';
+            empty.textContent = 'Brak współpracowników';
             listEl.appendChild(empty);
         }
     }
@@ -491,24 +520,11 @@ export default class extends Controller {
         return div.innerHTML;
     }
 
-    showToast(message, variant = 'info') {
-        const stack = document.getElementById('toast-stack');
-        if (!stack) return;
-        const el = document.createElement('div');
-        el.className = 'min-w-[240px] max-w-sm rounded-xl border px-4 py-3 text-sm font-semibold shadow-lg flex items-start gap-2 ' +
-            (variant === 'success'
-                ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-                : 'border-red-200 bg-red-50 text-red-800');
-        el.textContent = message;
-        stack.appendChild(el);
-        setTimeout(() => el.remove(), 3000);
-    }
-
-    announce(message) {
-        const region = document.querySelector('[data-global-aria-live]');
-        if (region) {
-            region.textContent = message;
-        }
+    redirectToLogin(message = 'Sesja wygasła. Zaloguj się ponownie') {
+        showToast(message, 'error');
+        announce(message);
+        setTimeout(() => {
+            window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname);
+        }, 1200);
     }
 }
-

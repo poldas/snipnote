@@ -179,6 +179,54 @@ final class NoteServiceTest extends TestCase
         self::assertSame($note, $result);
     }
 
+    public function testGetNotePreviewReturnsPublicNote(): void
+    {
+        $owner = new User('owner@example.com', 'hash');
+        $note = new Note($owner, 't', 'd', visibility: NoteVisibility::Public);
+        $note->setUrlToken('uuid');
+
+        $noteRepository = $this->createMock(NoteRepository::class);
+        $noteRepository
+            ->expects(self::once())
+            ->method('findByUrlToken')
+            ->with('uuid')
+            ->willReturn($note);
+
+        $service = new NoteService(
+            $this->entityManager,
+            $noteRepository,
+            $this->collaboratorRepository,
+        );
+
+        $result = $service->getNotePreview('uuid', null);
+
+        self::assertSame($note, $result);
+    }
+
+    public function testGetNotePreviewAllowsOwnerForPrivateNote(): void
+    {
+        $owner = new User('owner@example.com', 'hash');
+        $note = new Note($owner, 't', 'd', visibility: NoteVisibility::Private);
+        $note->setUrlToken('uuid');
+
+        $noteRepository = $this->createMock(NoteRepository::class);
+        $noteRepository
+            ->expects(self::once())
+            ->method('findByUrlToken')
+            ->with('uuid')
+            ->willReturn($note);
+
+        $service = new NoteService(
+            $this->entityManager,
+            $noteRepository,
+            $this->collaboratorRepository,
+        );
+
+        $result = $service->getNotePreview('uuid', $owner);
+
+        self::assertSame($note, $result);
+    }
+
     public function testDeleteNoteRequiresOwner(): void
     {
         $owner = new User('owner@example.com', 'hash');

@@ -31,7 +31,7 @@ final class PublicNotePageController extends AbstractController
         $notePayload = null;
 
         try {
-            $note = $this->noteService->getPublicNoteByToken($urlToken);
+            $note = $this->noteService->getNotePreview($urlToken, $user);
 
             $preview = $this->markdownPreviewService->renderPreview(
                 new GenerateMarkdownPreviewCommand($note->getDescription())
@@ -56,10 +56,16 @@ final class PublicNotePageController extends AbstractController
             $errorCode = 0;
         }
 
-        return $this->render('public_note.html.twig', [
+        $response = $this->render('public_note.html.twig', [
             'note' => $notePayload,
             'errorCode' => $errorCode,
         ]);
+
+        if ($errorCode !== null && $errorCode !== 0) {
+            $response->setStatusCode($errorCode);
+        }
+
+        return $response;
     }
 
     private function buildLoginUrl(string $urlToken): string

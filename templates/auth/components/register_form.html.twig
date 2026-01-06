@@ -12,13 +12,13 @@
 <form action="{{ action }}" method="post" class="space-y-4" hx-boost="false" data-turbo="false">
     <input type="hidden" name="_csrf_token" value="{{ csrfToken }}">
 
-    {% include 'auth/components/global_error_banner.html.twig' with { messages: globalErrors } %}
+    {% include 'components/alert.html.twig' with { messages: globalErrors } %}
 
     {% include 'auth/components/form_field.html.twig' with {
         config: {
             id: 'reg-email',
             name: 'email',
-            label: 'Email',
+            label: 'Adres email',
             type: 'email',
             placeholder: 'your@email.com',
             autocomplete: 'email',
@@ -62,18 +62,19 @@
     } %}
 
     <button type="submit"
+            data-testid="register-submit-btn"
             class="w-full inline-flex items-center justify-center rounded-2xl text-white px-4 py-3 font-semibold shadow-lg shadow-indigo-500/25 transition-all disabled:opacity-70 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#c7d2fe] focus:ring-offset-2 focus:ring-offset-white hover:translate-y-[-1px] active:translate-y-0.5 btn-auth-primary"
             {% if pending %}disabled{% endif %}
             hx-disabled-elt="this">
         {% if pending %}
             <span class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/60 border-t-transparent"></span>
         {% endif %}
-        Utwórz konto
+        Załóż konto
     </button>
 
 <p class="text-sm text-slate-700 text-center">
     Masz już konto?
-    <a href="/login" data-test-id="register-link-login" class="text-indigo-600 hover:text-indigo-800 font-semibold underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-300 transition-colors">Zaloguj się</a>
+    <a href="/login" data-testid="register-link-login" class="text-indigo-600 hover:text-indigo-800 font-semibold underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-300 transition-colors">Zaloguj się</a>
 </p>
 </form>
 

@@ -53,7 +53,7 @@ test.describe('Auth visual regression', () => {
         await landing.takeScreenshot('landing-initial');
 
         // Hover logo
-        await page.locator('[data-test-id="logo-home-link"]').hover();
+        await page.getByTestId('logo-home-link').first().hover();
         await page.waitForTimeout(500);
         await landing.takeScreenshot('landing-logo-hover');
 

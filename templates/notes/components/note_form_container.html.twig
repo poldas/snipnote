@@ -22,11 +22,11 @@
         {% block page_header %}{% endblock %}
 
         <!-- Form Content -->
-        <div class="p-8 space-y-8">
+        <div class="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
             {% block form_content %}{% endblock %}
 
             {% if showPublicLink and publicUrl %}
-                {% include 'notes/components/public_link_info.html.twig' with {
+                {% include 'notes/components/public_link.html.twig' with {
                     publicUrl: publicUrl,
                     visibility: 'public'
                 } %}

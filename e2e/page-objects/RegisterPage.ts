@@ -24,15 +24,15 @@ export class RegisterPage {
         await expect(this.page.locator('input[name="password"]')).toBeVisible();
         await expect(this.page.locator('input[name="passwordConfirm"]')).toBeVisible();
         await expect(this.page.getByRole('button', { name: 'Załóż konto' })).toBeVisible();
-        await expect(this.page.locator('[data-test-id="register-link-login"]')).toBeVisible();
+        await expect(this.page.getByTestId('register-link-login')).toBeVisible();
     }
 
     async clickLoginLink() {
-        await this.page.locator('[data-test-id="register-link-login"]').click();
+        await this.page.getByTestId('register-link-login').click();
     }
 
     async clickLogoHome() {
-        await this.page.locator('[data-test-id="logo-home-link"]').click();
+        await this.page.getByTestId('logo-home-link').click();
     }
 
     async takeScreenshot(name: string) {

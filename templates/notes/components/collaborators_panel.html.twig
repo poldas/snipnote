@@ -9,49 +9,47 @@
     - redirectUrlOnSelfRemove (string)
     - currentUserEmail (string)
 #}
-<section class="bg-white/95 backdrop-blur-2xl rounded-2xl p-6 border-2 border-indigo-200 shadow-xl border border-white/30" data-collaborators-panel data-note-id="{{ noteId }}" data-add-url="{{ addUrl }}" data-current-user-email="{{ currentUserEmail }}" data-owner-email="{{ items is not empty and items[0].isOwner ? items[0].email : '' }}" data-can-edit="{{ canEdit ? 'true' : 'false' }}">
+<section class="bg-white/95 backdrop-blur-2xl rounded-2xl p-4 sm:p-6 border-2 border-indigo-200 shadow-xl border border-white/30" data-collaborators-panel data-note-id="{{ noteId }}" data-add-url="{{ addUrl }}" data-current-user-email="{{ currentUserEmail }}" data-owner-email="{{ items is not empty and items[0].isOwner ? items[0].email : '' }}" data-can-edit="{{ canEdit ? 'true' : 'false' }}">
     <div class="flex items-center justify-between gap-4 mb-5">
         <div>
-            <h2 class="text-xl font-bold text-gray-900 mb-1">👥 Współedytorzy</h2>
-            <p class="text-sm text-gray-600 font-medium">Osoby z dostępem do edycji tej notatki</p>
+            <h2 class="text-lg sm:text-xl font-bold text-gray-900 mb-1">👥 Współpracownicy</h2>
+            <p class="text-xs sm:text-sm text-gray-600 font-medium">Osoby z dostępem do edycji tej notatki</p>
         </div>
-        <span class="px-4 py-2 rounded-full bg-gradient-to-r from-emerald-400 to-green-500 text-white shadow-lg text-sm font-bold">
-            Dostęp do edycji
-        </span>
+
     </div>
 
     <form class="flex flex-col sm:flex-row gap-3 mb-5" data-collaborator-add-form>
-        <input type="email" id="collaborator-email" name="email" required data-collaborator-email class="input-modern flex-1 px-6 py-3 border-2 border-indigo-200 rounded-xl bg-white text-gray-900 placeholder-gray-400 shadow-md hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-indigo-300 focus:border-indigo-400 font-medium" placeholder="email@przyklad.com">
-        <button type="submit" data-collaborator-add class="btn-gradient inline-flex items-center justify-center gap-2 px-6 py-3 text-white rounded-xl font-bold text-sm shadow-lg hover:shadow-2xl">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" class="h-5 w-5" stroke="currentColor" stroke-width="2">
+        <input type="email" id="collaborator-email" name="email" required data-collaborator-email class="input-modern flex-1 px-4 sm:px-6 py-2.5 sm:py-3 border-2 border-indigo-200 rounded-xl bg-white text-gray-900 placeholder-gray-400 shadow-md hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-indigo-300 focus:border-indigo-400 font-medium text-sm sm:text-base" placeholder="email@przyklad.com">
+        <button type="submit" data-collaborator-add class="btn-gradient inline-flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 text-white rounded-xl font-bold text-xs sm:text-sm shadow-lg hover:shadow-2xl">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" class="h-4 w-4 sm:h-5 sm:w-5" stroke="currentColor" stroke-width="2">
                 <path d="M10 4v12M4 10h12" stroke-linecap="round" />
             </svg>
-            Dodaj współedytora
+            Dodaj
         </button>
     </form>
 
     <div class="bg-white/90 backdrop-blur-xl rounded-xl border border-indigo-100 divide-y divide-indigo-100 shadow-inner" data-collaborators-list>
         {% if items is empty %}
-            <div class="px-5 py-4 text-sm text-gray-500" data-collaborators-empty>Brak współedytorów.</div>
+            <div class="px-4 sm:px-5 py-3 sm:py-4 text-xs sm:text-sm text-gray-500" data-collaborators-empty>Brak współpracowników.</div>
         {% else %}
             {% for collaborator in items %}
-                <div class="px-5 py-4 flex items-center justify-between" data-collaborator-row data-collaborator-id="{{ collaborator.id ?? 'owner' }}" data-collaborator-email="{{ collaborator.email|lower }}">
-                    <div class="space-y-0.5">
-                        <p class="font-bold text-gray-900">{{ collaborator.email }}</p>
-                        <p class="text-sm text-indigo-600 font-semibold">
-                            {% if collaborator.isOwner %}👑 Właściciel{% elseif collaborator.isSelf %}👤 Ty{% else %}👥 Współedytor{% endif %}
+                <div class="px-4 sm:px-5 py-3 sm:py-4 flex items-center justify-between gap-3" data-collaborator-row data-collaborator-id="{{ collaborator.id ?? 'owner' }}" data-collaborator-email="{{ collaborator.email|lower }}">
+                    <div class="space-y-0.5 min-w-0">
+                        <p class="font-bold text-gray-900 text-sm sm:text-base truncate">{{ collaborator.email }}</p>
+                        <p class="text-xs sm:text-sm text-indigo-600 font-semibold">
+                            {% if collaborator.isOwner %}👑 Właściciel{% elseif collaborator.isSelf %}👤 Ty{% else %}👥 Współpracownik{% endif %}
                         </p>
                     </div>
                     {% if canEdit and not collaborator.isOwner %}
-                        <div class="flex items-center gap-2">
+                        <div class="flex-shrink-0">
                             <button
                                 type="button"
-                                class="text-sm text-red-600 hover:text-red-800 font-semibold"
+                                class="text-xs sm:text-sm text-red-600 hover:text-red-800 font-semibold"
                                 data-remove-collaborator
                                 data-remove-url="{{ collaborator.removeUrl }}"
                                 {% if collaborator.isSelf %}data-self-remove="true"{% endif %}
                             >
-                                {% if collaborator.isSelf %}Usuń mój dostęp{% else %}Usuń{% endif %}
+                                {% if collaborator.isSelf %}<span class="hidden sm:inline">Usuń mój dostęp</span><span class="sm:hidden">Usuń</span>{% else %}Usuń{% endif %}
                             </button>
                         </div>
                     {% endif %}

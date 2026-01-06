@@ -51,7 +51,7 @@ test.describe('UI Hover Effects - Complete Suite', () => {
 
         // Act - Test various hover interactions
         const primaryCTA = page.getByRole('link', { name: 'Rozpocznij za darmo' });
-        const logo = page.locator('[data-test-id="logo-home-link"]');
+        const logo = page.getByTestId('logo-home-link').first();
 
         // Assert - Elements remain accessible after hover
         await primaryCTA.hover();

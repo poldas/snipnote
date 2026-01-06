@@ -3,12 +3,19 @@
 {% block title %}Potwierdź email | Snipnote{% endblock %}
 
 {% block auth_hero %}
-    <div class="text-center space-y-3 sm:space-y-4 lg:text-left">
-        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-indigo-950">Sprawdź swoją skrzynkę email</h1>
-        <p class="text-base sm:text-lg lg:text-xl text-slate-600 px-2 lg:px-0">Wysłaliśmy link aktywacyjny na podany adres email.</p>
-        <p class="text-sm text-indigo-600 bg-indigo-50 px-3 sm:px-4 py-2 rounded-lg mx-2 sm:mx-0 lg:mx-0">
+    <div class="space-y-4">
+        <h1 class="text-3xl lg:text-4xl font-bold text-indigo-950">Sprawdź swoją skrzynkę email</h1>
+        <p class="text-lg lg:text-xl text-slate-600">Wysłaliśmy link aktywacyjny na podany adres email.</p>
+        <p class="text-sm text-indigo-600 bg-indigo-50 px-4 py-2 rounded-lg inline-block">
             Krok 2 z 2 - potwierdź rejestrację
         </p>
+    </div>
+{% endblock %}
+
+{% block auth_hero_mobile %}
+    <div class="space-y-2">
+        <h1 class="text-2xl font-bold text-indigo-950">Potwierdź e-mail</h1>
+        <p class="text-sm text-slate-600">Sprawdź swoją skrzynkę.</p>
     </div>
 {% endblock %}
 
@@ -28,27 +35,11 @@
     <div class="bg-white/90 backdrop-blur-lg rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200/50 p-6 sm:p-8">
             <div class="space-y-6">
                 <!-- Status Message -->
-                {% set toneClasses = {
-                    'success': 'border-emerald-200 bg-emerald-50 text-emerald-800',
-                    'warning': 'border-amber-200 bg-amber-50 text-amber-900',
-                    'info': 'border-indigo-100 bg-indigo-50 text-indigo-900'
-                }[variant] ?? 'border-indigo-100 bg-indigo-50 text-indigo-900' %}
-                {% set stepsTextClasses = {
-                    'success': 'text-emerald-800',
-                    'warning': 'text-amber-900',
-                    'info': 'text-indigo-800'
-                }[variant] ?? 'text-indigo-800' %}
-
-                <div class="rounded-xl border {{ toneClasses }} px-4 py-3">
-                    <p class="text-sm font-semibold">{{ message }}</p>
-                    {% if steps is not empty %}
-                        <ul class="mt-2 text-sm space-y-1 {{ stepsTextClasses }}">
-                            {% for item in steps %}
-                                <li>• {{ item }}</li>
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                </div>
+                {% include 'components/alert.html.twig' with {
+                    type: variant == 'invalid' ? 'warning' : 'info',
+                    title: message,
+                    messages: steps|map(s => '• ' ~ s)
+                } %}
 
                 <!-- Resend Form -->
                 <div class="border-t border-slate-200/50 pt-6">

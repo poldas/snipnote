@@ -1,19 +1,18 @@
-{% set size = size ?? 'default' %}
 {% set subtitle = subtitle ?? 'Twórz i udostępniaj notatki' %}
 {% set href = href ?? '/' %}
 {% set dataTestId = dataTestId ?? 'logo-home-link' %}
 
-<a href="{{ href }}" data-test-id="{{ dataTestId }}" class="inline-flex items-center gap-2 sm:gap-3 group">
+<a href="{{ href }}" data-testid="{{ dataTestId }}" class="inline-flex items-center gap-2 sm:gap-3 group">
     <div class="relative">
         <div class="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl sm:rounded-2xl blur-md opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
-        <div class="relative {{ size == 'small' ? 'w-10 h-10' : 'w-10 h-10 sm:w-12 sm:h-12' }} bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold {{ size == 'small' ? 'text-xl' : 'text-xl sm:text-2xl' }} shadow-lg transform group-hover:scale-110 transition-transform duration-300">
+        <div class="relative w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-xl sm:text-2xl shadow-lg transform group-hover:scale-110 transition-transform duration-300">
             S
         </div>
     </div>
     <div class="leading-tight">
         <div class="text-lg sm:text-xl font-semibold text-indigo-900">Snipnote</div>
         {% if subtitle %}
-            <div class="text-xs sm:text-sm text-indigo-700/80">{{ subtitle }}</div>
+            <div class="text-xs sm:text-sm text-indigo-700/80 hidden sm:block">{{ subtitle }}</div>
         {% endif %}
     </div>
 </a>

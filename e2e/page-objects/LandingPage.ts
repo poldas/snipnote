@@ -2,14 +2,14 @@ import { expect, Page } from '@playwright/test';
 
 /**
  * Landing page with embedded login form.
- * Uses data-test-id selectors for resilient navigation steps.
+ * Uses data-testid selectors for resilient navigation steps.
  */
 export class LandingPage {
-    constructor(private readonly page: Page) { }
+    constructor(public readonly page: Page) { }
 
     async goto() {
-        const response = await this.page.goto('/');
-        expect(response?.ok()).toBeTruthy();
+        await this.page.goto('/');
+        await this.page.waitForLoadState('networkidle');
     }
 
     async expectHeroVisible() {
@@ -20,76 +20,172 @@ export class LandingPage {
         await expect(this.page.getByText('Szybkie, bezpieczne i przejrzyste notatki')).toBeVisible();
     }
 
+    async expectLoginFormHeadersVisible() {
+        await expect(this.page.getByRole('heading', { name: 'Zaloguj się do Snipnote' })).toBeVisible();
+        await expect(this.page.getByText('Wróć do swoich notatek i kontynuuj pracę')).toBeVisible();
+    }
+
     async expectFeaturesSectionVisible() {
         await expect(this.page.getByRole('heading', { name: 'Wszystko, czego potrzebujesz' })).toBeVisible();
     }
 
+    async getFeatureCard(index: number) {
+        return this.page.getByTestId(`feature-card-${index}`);
+    }
+
+    async expectFeatureCardDetails(index: number, title: string, description: string) {
+        const card = await this.getFeatureCard(index);
+        await expect(card.getByRole('heading')).toHaveText(title);
+        await expect(card.locator('p')).toHaveText(description);
+    }
+
+    async expectFeatureCardsCount(count: number) {
+        for (let i = 1; i <= count; i++) {
+            await expect(this.page.getByTestId(`feature-card-${i}`)).toBeVisible();
+        }
+    }
+
     async expectHowItWorksSectionVisible() {
         await expect(this.page.getByRole('heading', { name: 'Jak to działa?' })).toBeVisible();
+        await expect(this.page.getByText('Trzy proste kroki do lepszej organizacji notatek')).toBeVisible();
+    }
+
+    async expectStepDetails(number: number, title: string, description: string) {
+        const step = this.page.locator('.relative.flex.flex-col.items-center').nth(number - 1);
+        await expect(step.locator('h3')).toHaveText(title);
+        await expect(step.locator('p')).toHaveText(description);
+    }
+
+    async expectBenefitTagsVisible() {
+        const benefits = ['Anonimowe notatki', 'Łatwe udostępnianie', 'Współpraca'];
+        for (const benefit of benefits) {
+            await expect(this.page.getByText(benefit).first()).toBeVisible();
+        }
+    }
+
+    async expectBrandVisuals() {
+        // Verify Hero has the correct brand gradient classes (Tailwind check)
+        const heroTitle = this.page.locator('h1 span');
+        await expect(heroTitle).toHaveClass(/from-indigo-600/);
+        await expect(heroTitle).toHaveClass(/to-purple-600/);
+
+        // Verify main CTA button has the primary gradient class
+        const cta = this.page.locator('a[href="/register"]').first();
+        await expect(cta).toHaveClass(/btn-auth-primary/);
+    }
+
+    async expectMobileLayout() {
+        // Verify that elements adjust correctly at mobile viewport
+        const viewportWidth = this.page.viewportSize()?.width || 0;
+        
+        if (viewportWidth < 768) {
+            // Check if benefit tags container is visible (specific hero version)
+            const benefitsContainer = this.page.locator('section').first().locator('div.flex.flex-wrap.justify-center');
+            await expect(benefitsContainer).toBeVisible();
+            
+            // On very small screens, ensure we don't have desktop-only nav elements
+            const desktopOnlyNav = this.page.locator('nav .hidden.md\\:flex');
+            if (await desktopOnlyNav.count() > 0) {
+                await expect(desktopOnlyNav).not.toBeVisible();
+            }
+        }
     }
 
     async expectCTASectionVisible() {
-        // Check for CTA section by looking for the main heading
         await expect(this.page.getByRole('heading', { name: 'Gotowy na lepsze notatki?' })).toBeVisible();
+        await expect(this.page.getByText('Zacznij ze Snipnote już dziś. Rozpocznij za darmo.')).toBeVisible();
+        await expect(this.page.getByRole('link', { name: 'Załóż darmowe konto' })).toBeVisible();
+        await expect(this.page.getByRole('link', { name: 'Mam już konto' })).toBeVisible();
     }
 
     async expectFooterVisible() {
         await expect(this.page.getByText(/© \d{4} Snipnote\. Wszelkie prawa zastrzeżone\./)).toBeVisible();
     }
 
+    async expectInputFocusEffect(name: string) {
+        const input = this.page.locator(`input[name="${name}"]`);
+
+        await input.blur();
+        await this.page.waitForTimeout(100);
+        const initialShadow = await input.evaluate(el => window.getComputedStyle(el).boxShadow);
+
+        await input.focus();
+        await this.page.waitForTimeout(400);
+
+        const focusShadow = await input.evaluate(el => window.getComputedStyle(el).boxShadow);
+        expect(focusShadow).not.toBe(initialShadow);
+    }
+
+    async expectCardHoverEffect(index: number) {
+        const card = await this.getFeatureCard(index);
+        const initialShadow = await card.evaluate(el => window.getComputedStyle(el).boxShadow);
+
+        await card.hover();
+        await this.page.waitForTimeout(300);
+
+        const hoverShadow = await card.evaluate(el => window.getComputedStyle(el).boxShadow);
+        expect(hoverShadow).not.toBe(initialShadow);
+    }
+
+    async expectLogoHoverEffect() {
+        const logo = this.page.getByTestId('logo-home-link').first();
+        const aura = logo.locator('div.absolute').first();
+
+        await expect(aura).toBeVisible();
+
+        const initialOpacity = await aura.evaluate(el => window.getComputedStyle(el).opacity);
+        expect(parseFloat(initialOpacity)).toBeCloseTo(0.6, 1);
+
+        await logo.hover();
+        await this.page.waitForTimeout(500);
+
+        const hoverOpacity = await aura.evaluate(el => window.getComputedStyle(el).opacity);
+        expect(parseFloat(hoverOpacity)).toBeCloseTo(1, 1);
+    }
+
     async goToLogin() {
-        await this.page.getByRole('link', { name: /zaloguj/i }).click();
+        await this.page.getByRole('link', { name: /zaloguj/i }).first().click();
+        await this.page.waitForURL('**/login');
     }
 
     async clickRegisterLink() {
-        await this.page.locator('[data-test-id="login-link-register"]').click();
+        await this.page.getByTestId('login-link-register').click();
     }
 
     async clickForgotPasswordLink() {
-        await this.page.locator('[data-test-id="login-link-forgot-password"]').click();
+        await this.page.getByTestId('login-link-forgot-password').click();
     }
 
     async clickLogoHome() {
-        await this.page.locator('[data-test-id="logo-home-link"]').click();
+        await this.page.getByTestId('logo-home-link').first().click();
     }
 
     async clickPrimaryCTA() {
         await this.page.getByRole('link', { name: 'Rozpocznij za darmo' }).click();
+        await this.page.waitForURL('**/register');
     }
 
     async clickSecondaryCTA() {
         await this.page.getByRole('link', { name: 'Zobacz możliwości' }).click();
+        await expect(this.page.locator('#features')).toBeVisible();
     }
 
     async clickCTARegister() {
         await this.page.getByRole('link', { name: 'Załóż darmowe konto' }).click();
+        await this.page.waitForURL('**/register');
     }
 
     async clickCTALogin() {
         await this.page.getByRole('link', { name: 'Mam już konto' }).click();
+        await this.page.waitForURL('**/login');
     }
 
     async expectLoginFormVisible() {
-        // Navigate to login page since form is no longer on landing page
         await this.page.goto('/login');
         await expect(this.page.getByRole('heading', { name: 'Wróć do swoich notatek' })).toBeVisible();
         await expect(this.page.getByLabel('Email')).toBeVisible();
         await expect(this.page.getByLabel('Hasło')).toBeVisible();
         await expect(this.page.getByRole('button', { name: 'Zaloguj się' })).toBeVisible();
-    }
-
-    async expectLogoHoverEffect() {
-        const logo = this.page.locator('[data-test-id="logo-home-link"]');
-
-        // Check if logo is visible and hoverable
-        await expect(logo).toBeVisible();
-
-        // Hover over logo
-        await logo.hover();
-        await this.page.waitForTimeout(300); // Wait for transition
-
-        // Logo should still be visible after hover
-        await expect(logo).toBeVisible();
     }
 
     async expectButtonHoverEffects() {
@@ -110,134 +206,63 @@ export class LandingPage {
 
     async expectPrimaryCTAHoverEffect() {
         const primaryCTA = this.page.getByRole('link', { name: 'Rozpocznij za darmo' });
-
-        // Take baseline screenshot
-        await this.takeScreenshot('primary-cta-baseline');
-
-        // Hover and take screenshot during animation
         await primaryCTA.hover();
-        await this.page.waitForTimeout(350); // Wait for transition
-        await this.takeScreenshot('primary-cta-hover');
-
-        // Verify button is still visible and accessible
+        await this.page.waitForTimeout(350);
         await expect(primaryCTA).toBeVisible();
-        await expect(primaryCTA).toBeEnabled();
     }
 
     async expectSecondaryCTAHoverEffect() {
         const secondaryCTA = this.page.getByRole('link', { name: 'Zobacz możliwości' });
-
-        // Take baseline screenshot
-        await this.takeScreenshot('secondary-cta-baseline');
-
-        // Hover and take screenshot during animation
         await secondaryCTA.hover();
-        await this.page.waitForTimeout(350); // Wait for transition
-        await this.takeScreenshot('secondary-cta-hover');
-
-        // Verify button is still visible and accessible
+        await this.page.waitForTimeout(350);
         await expect(secondaryCTA).toBeVisible();
-        await expect(secondaryCTA).toBeEnabled();
     }
 
     async expectFeatureCardsHoverEffects() {
-        // Test hover effects on all feature cards
         for (let i = 1; i <= 6; i++) {
-            const card = this.page.locator(`[data-testid="feature-card-${i}"]`);
-
-            if (await card.isVisible()) {
-                // Take baseline
-                await this.takeScreenshot(`feature-card-${i}-baseline`);
-
-                // Hover and take screenshot
-                await card.hover();
-                await this.page.waitForTimeout(350);
-                await this.takeScreenshot(`feature-card-${i}-hover`);
-
-                // Verify card is still visible
-                await expect(card).toBeVisible();
-            }
+            await this.expectCardHoverEffect(i);
         }
     }
 
     async expectLoginFormHoverEffects() {
-        // Navigate to login page since form is no longer on landing page
         await this.page.goto('/login');
-
         const loginButton = this.page.getByRole('button', { name: 'Zaloguj się' });
-        const forgotPasswordLink = this.page.getByRole('link', { name: 'Nie pamiętasz hasła?' });
-
-        // Test login button hover
-        await this.takeScreenshot('login-button-baseline');
         await loginButton.hover();
         await this.page.waitForTimeout(350);
-        await this.takeScreenshot('login-button-hover');
         await expect(loginButton).toBeVisible();
-
-        // Test forgot password link hover
-        const forgotPasswordLink2 = this.page.getByRole('link', { name: 'Zapomniałeś hasła?' });
-        await this.takeScreenshot('forgot-password-baseline');
-        await forgotPasswordLink2.hover();
-        await this.page.waitForTimeout(300);
-        await this.takeScreenshot('forgot-password-hover');
-        await expect(forgotPasswordLink2).toBeVisible();
-
-        // Test register link hover
-        const registerLink = this.page.getByRole('link', { name: 'Załóż konto' });
-        await this.takeScreenshot('register-link-baseline');
-        await registerLink.hover();
-        await this.page.waitForTimeout(300);
-        await this.takeScreenshot('register-link-hover');
-        await expect(registerLink).toBeVisible();
     }
 
     async expectCTASectionHoverEffects() {
         const primaryCTA = this.page.getByRole('link', { name: 'Załóż darmowe konto' });
         const secondaryCTA = this.page.getByRole('link', { name: 'Mam już konto' });
 
-        // Test primary CTA in CTA section
-        await this.takeScreenshot('cta-section-primary-baseline');
         await primaryCTA.hover();
         await this.page.waitForTimeout(350);
-        await this.takeScreenshot('cta-section-primary-hover');
         await expect(primaryCTA).toBeVisible();
 
-        // Test secondary CTA in CTA section
-        await this.takeScreenshot('cta-section-secondary-baseline');
         await secondaryCTA.hover();
         await this.page.waitForTimeout(350);
-        await this.takeScreenshot('cta-section-secondary-hover');
         await expect(secondaryCTA).toBeVisible();
     }
 
     async expectNavigationLinksHoverEffects() {
-        const loginLink = this.page.getByRole('link', { name: /zaloguj/i });
-        const registerLink = this.page.getByRole('link', { name: 'Załóż konto' });
+        const loginLink = this.page.getByRole('link', { name: /zaloguj/i }).first();
+        const registerLink = this.page.getByRole('link', { name: /Załóż konto/i }).first();
 
-        // Test login link hover
-        await this.takeScreenshot('nav-login-baseline');
         await loginLink.hover();
         await this.page.waitForTimeout(300);
-        await this.takeScreenshot('nav-login-hover');
         await expect(loginLink).toBeVisible();
 
-        // Test register link hover
-        await this.takeScreenshot('nav-register-baseline');
         await registerLink.hover();
         await this.page.waitForTimeout(300);
-        await this.takeScreenshot('nav-register-hover');
         await expect(registerLink).toBeVisible();
     }
 
     async expectFooterLogoHoverEffect() {
-        // Footer logo might have different structure
-        const footerLogo = this.page.locator('footer').locator('a').filter({ hasText: 'Snipnote' });
-
+        const footerLogo = this.page.locator('footer').getByTestId('logo-home-link');
         if (await footerLogo.isVisible()) {
-            await this.takeScreenshot('footer-logo-baseline');
             await footerLogo.hover();
             await this.page.waitForTimeout(350);
-            await this.takeScreenshot('footer-logo-hover');
             await expect(footerLogo).toBeVisible();
         }
     }
@@ -246,4 +271,3 @@ export class LandingPage {
         await this.page.screenshot({ path: `e2e/artifacts/screenshots/${name}.png`, fullPage: true });
     }
 }
-

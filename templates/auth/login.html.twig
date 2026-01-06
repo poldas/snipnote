@@ -3,87 +3,31 @@
 {% block title %}Zaloguj się | Snipnote{% endblock %}
 
 {% block auth_hero %}
-    <div class="text-center space-y-3 sm:space-y-4 lg:text-left">
-        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-indigo-950">Wróć do swoich notatek</h1>
-        <p class="text-base sm:text-lg lg:text-xl text-slate-600 px-2 lg:px-0">Zaloguj się, aby zarządzać notatkami i współpracować z zespołem.</p>
+    <div class="space-y-4">
+        <h1 class="text-3xl lg:text-4xl font-bold text-indigo-950">Wróć do swoich notatek</h1>
+        <p class="text-lg lg:text-xl text-slate-600">Zaloguj się, aby zarządzać notatkami i współpracować z zespołem.</p>
         {% if redirect %}
-            <p class="text-sm text-indigo-600 bg-indigo-50 px-3 sm:px-4 py-2 rounded-lg mx-2 sm:mx-0 lg:mx-0">
+            <p class="text-sm text-indigo-600 bg-indigo-50 px-4 py-2 rounded-lg inline-block">
                 Po zalogowaniu wrócisz do docelowej strony
             </p>
         {% endif %}
     </div>
 {% endblock %}
 
-{% block auth_content %}
-    <div class="bg-white/90 backdrop-blur-lg rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200/50 p-6 sm:p-8">
-        {% set errors = errors ?? [] %}
-        {% set prefill = prefill ?? {} %}
-        {% set pending = pending ?? false %}
-
-        <form action="/login" method="post" class="space-y-6" hx-boost="false">
-            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
-            {% if redirect %}
-                <input type="hidden" name="redirect" value="{{ redirect }}">
-            {% endif %}
-
-            {% include 'auth/components/error_alert.html.twig' with {
-                messages: errors|filter(e => e.field is not defined or e.field is null)|map(e => e.message),
-                title: 'Błąd logowania'
-            } %}
-
-            <div class="space-y-4">
-                {% include 'auth/components/form_field.html.twig' with {
-                    label: 'Email',
-                    type: 'email',
-                    name: 'email',
-                    value: prefill.email ?? '',
-                    placeholder: 'your@email.com',
-                    required: true,
-                    autoFocus: true,
-                    error: (errors|filter(e => (e.field ?? null) == 'email')|first).message ?? null
-                } %}
-
-                {% include 'auth/components/form_field.html.twig' with {
-                    label: 'Hasło',
-                    type: 'password',
-                    name: 'password',
-                    placeholder: '••••••••',
-                    required: true,
-                    error: (errors|filter(e => (e.field ?? null) == 'password')|first).message ?? null
-                } %}
-            </div>
-
-            <button
-                type="submit"
-                class="w-full py-3 btn-auth-primary rounded-xl font-semibold shadow-lg shadow-indigo-500/25 transition-all disabled:opacity-70 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#c7d2fe] focus:ring-offset-2 focus:ring-offset-white hover:translate-y-[-1px] active:translate-y-0.5"
-                {% if pending %}disabled{% endif %}
-                hx-disabled-elt="this"
-            >
-                {% if pending %}
-                    <span class="flex items-center justify-center gap-2">
-                        <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Logowanie...
-                    </span>
-                {% else %}
-                    Zaloguj się
-                {% endif %}
-            </button>
-
-            <div class="text-center space-y-2">
-                <a href="/forgot-password" data-test-id="login-link-forgot-password" class="text-sm text-indigo-600 hover:text-indigo-800 transition-colors">
-                    Zapomniałeś hasła?
-                </a>
-                <div class="text-sm text-slate-600">
-                    Nie masz konta?
-                    <a href="/register" data-test-id="login-link-register" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
-                        Zarejestruj się
-                    </a>
-                </div>
-            </div>
-        </form>
+{% block auth_hero_mobile %}
+    <div class="space-y-2">
+        <h1 class="text-2xl font-bold text-indigo-950">Zaloguj się</h1>
+        <p class="text-sm text-slate-600">Witaj ponownie w Snipnote.</p>
     </div>
 {% endblock %}
 
+{% block auth_content %}
+    <div class="bg-white/90 backdrop-blur-lg rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200/50 p-6 sm:p-8 transform hover:scale-[1.01] transition-all">
+        {% include 'auth/components/login_form.html.twig' with {
+            errors: errors ?? [],
+            prefill: prefill ?? {},
+            pending: pending ?? false,
+            redirect: redirect ?? null
+        } %}
+    </div>
+{% endblock %}

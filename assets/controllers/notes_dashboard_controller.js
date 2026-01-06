@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus';
+import { showToast, announce, copyToClipboard, escapeHtml } from '../ui_utils.js';
 
 export default class extends Controller {
     connect() {
@@ -7,18 +8,57 @@ export default class extends Controller {
         this.toastStack = document.getElementById('toast-stack');
 
         this.bindSearchForm();
-        this.bindDeleteFlow();
         this.bindMobileMenu();
         this.bindCopyLinks();
+        this.setupDeleteModal();
     }
 
     disconnect() {
         this.abort?.abort();
     }
 
+    setupDeleteModal() {
+        const modal = document.querySelector('[data-confirm-modal]');
+        if (!modal) return;
+
+        this.modal = modal;
+        this.titleEl = modal.querySelector('[data-modal-title]');
+        this.descEl = modal.querySelector('[data-modal-description]');
+        this.errorEl = modal.querySelector('[data-modal-error]');
+        this.confirmBtn = modal.querySelector('[data-modal-confirm]');
+        this.cancelBtn = modal.querySelector('[data-modal-cancel]');
+        this.spinner = modal.querySelector('[data-modal-spinner]');
+        this.confirmLabel = modal.querySelector('[data-modal-confirm-label]');
+
+        // Bind modal buttons once
+        this.on(this.cancelBtn, 'click', () => this.closeModal());
+        this.on(modal, 'click', (event) => {
+            if (event.target === modal) this.closeModal();
+        });
+
+        this.on(this.confirmBtn, 'click', () => {
+            if (!this.deleteUrl) return;
+            this.confirmBtn.disabled = true;
+            this.confirmBtn.classList.add('opacity-70', 'cursor-not-allowed');
+            this.spinner?.classList.remove('hidden');
+            if (this.confirmLabel) this.confirmLabel.textContent = 'Usuwanie...';
+            this.performDelete(this.deleteUrl);
+        });
+
+        // Listen for delete button clicks via delegation on the controller element
+        this.on(this.element, 'click', (event) => {
+            const deleteBtn = event.target.closest('[data-delete-note]');
+            if (!deleteBtn) return;
+
+            event.preventDefault();
+            const url = deleteBtn.getAttribute('data-delete-url');
+            const title = deleteBtn.getAttribute('data-note-title');
+            if (url) this.openModal(url, title);
+        });
+    }
 
     bindSearchForm() {
-        const form = document.querySelector('[data-notes-search-form]');
+        const form = this.element.querySelector('[data-notes-search-form]');
         if (!form) return;
 
         const submitButton = form.querySelector('[data-search-submit]');
@@ -34,24 +74,19 @@ export default class extends Controller {
     }
 
     bindCopyLinks() {
-        // Use delegation on the controller element for dynamically rendered buttons
         this.on(this.element, 'click', async (event) => {
             const copyBtn = event.target.closest('[data-copy-public-link]');
             if (!copyBtn) return;
 
             event.preventDefault();
-            // Removed stopPropagation to allow other handlers to work
-
             const link = copyBtn.getAttribute('data-link');
-            if (!link) return;
 
-            try {
-                await navigator.clipboard.writeText(link);
-                this.showToast('Skopiowano link do notatki', 'success');
-                this.announce('Link do notatki skopiowany do schowka.');
-            } catch (error) {
-                console.warn('Clipboard error:', error);
-                this.showToast('Nie udało się skopiować linku', 'error');
+            const success = await copyToClipboard(link);
+            if (success) {
+                showToast('Skopiowano link do notatki', 'success');
+                announce('Link do notatki skopiowany do schowka.');
+            } else {
+                showToast('Nie udało się skopiować linku', 'error');
             }
         });
     }
@@ -66,7 +101,6 @@ export default class extends Controller {
             mobileMenu.classList.toggle('hidden');
         });
 
-        // Close menu when clicking outside
         this.on(document, 'click', (event) => {
             if (!toggleBtn.contains(event.target) && !mobileMenu.contains(event.target)) {
                 mobileMenu.classList.add('hidden');
@@ -74,83 +108,58 @@ export default class extends Controller {
         });
     }
 
-    bindDeleteFlow() {
-        this.on(document, 'click', (event) => {
-            const target = event.target;
-            if (!(target instanceof HTMLElement)) return;
-            const deleteBtn = target.closest('[data-delete-note]');
-            console.log('Delete check - target:', target, 'deleteBtn:', deleteBtn);
-            if (!deleteBtn) return;
-
-            // Find modal dynamically
-            const modal = document.getElementById('delete-confirm-modal');
-            if (!modal) return;
-
-            const url = deleteBtn.getAttribute('data-delete-url');
-            const title = deleteBtn.getAttribute('data-note-title');
-            if (!url) return;
-
-            // Set up modal elements dynamically
-            this.titleEl = modal.querySelector('[data-delete-note-title]');
-            this.errorEl = modal.querySelector('[data-modal-error]');
-            this.confirmBtn = modal.querySelector('[data-modal-confirm]');
-            this.cancelBtn = modal.querySelector('[data-modal-cancel]');
-            this.spinner = modal.querySelector('[data-modal-spinner]');
-            this.confirmLabel = modal.querySelector('[data-modal-confirm-label]');
-
-            // Set up event listeners for modal
-            this.cancelBtn?.addEventListener('click', () => this.closeModal());
-            this.on(modal, 'click', (event) => {
-                if (event.target === modal) {
-                    this.closeModal();
-                }
-            });
-
-            this.confirmBtn?.addEventListener('click', () => {
-                if (!this.deleteUrl) return;
-                this.confirmBtn.disabled = true;
-                this.confirmBtn.classList.add('opacity-70', 'cursor-not-allowed');
-                this.spinner?.classList.remove('hidden');
-                if (this.confirmLabel) this.confirmLabel.textContent = 'Usuwanie...';
-                this.performDelete(this.deleteUrl);
-            });
-
-            this.openModal(url, title);
-        });
-    }
-
     openModal(url, title) {
-        const modal = document.getElementById('delete-confirm-modal');
-        if (!modal) return;
+        if (!this.modal) return;
 
         this.deleteUrl = url;
         this.lastFocused = document.activeElement;
+
         if (this.titleEl) {
-            this.titleEl.textContent = title || '(Bez tytułu)';
+            this.titleEl.textContent = 'Usunąć notatkę?';
+        }
+        if (this.descEl) {
+            const noteName = title || '(Bez tytułu)';
+            this.descEl.textContent = ''; // Clear
+            this.descEl.appendChild(document.createTextNode('Czy na pewno chcesz usunąć notatkę: '));
+            const span = document.createElement('span');
+            span.className = 'font-bold text-indigo-600';
+            span.textContent = noteName + "?";
+            this.descEl.appendChild(span);
+            const br = document.createElement('br');
+            this.descEl.appendChild(br);
+            this.descEl.appendChild(document.createTextNode('Operacja jest nieodwracalna. Czy chcesz kontynuować?'));
         }
         if (this.errorEl) {
             this.errorEl.classList.add('hidden');
             this.errorEl.textContent = '';
         }
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
+
+        this.modal.classList.remove('hidden');
+        this.modal.classList.add('flex');
         this.refreshFocusables();
         this.confirmBtn?.focus();
         document.addEventListener('keydown', this.onKeydown);
-        this.announce('Potwierdź usunięcie notatki');
+        announce('Potwierdź usunięcie notatki');
     }
 
     closeModal() {
-        const modal = document.getElementById('delete-confirm-modal');
-        if (!modal) return;
+        if (!this.modal) return;
 
         this.deleteUrl = null;
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
+        this.modal.classList.add('hidden');
+        this.modal.classList.remove('flex');
         document.removeEventListener('keydown', this.onKeydown);
         if (this.lastFocused instanceof HTMLElement) {
             this.lastFocused.focus();
         }
+
+        // Reset button state
+        if (this.confirmBtn) {
+            this.confirmBtn.disabled = false;
+            this.confirmBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+        }
+        if (this.spinner) this.spinner.classList.add('hidden');
+        if (this.confirmLabel) this.confirmLabel.textContent = 'Usuń';
     }
 
     onKeydown = (event) => {
@@ -169,20 +178,12 @@ export default class extends Controller {
                 first.focus();
             }
         }
-        if (event.key === 'Enter' && document.activeElement === this.confirmBtn) {
-            event.preventDefault();
-            this.confirmBtn?.click();
-        }
     };
 
     refreshFocusables() {
-        const modal = document.getElementById('delete-confirm-modal');
-        if (!modal) {
-            this.focusables = [];
-            return;
-        }
+        if (!this.modal) return;
         this.focusables = Array.from(
-            modal.querySelectorAll('button, [href], [tabindex]:not([tabindex="-1"])'),
+            this.modal.querySelectorAll('button, [href], [tabindex]:not([tabindex="-1"])'),
         ).filter((el) => !el.hasAttribute('disabled') && !el.classList.contains('hidden'));
     }
 
@@ -194,8 +195,8 @@ export default class extends Controller {
         try {
             const res = await fetch(url, { method: 'DELETE', headers });
             if (res.ok) {
-                this.announce('Notatka usunięta');
-                this.showToast('Notatka usunięta', 'success');
+                announce('Notatka usunięta');
+                showToast('Notatka usunięta', 'success');
                 setTimeout(() => window.location.reload(), 400);
                 return;
             }
@@ -209,10 +210,10 @@ export default class extends Controller {
                     ? 'Notatka nie istnieje.'
                     : 'Nie udało się usunąć notatki. Spróbuj ponownie.';
             this.showError(message);
-            this.showToast(message, 'error');
+            showToast(message, 'error');
         } catch (error) {
             this.showError('Błąd sieci. Spróbuj ponownie.');
-            this.showToast('Błąd sieci. Spróbuj ponownie.', 'error');
+            showToast('Błąd sieci. Spróbuj ponownie.', 'error');
         } finally {
             if (this.confirmBtn) {
                 this.confirmBtn.disabled = false;
@@ -227,8 +228,6 @@ export default class extends Controller {
         if (this.errorEl) {
             this.errorEl.textContent = message;
             this.errorEl.classList.remove('hidden');
-        } else {
-            alert(message);
         }
     }
 
@@ -239,26 +238,8 @@ export default class extends Controller {
         return match ? decodeURIComponent(match[1]) : null;
     }
 
-    announce(message) {
-        if (!this.ariaLive) return;
-        this.ariaLive.textContent = message;
-    }
-
-    showToast(message, variant = 'info') {
-        if (!this.toastStack) return;
-        const toast = document.createElement('div');
-        toast.className = 'min-w-[240px] max-w-sm rounded-xl border px-4 py-3 text-sm font-semibold shadow-lg flex items-start gap-2 ' +
-            (variant === 'success'
-                ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-                : 'border-red-200 bg-red-50 text-red-800');
-        toast.textContent = message;
-        this.toastStack.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
-    }
-
     on(target, event, handler) {
         if (!target) return;
         target.addEventListener(event, handler, { signal: this.abort.signal });
     }
 }
-

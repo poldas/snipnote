@@ -14,8 +14,10 @@ export class DashboardPage {
     async expectPageLoaded() {
         await expect(this.page).toHaveURL(/\/notes/);
         // Logo link should be visible in either mobile or desktop version
-        await expect(this.page.locator('[data-test-id="logo-home-link"]').filter({ visible: true }).first()).toBeVisible();
-        await expect(this.page.getByRole('button', { name: 'Dodaj notatkę' }).filter({ visible: true }).first()).toBeVisible();
+        await expect(this.page.getByTestId('logo-home-link').filter({ visible: true }).first()).toBeVisible();
+        // The button text might be split or have hidden spans for responsiveness, use a more flexible matcher
+        // Try finding by text directly if role + name is tricky with hidden spans
+        await expect(this.page.locator('button').filter({ hasText: /Dodaj/ }).filter({ visible: true }).first()).toBeVisible();
     }
 
     async expectUserLoggedIn(email: string) {

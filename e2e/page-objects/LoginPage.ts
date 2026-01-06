@@ -19,23 +19,24 @@ export class LoginPage {
     }
 
     async expectFormElements() {
-        await expect(this.page.locator('input[name="email"]')).toBeVisible();
-        await expect(this.page.locator('input[name="password"]')).toBeVisible();
+        const form = this.page.locator('form');
+        await expect(form.locator('input[name="email"]')).toBeVisible();
+        await expect(form.locator('input[name="password"]')).toBeVisible();
         await expect(this.page.getByRole('button', { name: 'Zaloguj się' })).toBeVisible();
-        await expect(this.page.locator('[data-test-id="login-link-forgot-password"]')).toBeVisible();
-        await expect(this.page.locator('[data-test-id="login-link-register"]')).toBeVisible();
+        await expect(this.page.getByRole('link', { name: 'Zapomniałeś hasła?' }).first()).toBeVisible();
+        await expect(this.page.getByRole('link', { name: 'Zarejestruj się' }).first()).toBeVisible();
     }
 
     async clickRegisterLink() {
-        await this.page.locator('[data-test-id="login-link-register"]').click();
+        await this.page.getByRole('link', { name: 'Zarejestruj się' }).first().click();
     }
 
     async clickForgotPasswordLink() {
-        await this.page.locator('[data-test-id="login-link-forgot-password"]').click();
+        await this.page.getByRole('link', { name: 'Zapomniałeś hasła?' }).first().click();
     }
 
     async clickLogoHome() {
-        await this.page.locator('[data-test-id="logo-home-link"]').click();
+        await this.page.getByTestId('logo-home-link').click();
     }
 
     async fillLoginForm(email: string, password: string) {

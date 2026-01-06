@@ -13,8 +13,13 @@ alwaysApply: false
 - Initialize configuration only with Chromium/Desktop Chrome browser
 - Use browser contexts for isolating test environments
 - Implement the Page Object Model for maintainable tests in ./e2e/page-objects
-- Use `data-testid` attributes when introducing resilient test-oriented selectors
+- Use `data-testid` attributes (naming convention: lowercase, no hyphens inside the ID itself unless necessary) to introduce resilient test-oriented selectors.
+- **Rationale for `data-testid`**:
+    - **Separation of Styling and Testing**: Decouples tests from CSS classes and HTML structure.
+    - **Rebranding Protection**: Prevents test failures when copy or translation changes.
+    - **Documentation**: Acts as a contract indicating which elements are critical for business flows.
 - When following `data-testid` convention, locate elements by `await page.getByTestId('selectorName')`
+- Whenever feasible, combine `data-testid` with accessibility attributes (e.g., `aria-label`) to ensure the app is both testable and inclusive.
 - Leverage API testing for backend validation
 - Implement visual comparison with expect(page).toHaveScreenshot()
 - Use the codegen tool for test recording
