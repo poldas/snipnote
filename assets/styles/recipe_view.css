@@ -188,11 +188,11 @@ main.public-note {
 }
 
 /* Tytuł przepisu - duży szeryfowy font */
-h1 {
-    margin: 20px 0 24px;
-    font-size: 42px;
-    line-height: 1.2;
-    font-weight: 700;
+.pn-card h1 {
+    margin: 20px 0 28px;
+    font-size: 48px;
+    line-height: 1.1;
+    font-weight: 800;
     color: var(--recipe-dark);
     font-family: "Georgia", serif;
     position: relative;
@@ -201,8 +201,8 @@ h1 {
 }
 
 @media (min-width: 640px) {
-    h1 {
-        font-size: 52px;
+    .pn-card h1 {
+        font-size: 64px;
     }
 }
 

@@ -45,36 +45,80 @@
                 - .pn-labels / .pn-label: Tagi
                 - article.prose: Wyrenderowana treść Markdown
             #}
-            <div id="public-note-shell" class="pn-shell">
+            <div id="public-note-shell" class="pn-shell hover:scale-105 transition-all" {% if theme == 'todo' %}data-controller="public-todo"{% endif %}>
                 <div class="pn-card">
-                    <div class="pn-meta-row">
-                        <div class="pn-date-pill">
-                            <span class="pn-icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                                </svg>
-                            </span>
-                            <time datetime="{{ note.createdAt|date('c') }}">
-                                {{ note.createdAt|date('d M Y') }}
-                            </time>
+                    {% if theme == 'todo' %}
+                        <div class="todo-header">
+                            <h1>📋 {{ note.title is not empty ? note.title : '(Bez tytułu)' }}</h1>
+                            <p>Dodawaj, zaznaczaj i usuwaj zadania z listy</p>
+                            <div class="todo-stats">
+                                <div class="stat-badge">
+                                    <span class="emoji">📝</span>
+                                    <span>Wszystkich: <span data-public-todo-target="totalCount">0</span></span>
+                                </div>
+                                <div class="stat-badge">
+                                    <span class="emoji">✅</span>
+                                    <span>Gotowe: <span data-public-todo-target="completedCount">0</span></span>
+                                </div>
+                                <div class="stat-badge">
+                                    <span class="emoji">⏳</span>
+                                    <span>Do zrobienia: <span data-public-todo-target="pendingCount">0</span></span>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <h1>
-                        {{ note.title is not empty ? note.title : '(Bez tytułu)' }}
-                    </h1>
 
-                    {% if note.labels|length %}
-                        <div class="pn-labels" aria-label="Etykiety notatki">
-                            {% for label in note.labels %}
-                                <span class="pn-label">#{{ label }}</span>
-                            {% endfor %}
+                        <div class="todo-add-section">
+                            <div class="todo-input-wrapper">
+                                <input 
+                                    type="text" 
+                                    data-public-todo-target="input"
+                                    class="todo-input" 
+                                    placeholder="Dodaj nowe zadanie..."
+                                    autocomplete="off"
+                                    data-action="keypress->public-todo#add"
+                                >
+                                <button class="btn-add" data-action="click->public-todo#add">
+                                    <span>➕</span>
+                                    <span>Dodaj</span>
+                                </button>
+                            </div>
                         </div>
+
+                        <div data-public-todo-target="list" class="todo-list-interactive">
+                            {# Interaktywna lista renderowana przez JS na podstawie Markdowna #}
+                        </div>
+                    {% else %}
+                        <div class="pn-meta-row">
+                            <div class="pn-date-pill">
+                                <span class="pn-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                                    </svg>
+                                </span>
+                                <time datetime="{{ note.createdAt|date('c') }}">
+                                    {{ note.createdAt|date('d M Y') }}
+                                </time>
+                            </div>
+                        </div>
+                        <h1>
+                            {{ note.title is not empty ? note.title : '(Bez tytułu)' }}
+                        </h1>
+
+                        {% if note.labels|length %}
+                            <div class="pn-labels" aria-label="Etykiety notatki">
+                                {% for label in note.labels %}
+                                    <span class="pn-label">#{{ label }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     {% endif %}
 
-                    <article class="pn-content prose" data-htmx-target="this">
+                    <article class="pn-content prose" 
+                             data-htmx-target="this"
+                             {% if theme == 'todo' %}data-public-todo-target="markdownContent"{% endif %}>
                         {% if note.descriptionHtml is not empty %}
                             {{ note.descriptionHtml|raw }}
                         {% else %}
@@ -87,7 +131,7 @@
     </section>
 </main>
 {% block javascripts %}
-    <script src="https://unpkg.com/htmx.org@2.0.3"></script>
+    {{ parent() }}
 {% endblock %}
 {% endblock %}
 
