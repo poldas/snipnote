@@ -35,27 +35,11 @@
     <div class="bg-white/90 backdrop-blur-lg rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200/50 p-6 sm:p-8">
             <div class="space-y-6">
                 <!-- Status Message -->
-                {% set toneClasses = {
-                    'success': 'border-emerald-200 bg-emerald-50 text-emerald-800',
-                    'warning': 'border-amber-200 bg-amber-50 text-amber-900',
-                    'info': 'border-indigo-100 bg-indigo-50 text-indigo-900'
-                }[variant] ?? 'border-indigo-100 bg-indigo-50 text-indigo-900' %}
-                {% set stepsTextClasses = {
-                    'success': 'text-emerald-800',
-                    'warning': 'text-amber-900',
-                    'info': 'text-indigo-800'
-                }[variant] ?? 'text-indigo-800' %}
-
-                <div class="rounded-xl border {{ toneClasses }} px-4 py-3">
-                    <p class="text-sm font-semibold">{{ message }}</p>
-                    {% if steps is not empty %}
-                        <ul class="mt-2 text-sm space-y-1 {{ stepsTextClasses }}">
-                            {% for item in steps %}
-                                <li>• {{ item }}</li>
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                </div>
+                {% include 'components/alert.html.twig' with {
+                    type: variant == 'invalid' ? 'warning' : 'info',
+                    title: message,
+                    messages: steps|map(s => '• ' ~ s)
+                } %}
 
                 <!-- Resend Form -->
                 <div class="border-t border-slate-200/50 pt-6">

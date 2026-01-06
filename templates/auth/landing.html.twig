@@ -5,17 +5,7 @@
 {% block body %}
     <div class="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-cyan-50">
         <!-- Navigation -->
-        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between py-4 sm:py-6">
-            {% include 'components/logo.html.twig' with {size: 'small'} %}
-            <div class="flex items-center gap-2 sm:gap-4">
-                <a href="/login" class="text-xs sm:text-sm font-semibold text-indigo-700 hover:text-indigo-900">
-                    Zaloguj się
-                </a>
-                <a href="/register" class="px-3 py-1.5 sm:px-6 sm:py-2.5 btn-auth-primary rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all">
-                    Załóż konto
-                </a>
-            </div>
-        </nav>
+        {% include 'auth/components/auth_nav.html.twig' %}
 
         <!-- Hero -->
         <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-24">
@@ -26,7 +16,7 @@
                             Szybkie notatki dla każdego
                         </span>
                     </div>
-                    <h1 class="text-4xl sm:text-6xl lg:text-7xl font-bold text-indigo-950 leading-tight text-center lg:text-left">
+                    <h1 class="text-3xl sm:text-6xl lg:text-7xl font-bold text-indigo-950 leading-tight text-center lg:text-left">
                         Notuj.<br class="hidden sm:block" />
                         <span class="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                             Udostępniaj.
@@ -49,7 +39,7 @@
                     <div class="flex flex-wrap justify-center lg:justify-start gap-4 sm:gap-8 pt-8 text-xs sm:text-sm text-slate-600">
                         <div class="flex items-center gap-2">
                             <div class="w-4 h-4 rounded-full bg-indigo-200"></div>
-                            <span>Nielimitowane notatki</span>
+                            <span>Anonimowe notatki</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <div class="w-4 h-4 rounded-full bg-indigo-200"></div>
@@ -62,82 +52,22 @@
                     </div>
                 </div>
 
-                <!-- Login Form instead of note preview -->
-                <div class="relative mt-8 lg:mt-0">
+                <!-- Login Form -->
+                <div class="relative mt-8 lg:mt-0 transform hover:scale-[1.01] transition-all">
                     <div class="absolute inset-0 bg-gradient-to-br from-indigo-400/20 to-purple-400/20 rounded-3xl blur-3xl"></div>
                     <div class="relative bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl border border-slate-200/50 p-6 sm:p-8">
                         <div class="space-y-6">
                             <div class="text-center">
-                                <h3 class="text-xl sm:text-2xl font-bold text-indigo-900 mb-2">Zaloguj się</h3>
-                                <p class="text-sm sm:text-base text-slate-600">Wróć do swoich notatek</p>
+                                <h3 class="text-xl sm:text-2xl font-bold text-indigo-900 mb-2">Zaloguj się do Snipnote</h3>
+                                <p class="text-sm sm:text-base text-slate-600">Wróć do swoich notatek i kontynuuj pracę</p>
                             </div>
 
-    {% set errors = errors ?? [] %}
-    {% set prefill = prefill ?? {} %}
-    {% set pending = pending ?? false %}
-
-                            <form action="/login" method="post" class="space-y-4">
-                                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}" />
-
-                                {% include 'auth/components/error_alert.html.twig' with {
-                                    messages: errors|filter(e => e.message)|map(e => e.message),
-                                    title: 'Błąd logowania'
-                                } %}
-
-                                <div class="space-y-4">
-                                    {% include 'auth/components/form_field.html.twig' with {
-                                        label: 'Adres email',
-                                        type: 'email',
-                                        name: 'email',
-                                        value: prefill.email ?? '',
-                                        placeholder: 'your@email.com',
-                                        required: true,
-                                        autoFocus: true,
-                                        error: (errors|filter(e => (e.field ?? null) == 'email')|first).message ?? null
-                                    } %}
-
-                                    {% include 'auth/components/form_field.html.twig' with {
-                                        label: 'Hasło',
-                                        type: 'password',
-                                        name: 'password',
-                                        placeholder: 'Minimum 8 znaków',
-                                        required: true,
-                                        minLength: 8,
-                                        error: (errors|filter(e => (e.field ?? null) == 'password')|first).message ?? null
-                                    } %}
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    class="w-full py-3 btn-auth-primary rounded-xl font-semibold shadow-lg shadow-indigo-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 hover:translate-y-[-1px] active:translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-[#c7d2fe] focus:ring-offset-2 focus:ring-offset-white"
-                                    {% if pending %}disabled{% endif %}
-                                    hx-disabled-elt="this"
-                                >
-                                    {% if pending %}
-                                        <span class="flex items-center justify-center gap-2">
-                                            <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                            </svg>
-                                            Logowanie...
-                                        </span>
-                                    {% else %}
-                                        Zaloguj się
-                                    {% endif %}
-                                </button>
-
-                                <div class="text-center space-y-2">
-                                    <a href="/forgot-password" class="text-sm text-indigo-600 hover:text-indigo-800 transition-colors">
-                                        Zapomniałeś hasła?
-                                    </a>
-                                    <div class="text-sm text-slate-600">
-                                        Nie masz konta?
-                                        <a href="/register" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
-                                            Zarejestruj się
-                                        </a>
-                                    </div>
-                                </div>
-                            </form>
+                            {% include 'auth/components/login_form.html.twig' with {
+                                errors: errors ?? [],
+                                prefill: prefill ?? {},
+                                pending: pending ?? false,
+                                showRegisterLink: false
+                            } %}
                         </div>
                     </div>
                 </div>
@@ -158,37 +88,84 @@
                 </div>
 
                 <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+
                     <!-- Feature 1 -->
-                    <div data-testid="feature-card-1" class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-slate-200/50 hover:border-indigo-200 hover:shadow-xl transition-all">
-                        <div class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center mb-4 sm:mb-6 shadow-lg">
-                            <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
+                    <div data-testid="feature-card-5" class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-slate-200/50 hover:border-indigo-200 hover:shadow-xl transition-all">
+                        <div class="flex items-center gap-4 mb-4 sm:block">
+                            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-purple-400 to-pink-500 rounded-xl flex items-center justify-center sm:mb-6 shadow-lg flex-shrink-0">
+                                <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <h3 class="text-lg sm:text-xl font-bold text-indigo-950 sm:mb-3">Wspólne notatki</h3>
                         </div>
-                        <h3 class="text-lg sm:text-xl font-bold text-indigo-950 mb-2 sm:mb-3">Błyskawicznie szybkie</h3>
-                        <p class="text-sm sm:text-base text-slate-600 leading-relaxed">Twórz notatki w mgnieniu oka. Żadnych opóźnień.</p>
+                        <p class="text-sm sm:text-base text-slate-600 leading-relaxed">Edytuj notatki z innymi. Dodaj osobę i udostępnij link.</p>
                     </div>
 
                     <!-- Feature 2 -->
                     <div data-testid="feature-card-2" class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-slate-200/50 hover:border-indigo-200 hover:shadow-xl transition-all">
-                        <div class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl flex items-center justify-center mb-4 sm:mb-6 shadow-lg">
-                            <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                            </svg>
+                        <div class="flex items-center gap-4 mb-4 sm:block">
+                            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl flex items-center justify-center sm:mb-6 shadow-lg flex-shrink-0">
+                                <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                </svg>
+                            </div>
+                            <h3 class="text-lg sm:text-xl font-bold text-indigo-950 sm:mb-3">Bezpieczne i prywatne</h3>
                         </div>
-                        <h3 class="text-lg sm:text-xl font-bold text-indigo-950 mb-2 sm:mb-3">Bezpieczne i prywatne</h3>
-                        <p class="text-sm sm:text-base text-slate-600 leading-relaxed">Kontroluj dostęp. Zmień widoczność w dowolnym momencie.</p>
+                        <p class="text-sm sm:text-base text-slate-600 leading-relaxed">Kontroluj dostęp do swoich notatek. Zmień widoczność w dowolnym momencie.</p>
                     </div>
 
                     <!-- Feature 3 -->
                     <div data-testid="feature-card-3" class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-slate-200/50 hover:border-indigo-200 hover:shadow-xl transition-all">
-                        <div class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-xl flex items-center justify-center mb-4 sm:mb-6 shadow-lg">
-                            <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                            </svg>
+                        <div class="flex items-center gap-4 mb-4 sm:block">
+                            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-xl flex items-center justify-center sm:mb-6 shadow-lg flex-shrink-0">
+                                <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                                </svg>
+                            </div>
+                            <h3 class="text-lg sm:text-xl font-bold text-indigo-950 sm:mb-3">Udostępnianie</h3>
                         </div>
-                        <h3 class="text-lg sm:text-xl font-bold text-indigo-950 mb-2 sm:mb-3">Udostępnianie</h3>
-                        <p class="text-sm sm:text-base text-slate-600 leading-relaxed">Udostępnij link. Tylko osoby z linkiem widzą notatkę.</p>
+                        <p class="text-sm sm:text-base text-slate-600 leading-relaxed">Udostępnij anonimowy link notatki. Tylko osoby z linkiem widzą notatkę.</p>
+                    </div>
+
+                    <!-- Feature 4 -->
+                    <div data-testid="feature-card-4" class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-slate-200/50 hover:border-indigo-200 hover:shadow-xl transition-all">
+                        <div class="flex items-center gap-4 mb-4 sm:block">
+                            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-xl flex items-center justify-center sm:mb-6 shadow-lg flex-shrink-0">
+                                <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                            <h3 class="text-lg sm:text-xl font-bold text-indigo-950 sm:mb-3">Szybkie szukanie</h3>
+                        </div>
+                        <p class="text-sm sm:text-base text-slate-600 leading-relaxed">Błyskawicznie znajdź to, czego potrzebujesz dzięki filtrom.</p>
+                    </div>
+
+                    <!-- Feature 5 -->
+                    <div data-testid="feature-card-6" class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-slate-200/50 hover:border-indigo-200 hover:shadow-xl transition-all">
+                        <div class="flex items-center gap-4 mb-4 sm:block">
+                            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-pink-400 to-rose-500 rounded-xl flex items-center justify-center sm:mb-6 shadow-lg flex-shrink-0">
+                                <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-7.714 2.143L11 21l-2.286-6.857L1 12l7.714-2.143L11 3z" />
+                                </svg>
+                            </div>
+                            <h3 class="text-lg sm:text-xl font-bold text-indigo-950 sm:mb-3">Piękny Markdown</h3>
+                        </div>
+                        <p class="text-sm sm:text-base text-slate-600 leading-relaxed">Markdown, składnia kodu, listy kontrolne. Wszystko czego potrzebujesz.</p>
+                    </div>
+
+
+                    <!-- Feature 6 -->
+                    <div data-testid="feature-card-1" class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-slate-200/50 hover:border-indigo-200 hover:shadow-xl transition-all">
+                        <div class="flex items-center gap-4 mb-4 sm:block">
+                            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center sm:mb-6 shadow-lg flex-shrink-0">
+                                <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                            </div>
+                            <h3 class="text-lg sm:text-xl font-bold text-indigo-950 sm:mb-3">Błyskawicznie szybkie</h3>
+                        </div>
+                        <p class="text-sm sm:text-base text-slate-600 leading-relaxed">Twórz notatki w mgnieniu oka. Żadnych opóźnień.</p>
                     </div>
                 </div>
             </div>
@@ -268,9 +245,9 @@
         </section>
 
         <!-- CTA -->
-        <section class="py-12 sm:py-24">
+        <section class="py-12 sm:py-24 ">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-500 via-purple-600 to-cyan-500 p-8 sm:p-16 shadow-2xl">
+                <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-500 via-purple-600 to-cyan-500 p-8 sm:p-16 shadow-2xl transform hover:scale-[1.01] transition-all">
                     <div class="relative text-center space-y-6 sm:space-y-8">
                         <h2 class="text-3xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight">
                             Gotowy na lepsze notatki?

@@ -10,7 +10,6 @@
     - noteId (int) - null for create mode
     - submitUrl (string)
     - redirectUrl (string)
-    - previewUrl (string)
     - mode (string) - 'create' | 'edit'
 #}
 {% set formConfig = {
@@ -18,7 +17,6 @@
     noteId: noteId ?? null,
     submitUrl: submitUrl ?? '/api/notes',
     redirectUrl: redirectUrl ?? '/notes',
-    previewUrl: previewUrl ?? '/api/notes/preview',
     initialTitle: initialTitle ?? '',
     initialDescription: initialDescription ?? '',
     initialLabels: initialLabels ?? [],
@@ -37,15 +35,7 @@
 
     {# Validation Alert List - Global form errors #}
     <div id="form-errors" data-form-errors class="hidden">
-        <div role="alert" aria-live="assertive" class="bg-gradient-to-r from-red-500 to-pink-500 border-0 rounded-2xl p-5 shadow-xl">
-            <div class="flex items-start gap-4">
-                <span class="text-white text-3xl flex-shrink-0">⚠️</span>
-                <div class="flex-1 text-white">
-                    <h3 class="font-bold text-lg mb-3">Wystąpiły błędy walidacji</h3>
-                    <ul data-error-list class="space-y-2 text-sm font-medium"></ul>
-                </div>
-            </div>
-        </div>
+        {% include 'notes/components/validation_alert_list.html.twig' %}
     </div>
 
     {# Title Field #}
@@ -63,9 +53,9 @@
     </div>
 
     {# Public Link Section #}
-    {% include 'notes/components/public_link_section.html.twig' with {
+    {% include 'notes/components/public_link.html.twig' with {
         publicUrl: publicUrl ?? null,
-        urlToken: urlToken ?? null
+        visibility: initialVisibility ?? 'private'
     } %}
 
     {# Markdown Textarea #}
@@ -80,31 +70,5 @@
         {% include 'notes/components/tag_input.html.twig' with {
             initialLabels: formConfig.initialLabels
         } %}
-    </div>
-
-    {# Preview Section (hidden by default, shown after preview request) #}
-    <div
-        id="preview-section"
-        data-preview-section
-        class="hidden border-t border-slate-200 pt-6"
-    >
-        <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-slate-900">Podgląd</h3>
-            <button
-                type="button"
-                data-close-preview
-                class="text-sm text-slate-600 hover:text-slate-900"
-                aria-label="Zamknij podgląd"
-            >
-                ✕ Zamknij
-            </button>
-        </div>
-        <div
-            id="preview-content"
-            data-preview-content
-            class="prose prose-slate max-w-none bg-slate-50 rounded-lg p-6 border border-slate-200"
-        >
-            {# Preview HTML will be inserted here #}
-        </div>
     </div>
 </form>

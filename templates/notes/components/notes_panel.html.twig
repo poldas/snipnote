@@ -13,12 +13,14 @@
     </div>
 
     {% if error %}
-        <div class="rounded-xl border border-red-200 bg-red-50 text-red-800 px-4 py-3 text-sm flex items-center justify-between gap-3" role="alert">
-            <span>{{ error }}</span>
-            <a href="/notes" class="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white/70 px-3 py-1.5 text-sm font-semibold text-red-700 hover:bg-white transition-colors">
-                Spróbuj ponownie
-            </a>
-        </div>
+        {% include 'components/alert.html.twig' with {
+            type: 'error',
+            messages: [error],
+            cta: {
+                href: '/notes',
+                label: 'Spróbuj ponownie'
+            }
+        } %}
     {% endif %}
 
     {% if isLoading %}
@@ -52,6 +54,6 @@
 
     {% include 'notes/components/pagination.html.twig' with { meta: meta, q: q, labels: labels, visibility: visibility } %}
 
-    {% include 'notes/components/delete_confirm_modal.html.twig' %}
+    {% include 'notes/components/confirm_modal.html.twig' %}
 </section>
 

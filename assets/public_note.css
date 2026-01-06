@@ -19,7 +19,7 @@ body {
         radial-gradient(circle at 80% 15%, rgba(210, 153, 194, 0.16), transparent 32%),
         radial-gradient(circle at 70% 80%, rgba(109, 213, 237, 0.16), transparent 34%),
         linear-gradient(135deg, #e8eaf6 0%, #f3e5f5 50%, #e1f5fe 100%);
-    background-attachment: fixed;
+    overflow-x: hidden;
 }
 
 main.public-note {
@@ -230,8 +230,6 @@ article.prose pre {
     }
 
     .pn-date-pill {
-        width: 100%;
-        justify-content: center;
         font-size: 12px;
     }
 

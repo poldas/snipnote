@@ -23,6 +23,7 @@ export default defineConfig({
     use: {
         baseURL,
         headless,
+        testIdAttribute: 'data-testid',
         viewport: { width: 1280, height: 720 },
         trace: process.env.CI ? 'on-first-retry' : 'retain-on-failure',
         video: 'retain-on-failure',

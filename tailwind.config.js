@@ -6,7 +6,11 @@ module.exports = {
         './tailwind/**/*.{css,js}',
     ],
     theme: {
-        extend: {},
+        extend: {
+            screens: {
+                'xs': '480px',
+            },
+        },
     },
     plugins: [],
 };

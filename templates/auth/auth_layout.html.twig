@@ -2,31 +2,27 @@
 
 {% block title %}{{ title ?? 'Snipnote' }}{% endblock %}
 
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles/dist/auth.css') }}">
+{% endblock %}
+
+{% block javascripts %}{% endblock %}
+
 {% block body %}
-    <div class="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-cyan-50 flex flex-col relative overflow-x-hidden">
+    <div class="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-cyan-50 flex flex-col relative">
         <!-- Navigation -->
-        <nav class="w-full max-w-7xl mx-auto flex items-center justify-between px-4 py-4 sm:py-6 lg:fixed lg:top-0 lg:left-0 lg:right-0 lg:z-10 lg:px-8">
-            {% include 'components/logo.html.twig' with {size: 'small'} %}
-            <div class="flex items-center gap-3 sm:gap-4">
-                <a href="/login" class="text-xs sm:text-sm font-semibold text-indigo-700 hover:text-indigo-900 transition-colors">
-                    Zaloguj się
-                </a>
-                <a href="/register" class="px-3 py-1.5 sm:px-6 sm:py-2.5 btn-auth-primary rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all">
-                    Załóż konto
-                </a>
-            </div>
-        </nav>
+        {% include 'auth/components/auth_nav.html.twig' with {isFixed: true} %}
 
         <!-- Main Content -->
         <main class="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 lg:mt-12">
-            <div class="w-full max-w-6xl">
+            <div class="w-full max-w-6xl mx-auto">
                 <div class="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
                     <div class="space-y-6 text-center lg:text-left hidden lg:block">
                         {% block auth_hero %}{% endblock %}
                     </div>
                     
                     {# Mobile Hero (Visible only on small screens, more compact) #}
-                    <div class="lg:hidden text-center mb-2">
+                    <div class="lg:hidden text-center mb-6">
                         {% block auth_hero_mobile %}
                             {# Default to showing same as hero but can be overridden #}
                             {{ block('auth_hero') }}

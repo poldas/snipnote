@@ -23,7 +23,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 final class NotesPageController extends AbstractController
 {
-    private const PER_PAGE = 100;
+    private const PER_PAGE = 50;
     private const MAX_SEARCH_LENGTH = 200;
     private const ALLOWED_VISIBILITIES = [
         'owner',
@@ -125,7 +125,6 @@ final class NotesPageController extends AbstractController
             'canEdit' => true,
             'deleteUrl' => '/api/notes/' . $note->getId(),
             'patchUrl' => '/api/notes/' . $note->getId(),
-            'previewUrl' => '/api/notes/preview',
             'regenerateUrl' => null,
             'dashboardUrl' => '/notes',
             // Dodano absolutny URL bazujący na bieżącym żądaniu

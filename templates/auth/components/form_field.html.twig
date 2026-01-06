@@ -18,10 +18,10 @@
         name="{{ name }}"
         value="{{ value }}"
         {% if required %}required{% endif %}
-        {% if autoFocus %}autofocus{% endif %}
+        {% if autoFocus %}data-controller="autofocus"{% endif %}
         {% if minLength %}minlength="{{ minLength }}"{% endif %}
         {% if maxLength %}maxlength="{{ maxLength }}"{% endif %}
-        class="w-full px-4 py-2.5 sm:py-3 border border-slate-300 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none transition-colors text-sm sm:text-base"
+        class="input-modern w-full px-4 py-2.5 sm:py-3 border border-slate-300 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none transition-all shadow-md hover:shadow-xl text-sm sm:text-base"
         placeholder="{{ placeholder }}"
     />
     {% if error %}

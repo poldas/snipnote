@@ -1,12 +1,13 @@
 {#
   ConfirmModal Component
-  Generic confirmation modal controlled via JS
+  Generic confirmation modal controlled via JS.
+  Used across the application (Dashboard, Edit, etc.)
 #}
-<div id="confirm-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/60 backdrop-blur-sm" role="dialog" data-confirm-modal>
+<div class="hidden fixed inset-0 z-50 items-center justify-center bg-black/60 backdrop-blur-sm" role="dialog" data-confirm-modal>
     <div class="max-w-lg w-full mx-4 bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl p-8 border border-white/30 transform scale-95 hover:scale-100 transition-transform" data-modal-surface>
         <div class="mb-6">
-            <h3 id="confirm-modal-title" class="text-2xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2" data-modal-title>Tytuł operacji</h3>
-            <p id="confirm-modal-description" class="text-gray-600 font-medium" data-modal-description></p>
+            <h3 class="text-2xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2" data-modal-title>Tytuł operacji</h3>
+            <p class="text-slate-600 font-medium" data-modal-description>Czy na pewno chcesz wykonać tę operację?</p>
         </div>
         <div class="flex items-center justify-end gap-3">
             <button type="button" data-modal-cancel class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-200 transition-all hover:scale-105 shadow-md">
@@ -20,5 +21,3 @@
         <p class="text-sm text-red-600 font-semibold mt-4 hidden" data-modal-error></p>
     </div>
 </div>
-
-

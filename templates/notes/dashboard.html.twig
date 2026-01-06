@@ -3,7 +3,7 @@
 {% block title %}Twoje notatki | Snipnote{% endblock %}
 
 {% block stylesheets %}
-    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/dist/notes.css') }}">
     <style>
         #toast-stack {
             top: 102px; /* 100px header height + 2px gap */
@@ -12,68 +12,14 @@
 {% endblock %}
 
 {% block body %}
-<main class="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-cyan-50" data-controller="notes-dashboard">
-    <div aria-live="polite" class="sr-only" data-global-aria-live></div>
-    <div id="toast-stack" aria-live="polite"></div>
+    {% set layoutData = {
+        subtitle: 'Twórz i udostępniaj notatki',
+        currentUserEmail: app.user.email ?? 'użytkownik',
+        showAddBtn: true,
+        container_class: 'max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8'
+    } %}
 
-    <!-- Header -->
-    <header class="bg-white/80 backdrop-blur-lg border-b border-slate-200/60 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3">
-            <div class="flex items-center justify-between gap-4">
-                {% include 'components/logo.html.twig' with {size: 'small'} %}
-                
-                <div class="flex items-center gap-2 sm:gap-4">
-                    <!-- Add Note Button (Compact on Mobile) -->
-                    <button type="button"
-                            onclick="window.location.href='/notes/new'"
-                            class="inline-flex items-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-white border-2 border-indigo-200 text-indigo-700 rounded-xl font-semibold shadow-sm hover:border-indigo-300 hover:bg-indigo-50 transition-all text-sm">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                        </svg>
-                        <span class="hidden xs:inline">Dodaj</span>
-                        <span class="hidden sm:inline">notatkę</span>
-                    </button>
-
-                    <!-- User Info & Logout (Desktop) -->
-                    <div class="hidden md:flex items-center gap-4">
-                        <span class="text-sm text-slate-600 truncate max-w-[150px]">{{ app.user.email ?? 'użytkownik' }}</span>
-                        <form action="/logout" method="post" class="inline">
-                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
-                            <button type="submit" class="text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
-                                Wyloguj
-                            </button>
-                        </form>
-                    </div>
-
-                    <!-- Mobile Menu Toggle -->
-                    <button data-mobile-menu-toggle class="md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg" aria-label="Menu">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Mobile Menu Dropdown -->
-            <div data-mobile-menu class="hidden md:hidden pt-3 pb-2 border-t border-slate-100 mt-3 animate-fade-in">
-                <div class="flex flex-col gap-3">
-                    <div class="px-2 py-1">
-                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Zalogowany jako</p>
-                        <p class="text-sm text-slate-700 font-medium truncate">{{ app.user.email ?? 'użytkownik' }}</p>
-                    </div>
-                    <form action="/logout" method="post" class="w-full">
-                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
-                        <button type="submit" class="w-full text-left px-2 py-2 text-sm font-bold text-rose-600 hover:bg-rose-50 rounded-lg transition-colors">
-                            Wyloguj się
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+    {% set content %}
         <!-- Search Bar -->
         <div class="mb-6 sm:mb-8">
             {% include 'notes/components/topbar_search.html.twig' with {
@@ -85,11 +31,11 @@
             } %}
         </div>
 
-        <!-- Filter Bar -->
+        <!-- Filter Bar Info -->
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-6">
             <div class="flex items-center gap-2 self-end sm:self-auto">
-                <span class="text-slate-600">Znalezionych notatek:</span>
-                <span class="font-semibold text-slate-900">{{ view.meta.total|default(0) }}</span>
+                <span class="text-slate-600 font-medium">Znalezionych notatek:</span>
+                <span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full font-bold text-sm">{{ view.meta.total|default(0) }}</span>
             </div>
         </div>
 
@@ -104,11 +50,14 @@
             error: view.error,
             isLoading: view.isLoading
         } %}
-    </div>
-</main>
+
+        {# Universal Confirmation Modal #}
+        {% include 'notes/components/confirm_modal.html.twig' %}
+    {% endset %}
+
+    {% include 'notes/components/notes_layout.html.twig' with { content: content } + layoutData %}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
 {% endblock %}
-

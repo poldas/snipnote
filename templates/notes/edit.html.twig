@@ -2,103 +2,97 @@
 
 {% block title %}Edytuj notatkę | Snipnote{% endblock %}
 
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles/dist/notes.css') }}">
+{% endblock %}
+
 {% block body %}
+    {% set layoutData = {
+        subtitle: 'Edycja notatki',
+        currentUserEmail: app.user.email ?? 'użytkownik',
+        backUrl: view.dashboardUrl ?? '/notes'
+    } %}
 
-<main class="min-h-screen text-slate-900 pb-24 bg-gradient-to-br from-indigo-50 via-purple-50 to-cyan-50" data-controller="edit-note">
-    <div aria-live="polite" class="sr-only" data-global-aria-live></div>
-    <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
-
-    <div class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
-            <header class="flex items-center justify-between gap-4">
-                {% include 'components/logo.html.twig' with {size: 'small'} %}
-                <div class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm font-semibold text-slate-700">
-                    <a href="{{ view.dashboardUrl ?? '/notes' }}" class="text-indigo-600 hover:text-indigo-500 whitespace-nowrap">
-                        <span class="sm:hidden">← Powrót</span>
-                        <span class="hidden sm:inline">← Powrót do listy</span>
+    {% set content %}
+        <div data-controller="edit-note">
+            {% if view.error is defined %}
+                <div class="glass-card rounded-3xl shadow-2xl p-8 transform hover:scale-[1.01] transition-transform duration-300" role="alert" aria-live="assertive">
+                    <h1 class="text-3xl font-black gradient-text mb-2">Notatka niedostępna</h1>
+                    <p class="text-sm text-gray-600 font-medium mb-6">{{ view.error }}</p>
+                    <a href="{{ view.dashboardUrl ?? '/notes' }}" class="inline-flex items-center gap-3 px-6 py-3 btn-gradient text-white rounded-xl font-bold shadow-lg hover:shadow-2xl transition-all">
+                        ← Wróć do listy notatek
                     </a>
-                    <span class="text-slate-300 hidden xs:inline">|</span>
-                    <span class="hidden xs:inline truncate max-w-[100px] sm:max-w-none">{{ app.user.email ?? 'użytkownik' }}</span>
                 </div>
-            </header>
-        </div>
-    </div>
-
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        {% if view.error is defined %}
-            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6" role="alert" aria-live="assertive">
-                <h1 class="text-2xl font-bold text-slate-900 mb-2">Notatka niedostępna</h1>
-                <p class="text-sm text-slate-600 mb-4">{{ view.error }}</p>
-                <a href="{{ view.dashboardUrl ?? '/notes' }}" class="inline-flex items-center gap-2 text-indigo-700 hover:text-indigo-900 font-semibold">
-                    ← Wróć do listy notatek
-                </a>
-            </div>
-        {% else %}
-            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                <div class="px-6 py-5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <h1 class="text-2xl font-bold text-slate-900">Edytuj notatkę</h1>
-                        <p class="mt-1 text-sm text-slate-500">Aktualizuj treść, widoczność i współedytorów.</p>
+            {% else %}
+                <div class="bg-white border border-slate-200 rounded-3xl shadow-2xl overflow-hidden transform hover:scale-[1.01] transition-all duration-300">
+                    <div class="px-8 py-6 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-indigo-100/50">
+                        <div class="flex flex-wrap items-center justify-between gap-4">
+                            <div>
+                                <h1 class="text-3xl font-black gradient-text">Edytuj notatkę</h1>
+                                <p class="mt-1 text-sm text-gray-600 font-medium">Aktualizuj treść, widoczność i współpracowników.</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-white shadow-lg text-sm font-bold {% if view.initialVisibility|lower == 'public' %}bg-gradient-to-r from-emerald-400 to-green-500{% elseif view.initialVisibility|lower == 'draft' %}bg-gradient-to-r from-orange-400 to-orange-500{% else %}bg-gradient-to-r from-red-400 to-red-500{% endif %}">
+                                    <span class="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                                     {{ view.initialVisibility|capitalize }}
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-2 text-xs text-slate-500">
-                        <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 border border-slate-200 font-semibold">
-                            ID: {{ view.noteId }}
-                        </span>
-                        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-white shadow-lg text-sm font-bold {% if view.initialVisibility|lower == 'public' %}bg-gradient-to-r from-emerald-400 to-green-500{% elseif view.initialVisibility|lower == 'draft' %}bg-gradient-to-r from-orange-400 to-orange-500{% else %}bg-gradient-to-r from-red-400 to-red-500{% endif %}">
-                            <span class="w-2 h-2 bg-white rounded-full animate-pulse"></span>
-                             {{ view.initialVisibility|capitalize }}
-                        </span>
-                    </div>
-                </div>
 
-                <div class="p-6 space-y-6">
-                    {% include 'notes/components/note_form.html.twig' with {
-                        csrfToken: view.csrfToken,
-                        initialTitle: view.initialTitle,
-                        initialDescription: view.initialDescription,
-                        initialLabels: view.initialLabels,
-                        initialVisibility: view.initialVisibility,
-                        noteId: view.noteId,
-                        submitUrl: view.patchUrl,
-                        redirectUrl: view.dashboardUrl,
-                        previewUrl: view.previewUrl,
-                        mode: 'edit',
-                        urlToken: view.urlToken,
-                        publicUrl: view.publicUrl
-                    } %}
-
-
-                    {% include 'notes/components/collaborators_panel.html.twig' with {
-                        noteId: view.noteId,
-                        items: view.collaborators,
-                        isOwner: view.isOwner,
-                        canEdit: view.canEdit,
-                        addUrl: '/api/notes/' ~ view.noteId ~ '/collaborators',
-                        redirectUrlOnSelfRemove: view.dashboardUrl,
-                        currentUserEmail: view.currentUserEmail
-                    } %}
-
-                    {% if view.isOwner %}
-                        {% include 'notes/components/danger_zone.html.twig' with {
-                            deleteUrl: view.deleteUrl,
-                            regenerateUrl: view.regenerateUrl,
-                            redirectUrl: view.dashboardUrl
+                    <div class="p-8 space-y-8">
+                        {% include 'notes/components/note_form.html.twig' with {
+                            csrfToken: view.csrfToken,
+                            initialTitle: view.initialTitle,
+                            initialDescription: view.initialDescription,
+                            initialLabels: view.initialLabels,
+                            initialVisibility: view.initialVisibility,
+                            noteId: view.noteId,
+                                                    submitUrl: view.patchUrl,
+                                                    redirectUrl: view.dashboardUrl,
+                                                    mode: 'edit',                            urlToken: view.urlToken,
+                            publicUrl: view.publicUrl
                         } %}
-                    {% endif %}
-                </div>
-            </div>
 
-            {% include 'notes/components/confirm_modal.html.twig' %}
+                        {% include 'notes/components/collaborators_panel.html.twig' with {
+                            noteId: view.noteId,
+                            items: view.collaborators,
+                            isOwner: view.isOwner,
+                            canEdit: view.canEdit,
+                            addUrl: '/api/notes/' ~ view.noteId ~ '/collaborators',
+                            redirectUrlOnSelfRemove: view.dashboardUrl,
+                            currentUserEmail: view.currentUserEmail
+                        } %}
+
+                        {% if view.isOwner %}
+                            {% include 'notes/components/danger_zone.html.twig' with {
+                                deleteUrl: view.deleteUrl,
+                                regenerateUrl: view.regenerateUrl,
+                                redirectUrl: view.dashboardUrl
+                            } %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% include 'notes/components/confirm_modal.html.twig' %}
+            {% endif %}
+        </div>
+    {% endset %}
+
+    {% set sticky_bar %}
+        {% if view.error is not defined %}
             {% include 'notes/components/sticky_action_bar.html.twig' with {
                 saveLabel: 'Zapisz zmiany'
             } %}
         {% endif %}
-    </div>
-</main>
+    {% endset %}
+
+    {% include 'notes/components/notes_layout.html.twig' with {
+        content: content,
+        sticky_bar: sticky_bar
+    } + layoutData %}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
 {% endblock %}
-
-

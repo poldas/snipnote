@@ -1,0 +1,7 @@
+@layer components {
+    .bg-auth-gradient {
+        background: radial-gradient(circle at 15% 20%, rgba(102, 126, 234, 0.1), transparent 40%),
+                    radial-gradient(circle at 80% 15%, rgba(210, 153, 194, 0.1), transparent 40%),
+                    linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    }
+}

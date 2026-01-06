@@ -1,0 +1,77 @@
+@layer components {
+    /* Shared Logo Component */
+    .logo-mark {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 800;
+        font-size: 24px;
+        box-shadow: 0 10px 24px rgba(102, 126, 234, 0.28);
+    }
+
+    /* Shared Buttons */
+    .btn-auth-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        transition: transform 150ms ease, box-shadow 150ms ease, background 160ms ease;
+    }
+
+    .btn-auth-primary:hover {
+        background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #38bdf8 100%);
+    }
+
+    .btn-auth-primary:active {
+        background: #4338ca;
+    }
+
+    .btn-gradient {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        transition: all 0.3s ease;
+    }
+
+    .btn-gradient:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+    }
+
+    /* Shared Inputs */
+    .input-modern {
+        transition: all 0.3s ease;
+    }
+
+    .input-modern:focus {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3) !important;
+    }
+
+    /* Global Toast */
+    #toast-stack {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+        pointer-events: none;
+    }
+
+    #toast-stack > div {
+        pointer-events: auto;
+    }
+
+    /* Animation Utilities */
+    .fade-up-soft {
+        opacity: 0;
+        transform: translateY(10px);
+        animation: fadeUpSoft 900ms ease-out 360ms forwards;
+    }
+}
+
+@keyframes fadeUpSoft {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

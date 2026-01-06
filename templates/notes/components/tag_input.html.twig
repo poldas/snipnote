@@ -22,7 +22,7 @@
     </div>
 
     <p id="tag-hint" class="mt-3 text-xs sm:text-sm text-gray-600 font-medium">
-        Oddziel etykiety naciskając Enter. Maksymalnie 64 znaki na etykietę.
+        Oddziel etykiety naciskając Enter lub przecinek (,). Maksymalnie 64 znaki na etykietę.
     </p>
 
     <input type="hidden" name="labels" data-labels-input value="{{ initialLabels is defined ? initialLabels|json_encode|e('html_attr') : '[]' }}">

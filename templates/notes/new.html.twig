@@ -2,57 +2,43 @@
 
 {% block title %}Nowa notatka | Snipnote{% endblock %}
 
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles/dist/notes.css') }}">
+{% endblock %}
+
 {% block body %}
-<main class="min-h-screen text-slate-900 pb-24 bg-gradient-to-br from-indigo-50 via-purple-50 to-cyan-50">
-    <div aria-live="polite" class="sr-only" data-global-aria-live></div>
-    <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
+    {% set layoutData = {
+        subtitle: 'Nowa notatka',
+        currentUserEmail: app.user.email ?? 'użytkownik',
+        backUrl: '/notes'
+    } %}
 
-    {# Header #}
-    <div class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
-            <header class="flex items-center justify-between gap-4">
-                {% include 'components/logo.html.twig' with {size: 'small'} %}
-                <div class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm font-semibold text-slate-700">
-                    <a href="/notes" class="text-indigo-600 hover:text-indigo-500 whitespace-nowrap">
-                        <span class="sm:hidden">← Powrót</span>
-                        <span class="hidden sm:inline">← Powrót do listy</span>
-                    </a>
-                    <span class="text-slate-300 hidden xs:inline">|</span>
-                    <span class="hidden xs:inline truncate max-w-[100px] sm:max-w-none">{{ app.user.email ?? 'użytkownik' }}</span>
-                </div>
-            </header>
-        </div>
-    </div>
-
-    {# Main Content #}
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-            <div class="px-6 py-5 border-b border-slate-200">
-                <h1 class="text-2xl font-bold text-slate-900">Utwórz nową notatkę</h1>
-                <p class="mt-1 text-sm text-slate-500">Wypełnij poniższy formularz, aby utworzyć nową notatkę.</p>
+    {% set content %}
+        <div class="bg-white border border-slate-200 rounded-3xl shadow-2xl overflow-hidden transform hover:scale-[1.01] transition-all duration-300">
+            <div class="px-8 py-6 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-indigo-100/50">
+                <h1 class="text-3xl font-black gradient-text">Utwórz nową notatkę</h1>
+                <p class="mt-1 text-sm text-gray-600 font-medium">Wypełnij poniższy formularz, aby utworzyć nową notatkę.</p>
             </div>
             
-            {# Global Alerts Placeholder #}
-            <div id="global-alerts" class="hidden px-6 py-4 bg-red-50 border-b border-red-200">
-                <div role="alert" class="text-sm text-red-800"></div>
-            </div>
-
-            {# Note Form Component #}
-            <div class="p-6">
+            <div class="p-8">
                 {% include 'notes/components/note_form.html.twig' with {
                     csrfToken: csrfToken,
                     initialVisibility: 'private'
                 } %}
             </div>
         </div>
-    </div>
+    {% endset %}
 
-    {# Sticky Action Bar #}
-    {% include 'notes/components/sticky_action_bar.html.twig' %}
-</main>
+    {% set sticky_bar %}
+        {% include 'notes/components/sticky_action_bar.html.twig' %}
+    {% endset %}
+
+    {% include 'notes/components/notes_layout.html.twig' with {
+        content: content,
+        sticky_bar: sticky_bar
+    } + layoutData %}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
 {% endblock %}
-

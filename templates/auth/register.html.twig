@@ -17,79 +17,11 @@
 {% endblock %}
 
 {% block auth_content %}
-    <div class="bg-white/90 backdrop-blur-lg rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200/50 p-6 sm:p-8">
-        {% set errors = errors ?? [] %}
-        {% set prefill = prefill ?? {} %}
-        {% set pending = pending ?? false %}
-
-        <form action="/register" method="post" class="space-y-6" hx-boost="false">
-            <input type="hidden" name="_csrf_token" value="{{ csrf_token('register') }}">
-
-            {% include 'auth/components/error_alert.html.twig' with {
-                messages: errors|filter(e => e.field is not defined or e.field is null)|map(e => e.message),
-                title: 'Błąd rejestracji'
-            } %}
-
-            <div class="space-y-4">
-                {% include 'auth/components/form_field.html.twig' with {
-                    label: 'Adres email',
-                    type: 'email',
-                    name: 'email',
-                    value: prefill.email ?? '',
-                    placeholder: 'your@email.com',
-                    required: true,
-                    autoFocus: true,
-                    error: (errors|filter(e => (e.field ?? null) == 'email')|first).message ?? null
-                } %}
-
-                {% include 'auth/components/form_field.html.twig' with {
-                    label: 'Hasło',
-                    type: 'password',
-                    name: 'password',
-                    placeholder: 'Minimum 8 znaków',
-                    required: true,
-                    minLength: 8,
-                    error: (errors|filter(e => (e.field ?? null) == 'password')|first).message ?? null
-                } %}
-
-                {% include 'auth/components/form_field.html.twig' with {
-                    label: 'Potwierdź hasło',
-                    type: 'password',
-                    name: 'passwordConfirm',
-                    placeholder: 'Powtórz hasło',
-                    required: true,
-                    error: (errors|filter(e => (e.field ?? null) == 'passwordConfirm')|first).message ?? null
-                } %}
-            </div>
-
-            <button
-                type="submit"
-                class="w-full py-3 btn-auth-primary rounded-xl font-semibold shadow-lg shadow-indigo-500/25 transition-all disabled:opacity-70 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#c7d2fe] focus:ring-offset-2 focus:ring-offset-white hover:translate-y-[-1px] active:translate-y-0.5"
-                {% if pending %}disabled{% endif %}
-                hx-disabled-elt="this"
-            >
-                {% if pending %}
-                    <span class="flex items-center justify-center gap-2">
-                        <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Tworzenie konta...
-                    </span>
-                {% else %}
-                    Załóż konto
-                {% endif %}
-            </button>
-
-            <div class="text-center">
-                <div class="text-sm text-slate-600">
-                    Masz już konto?
-                    <a href="/login" data-test-id="register-link-login" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
-                        Zaloguj się
-                    </a>
-                </div>
-            </div>
-        </form>
+    <div class="bg-white/90 backdrop-blur-lg rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200/50 p-6 sm:p-8 transform hover:scale-[1.01] transition-all">
+        {% include 'auth/components/register_form.html.twig' with {
+            errors: errors ?? [],
+            prefill: prefill ?? {},
+            pending: pending ?? false
+        } %}
     </div>
 {% endblock %}
-

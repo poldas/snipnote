@@ -26,7 +26,7 @@
             {% block form_content %}{% endblock %}
 
             {% if showPublicLink and publicUrl %}
-                {% include 'notes/components/public_link_info.html.twig' with {
+                {% include 'notes/components/public_link.html.twig' with {
                     publicUrl: publicUrl,
                     visibility: 'public'
                 } %}

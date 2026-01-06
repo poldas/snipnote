@@ -1,4 +1,4 @@
-import './styles/dist/tailwind.css';
+import './styles/dist/common.css';
 import htmx from 'htmx.org';
 import './stimulus_bootstrap.js';
 

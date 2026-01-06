@@ -3,8 +3,7 @@
 {% block title %}{{ note.title ?? '(Bez tytułu)' }}{% endblock %}
 
 {% block stylesheets %}
-    {{ parent() }}
-    <link rel="stylesheet" href="{{ asset('public_note.css') }}">
+    <link rel="stylesheet" href="{{ asset('styles/dist/public.css') }}">
 {% endblock %}
 
 {% block body %}
@@ -63,44 +62,7 @@
     </section>
 </main>
 {% block javascripts %}
-    <script>
-        (function () {
-            const article = document.querySelector('article[data-htmx-target]');
-            if (!article) return;
-            const blocks = article.querySelectorAll('pre > code');
-            blocks.forEach((codeEl) => {
-                const pre = codeEl.parentElement;
-                if (!pre) return;
-                pre.style.position = 'relative';
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.textContent = 'Kopiuj';
-                button.style.position = 'absolute';
-                button.style.right = '12px';
-                button.style.top = '12px';
-                button.style.padding = '6px 10px';
-                button.style.borderRadius = '999px';
-                button.style.border = 'none';
-                button.style.background = '#0f172a';
-                button.style.color = '#fff';
-                button.style.fontSize = '12px';
-                button.style.fontWeight = '600';
-                button.style.boxShadow = '0 6px 18px rgba(15,23,42,0.28)';
-                button.style.cursor = 'pointer';
-                button.addEventListener('click', async () => {
-                    try {
-                        await navigator.clipboard.writeText(codeEl.innerText);
-                        button.textContent = 'Skopiowano';
-                        setTimeout(() => (button.textContent = 'Kopiuj'), 1500);
-                    } catch (e) {
-                        button.textContent = 'Błąd';
-                        setTimeout(() => (button.textContent = 'Kopiuj'), 1500);
-                    }
-                });
-                pre.appendChild(button);
-            });
-        })();
-    </script>
+    <script src="https://unpkg.com/htmx.org@2.0.3"></script>
 {% endblock %}
 {% endblock %}
 

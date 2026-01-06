@@ -12,12 +12,10 @@
 <section class="bg-white/95 backdrop-blur-2xl rounded-2xl p-4 sm:p-6 border-2 border-indigo-200 shadow-xl border border-white/30" data-collaborators-panel data-note-id="{{ noteId }}" data-add-url="{{ addUrl }}" data-current-user-email="{{ currentUserEmail }}" data-owner-email="{{ items is not empty and items[0].isOwner ? items[0].email : '' }}" data-can-edit="{{ canEdit ? 'true' : 'false' }}">
     <div class="flex items-center justify-between gap-4 mb-5">
         <div>
-            <h2 class="text-lg sm:text-xl font-bold text-gray-900 mb-1">👥 Współedytorzy</h2>
+            <h2 class="text-lg sm:text-xl font-bold text-gray-900 mb-1">👥 Współpracownicy</h2>
             <p class="text-xs sm:text-sm text-gray-600 font-medium">Osoby z dostępem do edycji tej notatki</p>
         </div>
-        <span class="hidden xs:inline-block px-3 sm:px-4 py-1 sm:py-2 rounded-full bg-gradient-to-r from-emerald-400 to-green-500 text-white shadow-lg text-xs sm:text-sm font-bold">
-            Edycja
-        </span>
+
     </div>
 
     <form class="flex flex-col sm:flex-row gap-3 mb-5" data-collaborator-add-form>
@@ -32,14 +30,14 @@
 
     <div class="bg-white/90 backdrop-blur-xl rounded-xl border border-indigo-100 divide-y divide-indigo-100 shadow-inner" data-collaborators-list>
         {% if items is empty %}
-            <div class="px-4 sm:px-5 py-3 sm:py-4 text-xs sm:text-sm text-gray-500" data-collaborators-empty>Brak współedytorów.</div>
+            <div class="px-4 sm:px-5 py-3 sm:py-4 text-xs sm:text-sm text-gray-500" data-collaborators-empty>Brak współpracowników.</div>
         {% else %}
             {% for collaborator in items %}
                 <div class="px-4 sm:px-5 py-3 sm:py-4 flex items-center justify-between gap-3" data-collaborator-row data-collaborator-id="{{ collaborator.id ?? 'owner' }}" data-collaborator-email="{{ collaborator.email|lower }}">
                     <div class="space-y-0.5 min-w-0">
                         <p class="font-bold text-gray-900 text-sm sm:text-base truncate">{{ collaborator.email }}</p>
                         <p class="text-xs sm:text-sm text-indigo-600 font-semibold">
-                            {% if collaborator.isOwner %}👑 Właściciel{% elseif collaborator.isSelf %}👤 Ty{% else %}👥 Współedytor{% endif %}
+                            {% if collaborator.isOwner %}👑 Właściciel{% elseif collaborator.isSelf %}👤 Ty{% else %}👥 Współpracownik{% endif %}
                         </p>
                     </div>
                     {% if canEdit and not collaborator.isOwner %}

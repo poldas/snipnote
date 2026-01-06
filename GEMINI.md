@@ -40,9 +40,7 @@ The project is fully Dockerized. All backend commands should generally be run in
     ```
 5.  **Build Frontend:**
     ```bash
-    npm run tailwind:build   # Build CSS
-    docker compose exec app php bin/console importmap:install
-    docker compose exec app php bin/console asset-map:compile
+    ./localbin/assets.sh   # Comprehensive asset build and map compilation
     ```
 6.  **Access App:** `http://localhost:8080`
 
@@ -50,7 +48,7 @@ The project is fully Dockerized. All backend commands should generally be run in
 *   **Watch Tailwind:** `npm run tailwind:watch`
 *   **Watch Symfony Assets:** `docker compose exec app php bin/console asset-map:compile --watch`
 *   **Run PHPUnit Tests:** `docker compose exec app ./bin/phpunit`
-*   **Run E2E Tests:** `npm run e2e` (Headless), `npm run e2e:ui` (UI Mode)
+*   **Run E2E Tests:** `./localbin/test_e2e.sh` (Headless), `npm run e2e:ui` (UI Mode)
 *   **Access Shell:** `docker compose exec app bash`
 
 ## Project Structure & Key Files
@@ -61,13 +59,16 @@ The project is fully Dockerized. All backend commands should generally be run in
     *   `Service/`: Business logic.
     *   `Repository/`: Database queries.
 *   **`templates/`**: Twig templates for views.
+    *   `components/`: Reusable global components (`alert.html.twig`, `logo.html.twig`).
+    *   `notes/components/`: Notes-specific components (`notes_nav.html.twig`, `public_link.html.twig`, `note_form.html.twig`).
 *   **`assets/`**: Frontend source (CSS, JS, Controllers).
-    *   `app.css` -> Tailwind entry.
+    *   `controllers/`: Stimulus controllers (`autofocus_controller.js`, `notes_dashboard_controller.js`).
+    *   `styles/src/`: Source CSS files (organized by `base`, `components`, and `pages`).
 *   **`migrations/`**: Database schema changes.
 *   **`tests/`**: PHPUnit backend/integration tests.
 *   **`e2e/`**: Playwright End-to-End tests.
-*   **`docker/`**: Docker configuration files.
-*   **`docs/`**: Project documentation (See `local-setup.md` for detailed setup).
+    *   `specs/`: Detailed test suites including `landing.comprehensive.spec.ts`.
+    *   `page-objects/`: Page Object Model implementation.
 
 ## Development Conventions
 *   **Code Style:** PSR-12 (PHP-CS-Fixer).
@@ -76,3 +77,15 @@ The project is fully Dockerized. All backend commands should generally be run in
     *   Uses Symfony Attributes for routing and ORM mapping.
     *   HTMX is preferred over heavy JS frameworks for interactivity.
     *   Tailwind CSS for all styling.
+*   **UI/UX:**
+    *   **Shared Components:** Use `alert` for all notifications and `notes_nav` for post-auth navigation.
+    *   **Standard Inputs:** Use `.input-modern` class for consistent hover/focus shadow animations.
+    *   **Responsiveness:** Always ensure views are mobile-friendly (e.g., date labels, feature cards).
+    *   **Smart Focus:** Use `autofocus_controller.js` to prevent mobile keyboard/scrolling issues on load.
+*   **Testing:**
+    *   **E2E Selectors:** Use `data-testid` attribute and Playwright's `getByTestId()` locator. This ensures:
+        *   **Separation of Concerns:** Changes in CSS classes (styling) or JS logic won't break tests.
+        *   **Robustness:** Tests remain stable even after rebrandings or changes in text (i18n).
+        *   **Accessibility:** Whenever possible, combine `data-testid` with proper ARIA labels to support both automated testing and screen readers.
+    *   **Visual Regression:** Use `expect(page).toHaveScreenshot()` for UI stability verification.
+    *   **Page Object Model:** Always update Page Objects when changing DOM structure to keep tests resilient.

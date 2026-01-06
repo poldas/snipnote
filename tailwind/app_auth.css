@@ -1,0 +1,7 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+@import "../assets/styles/src/base.css";
+@import "../assets/styles/src/components.css";
+@import "../assets/styles/src/pages/auth.css";

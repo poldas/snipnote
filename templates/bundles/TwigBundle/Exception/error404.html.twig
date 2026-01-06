@@ -3,8 +3,7 @@
 {% block title %}Strona nie została znaleziona | Snipnote{% endblock %}
 
 {% block stylesheets %}
-    {{ parent() }}
-    <link rel="stylesheet" href="{{ asset('public_note.css') }}">
+    <link rel="stylesheet" href="{{ asset('styles/dist/public.css') }}">
 {% endblock %}
 
 {% block body %}
@@ -20,4 +19,8 @@
         {% include 'components/public_note_error.html.twig' with { errorCode: 404 } %}
     </section>
 </main>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="https://unpkg.com/htmx.org@2.0.3"></script>
 {% endblock %}

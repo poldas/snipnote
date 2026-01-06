@@ -1,0 +1,46 @@
+{#
+  PublicLink Component
+  Displays current public URL with copy action
+  Props: 
+    - publicUrl (string)
+    - visibility (string, optional)
+#}
+{% if publicUrl is defined and publicUrl is not empty %}
+    {% set publicHref = publicUrl|slice(0, 4) == 'http' ? publicUrl : absolute_url(publicUrl) %}
+
+    <section class="bg-white/95 backdrop-blur-2xl rounded-2xl p-6 border-2 border-emerald-200 shadow-xl transform hover:scale-[1.02] transition-all border border-white/30" data-public-link-section>
+        <div class="flex items-start justify-between gap-4 mb-4">
+        {% if visibility is defined and visibility == 'public' %}
+            <div>
+                <p class="text-lg font-bold text-gray-900 mb-1">🔗 Publiczny link</p>
+                <p class="text-sm text-gray-600 font-medium">
+                    Każdy kto ma ten link, może zobaczyć notatkę
+                </p>
+            </div>
+            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-emerald-400 to-green-500 text-white shadow-lg text-sm font-bold">
+                <span class="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                Dostęp publiczny
+            </span>
+            {% elseif visibility is defined and visibility == 'private' %}
+            <div>
+                <p class="text-lg font-bold text-gray-900 mb-1">🔗 Prywatny link</p>
+                <p class="text-sm text-gray-600 font-medium">
+                    Tylko osoby zalogowane i współpracownicy mogą zobaczyć notatkę
+                </p>
+            </div>
+            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-red-400 to-red-500 text-white shadow-lg text-sm font-bold">
+                <span class="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                Tylko dla zalogowanych
+            </span>
+            {% endif %}
+        </div>
+        <div class="flex flex-wrap items-center gap-3 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-200">
+            <a href="{{ publicHref }}" class="font-mono text-sm text-indigo-700 hover:text-indigo-900 break-all underline decoration-2 underline-offset-4 font-semibold flex-1" target="_blank" rel="noopener noreferrer" data-public-link>
+                {{ publicHref }}
+            </a>
+            <button type="button" data-copy-public-link data-link="{{ publicHref }}" class="btn-gradient inline-flex items-center gap-2 px-5 py-3 text-sm font-bold text-white rounded-xl shadow-lg hover:shadow-2xl whitespace-nowrap">
+                📋 Kopiuj
+            </button>
+        </div>
+    </section>
+{% endif %}
