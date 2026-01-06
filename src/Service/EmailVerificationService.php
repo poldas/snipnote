@@ -115,7 +115,7 @@ final class EmailVerificationService
                 'message_id' => $message->getHeaders()->getHeaderBody('Message-ID'),
                 'to' => iterator_to_array($message->getTo()),
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Fallback: log and continue (do not fail registration), but try sync send without messenger.
             $this->logger->error('Failed to send verification email', [
                 'email' => $email,

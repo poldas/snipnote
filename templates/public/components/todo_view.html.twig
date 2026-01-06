@@ -1,0 +1,59 @@
+{#
+  Public Todo View Component
+  Props:
+    - note: { title, urlToken, contentRaw }
+#}
+<div class="todo-header">
+    <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+        <div class="flex-1">
+            <h1>📋 {{ note.title is not empty ? note.title : '(Bez tytułu)' }}</h1>
+            <p>Zarządzaj swoją listą zadań lokalnie na tym urządzeniu</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            {% include 'notes/components/copy_content_button.html.twig' with { 
+                content: note.contentRaw
+            } %}
+            <button type="button" 
+                    data-action="click->public-todo#reset"
+                    class="px-4 py-2 text-xs font-bold text-slate-500 hover:text-rose-600 bg-slate-100 hover:bg-rose-50 rounded-xl transition-all border border-transparent hover:border-rose-100 shadow-sm"
+                    title="Usuń lokalne zmiany i przywróć treść od autora">
+                🔄 Resetuj listę
+            </button>
+        </div>
+    </div>
+    <div class="todo-stats">
+        <div class="stat-badge">
+            <span class="emoji">📝</span>
+            <span>Wszystkich: <span data-public-todo-target="totalCount">0</span></span>
+        </div>
+        <div class="stat-badge">
+            <span class="emoji">✅</span>
+            <span>Gotowe: <span data-public-todo-target="completedCount">0</span></span>
+        </div>
+        <div class="stat-badge">
+            <span class="emoji">⏳</span>
+            <span>Do zrobienia: <span data-public-todo-target="pendingCount">0</span></span>
+        </div>
+    </div>
+</div>
+
+<div class="todo-add-section">
+    <div class="todo-input-wrapper">
+        <input 
+            type="text" 
+            data-public-todo-target="input"
+            class="todo-input" 
+            placeholder="Dodaj nowe zadanie..."
+            autocomplete="off"
+            data-action="keypress->public-todo#add"
+        >
+        <button class="btn-add" data-action="click->public-todo#add">
+            <span>➕</span>
+            <span>Dodaj</span>
+        </button>
+    </div>
+</div>
+
+<div data-public-todo-target="list" class="todo-list-interactive">
+    {# Interaktywna lista renderowana przez JS na podstawie Markdowna #}
+</div>

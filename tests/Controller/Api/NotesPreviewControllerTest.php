@@ -10,6 +10,7 @@ use App\Exception\ValidationException;
 use App\Service\MarkdownPreviewService;
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
+use League\CommonMark\Extension\GithubFlavoredMarkdownExtension;
 use League\CommonMark\MarkdownConverter;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,11 +30,12 @@ final class NotesPreviewControllerTest extends TestCase
 
         $environment = new Environment([]);
         $environment->addExtension(new CommonMarkCoreExtension());
+        $environment->addExtension(new GithubFlavoredMarkdownExtension());
         $converter = new MarkdownConverter($environment);
         $config = (new HtmlSanitizerConfig())
             ->allowSafeElements()
             ->allowLinkSchemes(['http', 'https', 'mailto'])
-            ->allowElement('a', ['href', 'title'])
+            ->allowElement('a', ['href', 'title', 'target'])
             ->allowElement('img', ['src', 'alt', 'title', 'width', 'height']);
         $sanitizer = new HtmlSanitizer($config);
 

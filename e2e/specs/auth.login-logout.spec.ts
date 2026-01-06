@@ -30,8 +30,8 @@ test.describe('Authentication - Login and Logout flow (manual only)', () => {
         await dashboardPage.clickLogout();
 
         // Step 5: Verify logout - redirected back to landing page
-        await landingPage.expectHeroVisible();
         await expect(page).toHaveURL(/\/(?:\?|$)/);
+        await landingPage.expectHeroVisible();
     });
 
     test('login form validation shows errors for invalid credentials', async ({ page }) => {

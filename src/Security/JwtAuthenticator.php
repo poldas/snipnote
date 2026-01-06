@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Security;
 
 use App\Repository\UserRepository;
+use JsonException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,14 +19,6 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 
-/**
- * Minimal HS256 JWT authenticator.
- *
- * Assumptions:
- * - Authorization: Bearer <JWT>
- * - Payload contains "sub" (user UUID) and optional "exp" (unix timestamp).
- * - Token is signed with HS256 using JWT_SECRET (default: changeme).
- */
 final class JwtAuthenticator extends AbstractAuthenticator implements AuthenticationEntryPointInterface
 {
     public function __construct(
@@ -57,7 +50,7 @@ final class JwtAuthenticator extends AbstractAuthenticator implements Authentica
         $this->assertSignature($headerB64, $payloadB64, $signatureB64);
 
         $subject = $payload['sub'] ?? null;
-        if (!\is_string($subject) || $subject === '') {
+        if (!is_string($subject) || $subject === '') {
             throw new CustomUserMessageAuthenticationException('Invalid JWT subject');
         }
 
@@ -116,7 +109,7 @@ final class JwtAuthenticator extends AbstractAuthenticator implements Authentica
     private function splitToken(string $token): array
     {
         $parts = explode('.', $token);
-        if (\count($parts) !== 3) {
+        if (count($parts) !== 3) {
             throw new CustomUserMessageAuthenticationException('Malformed JWT');
         }
 
@@ -132,7 +125,7 @@ final class JwtAuthenticator extends AbstractAuthenticator implements Authentica
             return;
         }
 
-        if (!\is_int($payload['exp']) || $payload['exp'] <= time()) {
+        if (!is_int($payload['exp']) || $payload['exp'] <= time()) {
             throw new CustomUserMessageAuthenticationException('Token expired');
         }
     }
@@ -172,7 +165,7 @@ final class JwtAuthenticator extends AbstractAuthenticator implements Authentica
             throw new CustomUserMessageAuthenticationException(sprintf('Invalid JWT %s', $section), previous: $exception);
         }
 
-        if (!\is_array($decoded)) {
+        if (!is_array($decoded)) {
             throw new CustomUserMessageAuthenticationException(sprintf('Invalid JWT %s structure', $section));
         }
 

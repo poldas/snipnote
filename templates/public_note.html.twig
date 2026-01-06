@@ -2,8 +2,21 @@
 
 {% block title %}{{ note.title ?? '(Bez tytułu)' }}{% endblock %}
 
+{#
+    SEKCJA: Dynamiczne Style (Theme Switching)
+    ------------------------------------------
+    Logika ta pozwala na zmianę wyglądu całej strony bez zmiany struktury HTML.
+    1. ZAWSZE ładujemy `public.css` - zawiera on style bazowe, reset, Tailwind utilities oraz style dla Logo.
+    2. WARUNKOWO ładujemy style tematyczne (recipe/todo) - nadpisują one zmienne CSS (kolory) i
+       dostosowują wygląd komponentów (.pn-card, typography) do specyfiki danej treści.
+#}
 {% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('styles/dist/public.css') }}">
+    {% if theme is defined and theme == 'recipe' %}
+        <link rel="stylesheet" href="{{ asset('styles/recipe_view.css') }}">
+    {% elseif theme is defined and theme == 'todo' %}
+        <link rel="stylesheet" href="{{ asset('styles/todo_view.css') }}">
+    {% endif %}
 {% endblock %}
 
 {% block body %}
@@ -11,58 +24,39 @@
     <section class="public-note__container">
         <div class="max-w-6xl mx-auto px-4 pt-4 sm:pt-6 pb-4">
             <header class="pn-auth-header">
+                {# Komponent Logo: Stylizowany przez Tailwind w public.css #}
                 {% include 'components/logo.html.twig' with {size: 'small'} %}
                 <div>
                     {% block auth_nav %}{% endblock %}
                 </div>
             </header>
         </div>
+        
         {% if errorCode is not null %}
             {% include 'components/public_note_error.html.twig' with { errorCode: errorCode } %}
         {% elseif note is defined and note %}
-            <div id="public-note-shell" class="pn-shell">
+            {# GŁÓWNY KONTENER NOTATKI #}
+            <div id="public-note-shell" class="pn-shell" 
+                 {% if theme == 'todo' %}
+                    data-controller="public-todo" 
+                    data-public-todo-note-id-value="{{ note.urlToken }}"
+                 {% endif %}>
+                
                 <div class="pn-card">
-                    <div class="pn-meta-row">
-                        <div class="pn-date-pill">
-                            <span class="pn-icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                                </svg>
-                            </span>
-                            <time datetime="{{ note.createdAt|date('c') }}">
-                                {{ note.createdAt|date('d M Y') }}
-                            </time>
-                        </div>
-                    </div>
-                    <h1>
-                        {{ note.title is not empty ? note.title : '(Bez tytułu)' }}
-                    </h1>
-
-                    {% if note.labels|length %}
-                        <div class="pn-labels" aria-label="Etykiety notatki">
-                            {% for label in note.labels %}
-                                <span class="pn-label">#{{ label }}</span>
-                            {% endfor %}
-                        </div>
+                    {% if theme == 'todo' %}
+                        {% include 'public/components/todo_view.html.twig' with { note: note } %}
+                    {% else %}
+                        {% include 'public/components/default_view_header.html.twig' with { note: note } %}
                     {% endif %}
 
-                    <article class="pn-content prose" data-htmx-target="this">
-                        {% if note.descriptionHtml is not empty %}
-                            {{ note.descriptionHtml|raw }}
-                        {% else %}
-                            <p class="text-slate-500">(Brak treści)</p>
-                        {% endif %}
-                    </article>
+                    {% include 'public/components/note_content.html.twig' with { note: note, theme: theme } %}
                 </div>
             </div>
         {% endif %}
     </section>
 </main>
-{% block javascripts %}
-    <script src="https://unpkg.com/htmx.org@2.0.3"></script>
-{% endblock %}
 {% endblock %}
 
+{% block javascripts %}
+    {{ parent() }}
+{% endblock %}

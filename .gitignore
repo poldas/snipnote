@@ -31,3 +31,6 @@
 /blob-report
 /e2e/.cache
 /e2e/artifacts
+
+.gemini/
+gha-creds-*.json

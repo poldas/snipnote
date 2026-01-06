@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\DTO\Collaborator\NoteCollaboratorDto;
 use App\DTO\Note\NoteSummaryDto;
 use App\Entity\NoteVisibility;
 use App\Entity\User;
 use App\Service\NoteCollaboratorService;
 use App\Service\NoteService;
 use App\Query\Note\ListNotesQuery;
-use App\Service\AuthService;
 use App\Service\NotesQueryService;
 use App\Service\NotesSearchParser;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,6 +18,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -34,11 +36,11 @@ final class NotesPageController extends AbstractController
     ];
 
     public function __construct(
-        private readonly AuthService $authService,
         private readonly NotesQueryService $notesQueryService,
         private readonly NotesSearchParser $notesSearchParser,
         private readonly NoteService $noteService,
         private readonly NoteCollaboratorService $noteCollaboratorService,
+        private readonly CsrfTokenManagerInterface $csrfTokenManager,
     ) {}
 
     #[Route('/notes/new', name: 'notes_new', methods: ['GET'])]
@@ -49,7 +51,7 @@ final class NotesPageController extends AbstractController
         }
 
         return $this->render('notes/new.html.twig', [
-            'csrfToken' => $this->generateCsrfToken(),
+            'csrfToken' => $this->generateCsrfToken('note_new'),
         ]);
     }
 
@@ -88,7 +90,7 @@ final class NotesPageController extends AbstractController
         $isOwner = $note->getOwner() === $user;
 
         $collaboratorsView = array_map(
-            function (\App\DTO\Collaborator\NoteCollaboratorDto $dto) use ($note, $user, $isOwner): array {
+            function (NoteCollaboratorDto $dto) use ($note, $user): array {
                 $isSelf = $dto->email === $user->getUserIdentifier();
 
                 return [
@@ -115,7 +117,7 @@ final class NotesPageController extends AbstractController
 
         $view = [
             'noteId' => $note->getId(),
-            'csrfToken' => $this->generateCsrfToken(),
+            'csrfToken' => $this->generateCsrfToken('note_edit'),
             'initialTitle' => $note->getTitle(),
             'initialDescription' => $note->getDescription(),
             'initialLabels' => $note->getLabels(),
@@ -237,6 +239,7 @@ final class NotesPageController extends AbstractController
      *     excerpt: string,
      *     labels: list<string>,
      *     visibility: string,
+     *     isShared: bool,
      *     createdAt: \DateTimeImmutable,
      *     updatedAt: \DateTimeImmutable,
      *     editUrl: string,
@@ -279,10 +282,8 @@ final class NotesPageController extends AbstractController
         return rtrim(mb_substr($normalized, 0, 252)) . '...';
     }
 
-    private function generateCsrfToken(): string
+    private function generateCsrfToken(string $tokenId): string
     {
-        // W MVP używamy prostego tokenu z sesji
-        // W produkcji należy użyć Symfony CSRF Token Manager
-        return bin2hex(random_bytes(32));
+        return $this->csrfTokenManager->getToken($tokenId)->getValue();
     }
 }

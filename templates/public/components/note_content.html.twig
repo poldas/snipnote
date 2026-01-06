@@ -1,0 +1,15 @@
+{#
+  Public Note Markdown Content Component
+  Props:
+    - note: { descriptionHtml }
+    - theme: string
+#}
+<article class="pn-content prose" 
+         data-htmx-target="this"
+         {% if theme == 'todo' %}data-public-todo-target="markdownContent"{% endif %}>
+    {% if note.descriptionHtml is not empty %}
+        {{ note.descriptionHtml|raw }}
+    {% else %}
+        <p class="text-slate-500">(Brak treści)</p>
+    {% endif %}
+</article>

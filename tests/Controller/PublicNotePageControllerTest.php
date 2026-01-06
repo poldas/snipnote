@@ -108,4 +108,58 @@ final class PublicNotePageControllerTest extends WebTestCase
         $client->request('GET', '/n/123e4567-e89b-12d3-a456-426614174009');
         $this->assertResponseStatusCodeSame(404);
     }
+
+    public function testRecipeViewIsRenderedForRecipeLabel(): void
+    {
+        $client = self::createClient();
+        $container = $client->getContainer();
+        $em = $container->get(EntityManagerInterface::class);
+
+        $user = new User('chef@example.com', 'password');
+        $em->persist($user);
+
+        $note = new Note(
+            $user,
+            'Delicious Recipe',
+            'Recipe Content',
+            ['recipe', 'dinner'],
+            NoteVisibility::Public
+        );
+        $note->setUrlToken('123e4567-e89b-12d3-a456-426614174999');
+        $em->persist($note);
+        $em->flush();
+
+        $client->request('GET', '/n/123e4567-e89b-12d3-a456-426614174999');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorExists('link[href*="recipe_view"]');
+        $this->assertSelectorTextContains('h1', 'Delicious Recipe');
+    }
+
+    public function testTodoViewIsRenderedForTodoLabel(): void
+    {
+        $client = self::createClient();
+        $container = $client->getContainer();
+        $em = $container->get(EntityManagerInterface::class);
+
+        $user = new User('planner@example.com', 'password');
+        $em->persist($user);
+
+        $note = new Note(
+            $user,
+            'Shopping List',
+            'Buy milk',
+            ['todo', 'urgent'],
+            NoteVisibility::Public
+        );
+        $note->setUrlToken('123e4567-e89b-12d3-a456-426614175000');
+        $em->persist($note);
+        $em->flush();
+
+        $client->request('GET', '/n/123e4567-e89b-12d3-a456-426614175000');
+
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorExists('link[href*="todo_view"]');
+        $this->assertSelectorTextContains('h1', 'Shopping List');
+    }
 }

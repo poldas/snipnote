@@ -22,7 +22,6 @@ The project is fully Dockerized. All backend commands should generally be run in
 ### Quick Start
 1.  **Configure Environment:**
     ```bash
-    cp local.env.example .env
     # Adjust DATABASE_URL, JWT_SECRET, etc. if needed
     ```
 2.  **Start Services:**

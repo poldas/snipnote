@@ -9,6 +9,7 @@ use App\Entity\User;
 use App\Security\Voter\NoteVoter;
 use App\Service\MarkdownPreviewService;
 use App\Service\NoteService;
+use App\Service\NoteViewSelector;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -22,6 +23,7 @@ final class PublicNotePageController extends AbstractController
     public function __construct(
         private readonly NoteService $noteService,
         private readonly MarkdownPreviewService $markdownPreviewService,
+        private readonly NoteViewSelector $noteViewSelector,
     ) {}
 
     #[Route('/n/{urlToken}', name: 'public_notes_show', methods: ['GET'])]
@@ -29,6 +31,7 @@ final class PublicNotePageController extends AbstractController
     {
         $errorCode = null;
         $notePayload = null;
+        $note = null;
 
         try {
             $note = $this->noteService->getNotePreview($urlToken, $user);
@@ -40,8 +43,11 @@ final class PublicNotePageController extends AbstractController
             $canEdit = $user instanceof User && $this->isGranted(NoteVoter::EDIT, $note);
 
             $notePayload = [
+                'id' => $note->getId(),
+                'urlToken' => $note->getUrlToken(),
                 'title' => $note->getTitle(),
                 'descriptionHtml' => $preview->html,
+                'contentRaw' => $note->getDescription(),
                 'labels' => array_values(array_filter($note->getLabels(), static fn(string $label): bool => trim($label) !== '')),
                 'createdAt' => $note->getCreatedAt(),
                 'canEdit' => $canEdit,
@@ -56,9 +62,15 @@ final class PublicNotePageController extends AbstractController
             $errorCode = 0;
         }
 
+        $theme = 'default';
+        if ($note !== null && $errorCode === null) {
+            $theme = $this->noteViewSelector->getTheme($note->getLabels());
+        }
+
         $response = $this->render('public_note.html.twig', [
             'note' => $notePayload,
             'errorCode' => $errorCode,
+            'theme' => $theme,
         ]);
 
         if ($errorCode !== null && $errorCode !== 0) {

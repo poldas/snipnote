@@ -1,0 +1,286 @@
+/* ==========================================================================
+   RECIPE VIEW THEME (Motyw Kulinarny)
+   --------------------------------------------------------------------------
+   Aktywowany etykietą: 'recipe'
+   Cel: Nadanie notatce wyglądu profesjonalnego bloga kulinarnego / karty przepisu.
+   ========================================================================== */
+
+:root {
+    --recipe-cream: #FFF8F0;
+    --recipe-orange: #FF6B35;
+    --recipe-warm: #F7931E;
+    --recipe-brown: #8B4513;
+    --recipe-dark: #2C1810;
+    --recipe-green: #6B8E23;
+    --recipe-red: #DC143C;
+    --recipe-card: rgba(255, 255, 255, 0.95);
+    --recipe-shadow: 0 20px 60px rgba(139, 69, 19, 0.15);
+}
+
+body {
+    margin: 0;
+    font-family: "Georgia", "Times New Roman", serif;
+    color: var(--recipe-dark);
+    background: 
+        radial-gradient(circle at 20% 30%, rgba(255, 107, 53, 0.08), transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(247, 147, 30, 0.06), transparent 40%),
+        radial-gradient(circle at 40% 80%, rgba(107, 142, 35, 0.05), transparent 45%),
+        linear-gradient(135deg, #FFF8F0 0%, #FFE4D1 50%, #FFEFD5 100%);
+    position: relative;
+    min-height: 100vh;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle, rgba(139, 69, 19, 0.03) 1px, transparent 1px);
+    background-size: 30px 30px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+main.public-note {
+    min-height: 100vh;
+    padding: 64px 16px;
+    position: relative;
+    z-index: 1;
+}
+
+@media (min-width: 640px) {
+    main.public-note {
+        padding: 96px 24px;
+    }
+}
+
+.public-note__container {
+    position: relative;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 8px;
+}
+
+.pn-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
+}
+
+.pn-card {
+    width: 100%;
+    background: var(--recipe-card);
+    border: 2px solid rgba(139, 69, 19, 0.1);
+    border-radius: 32px;
+    box-shadow: var(--recipe-shadow);
+    padding: 40px;
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+}
+
+.pn-card::before {
+    content: '🍳';
+    position: absolute;
+    top: -30px;
+    right: -30px;
+    font-size: 180px;
+    opacity: 0.03;
+    transform: rotate(-15deg);
+    pointer-events: none; /* Zapobiega blokowaniu kliknięć */
+}
+
+.pn-card::after {
+    content: '🥘';
+    position: absolute;
+    bottom: -40px;
+    left: -40px;
+    font-size: 200px;
+    opacity: 0.03;
+    transform: rotate(20deg);
+    pointer-events: none; /* Zapobiega blokowaniu kliknięć */
+}
+
+/* --- Nagłówek i Metadane --- */
+.pn-meta-row {
+    position: relative;
+    z-index: 10; /* Wyniesienie ponad elementy dekoracyjne */
+}
+
+.pn-card h1 {
+    margin: 20px 0 28px;
+    font-size: 48px;
+    line-height: 1.1;
+    font-weight: 800;
+    color: var(--recipe-dark);
+    font-family: "Georgia", serif;
+    position: relative;
+    z-index: 1;
+    text-shadow: 2px 2px 4px rgba(139, 69, 19, 0.05);
+}
+
+@media (min-width: 640px) {
+    .pn-card h1 {
+        font-size: 64px;
+    }
+}
+
+.pn-date-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, var(--recipe-orange), var(--recipe-warm));
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 11px;
+    color: white;
+    box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+}
+
+.pn-label {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(247, 147, 30, 0.15));
+    border: 2px solid var(--recipe-orange);
+    border-radius: 20px;
+    color: var(--recipe-brown);
+    font-weight: 700;
+}
+
+/* TYPOGRAFIA MARKDOWN */
+article.prose {
+    line-height: 1.8;
+    font-size: 17px;
+    color: var(--recipe-dark);
+}
+
+article.prose h2 {
+    margin: 50px 0 25px;
+    font-size: 32px;
+    color: var(--recipe-dark);
+    font-weight: 700;
+    position: relative;
+    padding-left: 60px;
+    font-family: "Georgia", serif;
+}
+
+article.prose h2::before {
+    position: absolute;
+    left: 0;
+    font-size: 42px;
+    top: -5px;
+}
+
+article.prose h2:nth-of-type(1)::before { content: '🍝'; }
+article.prose h2:nth-of-type(2)::before { content: '🌶️'; }
+article.prose h2:nth-of-type(3)::before { content: '🐔'; }
+
+article.prose p strong {
+    display: inline-block;
+    margin: 25px 0 15px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, var(--recipe-green), #7BA32E);
+    color: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(107, 142, 35, 0.25);
+}
+
+article.prose ul {
+    margin: 20px 0;
+    padding: 25px;
+    background: rgba(255, 248, 240, 0.8);
+    border-left: 5px solid var(--recipe-orange);
+    border-radius: 16px;
+    list-style: none;
+}
+
+article.prose ul li {
+    margin: 12px 0;
+    padding-left: 35px;
+    position: relative;
+}
+
+article.prose ul li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--recipe-green);
+    font-weight: 900;
+    font-size: 18px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(107, 142, 35, 0.15);
+    border-radius: 50%;
+}
+
+article.prose ol {
+    margin: 20px 0;
+    padding: 25px;
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.05), rgba(247, 147, 30, 0.08));
+    border: 2px solid rgba(255, 107, 53, 0.2);
+    border-radius: 16px;
+    list-style: none;
+    counter-reset: recipe-step;
+}
+
+article.prose ol li {
+    margin: 16px 0;
+    padding-left: 50px;
+    position: relative;
+    counter-increment: recipe-step;
+}
+
+article.prose ol li::before {
+    content: counter(recipe-step);
+    position: absolute;
+    left: 0;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--recipe-orange), var(--recipe-warm));
+    color: white;
+    border-radius: 50%;
+    font-weight: 900;
+}
+
+article.prose hr {
+    margin: 60px 0;
+    border: none;
+    height: 3px;
+    background: linear-gradient(90deg, transparent 0%, var(--recipe-orange) 20%, var(--recipe-warm) 50%, var(--recipe-orange) 80%, transparent 100%);
+}
+
+article.prose a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 28px;
+    background: linear-gradient(135deg, var(--recipe-red), #E91E63);
+    color: white;
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: 700;
+    box-shadow: 0 10px 30px rgba(220, 20, 60, 0.3);
+}
+
+@media (max-width: 640px) {
+    article.prose h2 {
+        font-size: 26px;
+        padding-left: 50px;
+    }
+    article.prose h2::before {
+        font-size: 36px;
+    }
+    .pn-card {
+        padding: 28px;
+    }
+}

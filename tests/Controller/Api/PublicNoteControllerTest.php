@@ -7,6 +7,7 @@ namespace App\Tests\Controller\Api;
 use App\Controller\Api\PublicNoteController;
 use App\Entity\Note;
 use App\Entity\User;
+use App\Mapper\PublicNoteJsonMapper;
 use App\Service\NoteService;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,7 +27,7 @@ final class PublicNoteControllerTest extends TestCase
             ->with('uuid')
             ->willReturn($note);
 
-        $mapper = new \App\Mapper\PublicNoteJsonMapper();
+        $mapper = new PublicNoteJsonMapper();
         $controller = new PublicNoteController($service, $mapper);
 
         $response = $controller->getByToken('uuid');
