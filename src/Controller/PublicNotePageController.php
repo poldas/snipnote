@@ -47,6 +47,7 @@ final class PublicNotePageController extends AbstractController
                 'urlToken' => $note->getUrlToken(),
                 'title' => $note->getTitle(),
                 'descriptionHtml' => $preview->html,
+                'contentRaw' => $note->getDescription(),
                 'labels' => array_values(array_filter($note->getLabels(), static fn(string $label): bool => trim($label) !== '')),
                 'createdAt' => $note->getCreatedAt(),
                 'canEdit' => $canEdit,

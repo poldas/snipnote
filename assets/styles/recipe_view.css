@@ -91,6 +91,7 @@ main.public-note {
     font-size: 180px;
     opacity: 0.03;
     transform: rotate(-15deg);
+    pointer-events: none; /* Zapobiega blokowaniu kliknięć */
 }
 
 .pn-card::after {
@@ -101,9 +102,15 @@ main.public-note {
     font-size: 200px;
     opacity: 0.03;
     transform: rotate(20deg);
+    pointer-events: none; /* Zapobiega blokowaniu kliknięć */
 }
 
-/* --- Tytuł Przepisu --- */
+/* --- Nagłówek i Metadane --- */
+.pn-meta-row {
+    position: relative;
+    z-index: 10; /* Wyniesienie ponad elementy dekoracyjne */
+}
+
 .pn-card h1 {
     margin: 20px 0 28px;
     font-size: 48px;
@@ -125,11 +132,12 @@ main.public-note {
 .pn-date-pill {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    padding: 12px 20px;
+    gap: 8px;
+    padding: 10px 16px;
     background: linear-gradient(135deg, var(--recipe-orange), var(--recipe-warm));
     border-radius: 50px;
     font-weight: 700;
+    font-size: 11px;
     color: white;
     box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
 }

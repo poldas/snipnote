@@ -90,17 +90,13 @@ main.public-note {
     height: 200%;
     background: linear-gradient(45deg, transparent 30%, rgba(99, 102, 241, 0.03) 50%, transparent 70%);
     transform: rotate(45deg);
-    pointer-events: none;
-}
-
-@media (min-width: 640px) {
-    .pn-card {
-        padding: 50px;
-    }
+    pointer-events: none; /* Zapobiega blokowaniu kliknięć */
 }
 
 /* --- Nagłówek Todo --- */
 .todo-header {
+    position: relative;
+    z-index: 10;
     margin-bottom: 48px; /* Więcej miejsca pod nagłówkiem */
 }
 
@@ -305,6 +301,41 @@ main.public-note {
     background: linear-gradient(135deg, var(--todo-danger), #dc2626);
     color: white;
     border-color: var(--todo-danger);
+}
+
+/* --- Stan Pusty --- */
+.empty-state {
+    text-align: center;
+    padding: 64px 24px;
+    color: #94a3b8;
+    background: rgba(248, 250, 252, 0.4);
+    border-radius: 32px;
+    border: 2px dashed rgba(99, 102, 241, 0.1);
+}
+
+.empty-state .emoji {
+    font-size: 84px;
+    margin-bottom: 24px;
+    display: block;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+
+.empty-state h3 {
+    margin: 0 0 12px;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--todo-dark);
+}
+
+.empty-state p {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 500;
 }
 
 @media (max-width: 640px) {
