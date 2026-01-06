@@ -43,6 +43,8 @@ final class PublicNotePageController extends AbstractController
             $canEdit = $user instanceof User && $this->isGranted(NoteVoter::EDIT, $note);
 
             $notePayload = [
+                'id' => $note->getId(),
+                'urlToken' => $note->getUrlToken(),
                 'title' => $note->getTitle(),
                 'descriptionHtml' => $preview->html,
                 'labels' => array_values(array_filter($note->getLabels(), static fn(string $label): bool => trim($label) !== '')),

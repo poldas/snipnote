@@ -2,20 +2,27 @@ import { Controller } from '@hotwired/stimulus';
 
 export default class extends Controller {
     static targets = ['input', 'list', 'totalCount', 'completedCount', 'pendingCount', 'markdownContent'];
+    static values = {
+        noteId: String
+    };
 
     connect() {
         this.todos = [];
         this.idCounter = 1;
         
-        // Inicjalizacja danych
+        // 1. Najpierw parsujemy Markdown, żeby mieć bazę (jeśli localstorage będzie puste)
         this.parseMarkdown();
+        
+        // 2. Próbujemy wczytać stan z pamięci lokalnej
+        this.loadFromLocalStorage();
+        
+        // 3. Wyświetlamy efekt końcowy
         this.render();
     }
 
     parseMarkdown() {
         if (!this.hasMarkdownContentTarget) return;
 
-        // Szukamy wszystkich li wewnątrz ul
         const items = this.markdownContentTarget.querySelectorAll('ul li');
         
         if (items.length > 0) {
@@ -31,12 +38,53 @@ export default class extends Controller {
                 }
             });
             
-            // Ukrywamy oryginalne listy Markdown
             this.markdownContentTarget.querySelectorAll('ul').forEach(ul => {
                 ul.style.display = 'none';
             });
         }
     }
+
+    // --- Persystencja ---
+
+    get storageKey() {
+        return `snipnote_todo_v1_${this.noteIdValue}`;
+    }
+
+    saveToLocalStorage() {
+        const data = {
+            todos: this.todos,
+            idCounter: this.idCounter
+        };
+        localStorage.setItem(this.storageKey, JSON.stringify(data));
+    }
+
+    loadFromLocalStorage() {
+        const stored = localStorage.getItem(this.storageKey);
+        if (stored) {
+            try {
+                const data = JSON.parse(stored);
+                // Jeśli mamy dane w storage, nadpisujemy to co przyszło z Markdowna
+                this.todos = data.todos || [];
+                this.idCounter = data.idCounter || 1;
+            } catch (e) {
+                console.error("Błąd podczas wczytywania listy zadań:", e);
+            }
+        }
+    }
+
+    reset() {
+        const message = "Czy na pewno chcesz przywrócić listę do stanu początkowego?\n\nSpowoduje to usunięcie wszystkich Twoich lokalnych zmian (dodanych zadań, skreśleń) i przywrócenie oryginalnej treści notatki.";
+        
+        if (confirm(message)) {
+            localStorage.removeItem(this.storageKey);
+            this.todos = [];
+            this.idCounter = 1;
+            this.parseMarkdown(); // Ponowne parsowanie oryginału
+            this.render();
+        }
+    }
+
+    // --- Akcje ---
 
     add(event) {
         if (event.type === 'keypress' && event.key !== 'Enter') return;
@@ -51,6 +99,7 @@ export default class extends Controller {
         });
 
         this.inputTarget.value = '';
+        this.saveToLocalStorage();
         this.render();
     }
 
@@ -59,8 +108,8 @@ export default class extends Controller {
         const todo = this.todos.find(t => t.id === id);
         
         if (todo) {
-            // Bezpośrednio zmieniamy stan na podstawie checkboxa
             todo.completed = event.currentTarget.checked;
+            this.saveToLocalStorage();
             this.render();
         }
     }
@@ -68,11 +117,12 @@ export default class extends Controller {
     remove(event) {
         const id = parseInt(event.currentTarget.dataset.id);
         this.todos = this.todos.filter(t => t.id !== id);
+        this.saveToLocalStorage();
         this.render();
     }
 
     render() {
-        // 1. Aktualizacja statystyk (musi być przed lub w trakcie renderowania)
+        // Statystyki
         const total = this.todos.length;
         const completed = this.todos.filter(t => t.completed).length;
         const pending = total - completed;
@@ -81,19 +131,18 @@ export default class extends Controller {
         if (this.hasCompletedCountTarget) this.completedCountTarget.textContent = completed;
         if (this.hasPendingCountTarget) this.pendingCountTarget.textContent = pending;
 
-        // 2. Renderowanie listy
+        // Lista
         if (total === 0) {
             this.listTarget.innerHTML = `
                 <div class="empty-state">
                     <span class="emoji">🛒</span>
                     <h3>Lista jest pusta</h3>
-                    <p>Dodaj pierwsze zadanie, aby zacząć!</p>
+                    <p>Wszystkie zadania wykonane lub usunięte!</p>
                 </div>
             `;
             return;
         }
 
-        // Czyścimy i budujemy nową listę
         this.listTarget.innerHTML = '';
         this.todos.forEach(todo => {
             const item = document.createElement('div');
@@ -111,12 +160,12 @@ export default class extends Controller {
                 <button 
                     class="btn-delete" 
                     data-id="${todo.id}"
+                    title="Usuń zadanie"
                 >
                     Usuń
                 </button>
             `;
 
-            // Ręczne bindowanie eventów dla większej pewności
             item.querySelector('.todo-checkbox').addEventListener('change', (e) => this.toggle(e));
             item.querySelector('.btn-delete').addEventListener('click', (e) => this.remove(e));
 
