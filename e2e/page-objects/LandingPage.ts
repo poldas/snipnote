@@ -63,6 +63,34 @@ export class LandingPage {
         }
     }
 
+    async expectBrandVisuals() {
+        // Verify Hero has the correct brand gradient classes (Tailwind check)
+        const heroTitle = this.page.locator('h1 span');
+        await expect(heroTitle).toHaveClass(/from-indigo-600/);
+        await expect(heroTitle).toHaveClass(/to-purple-600/);
+
+        // Verify main CTA button has the primary gradient class
+        const cta = this.page.locator('a[href="/register"]').first();
+        await expect(cta).toHaveClass(/btn-auth-primary/);
+    }
+
+    async expectMobileLayout() {
+        // Verify that elements adjust correctly at mobile viewport
+        const viewportWidth = this.page.viewportSize()?.width || 0;
+        
+        if (viewportWidth < 768) {
+            // Check if benefit tags container is visible (specific hero version)
+            const benefitsContainer = this.page.locator('section').first().locator('div.flex.flex-wrap.justify-center');
+            await expect(benefitsContainer).toBeVisible();
+            
+            // On very small screens, ensure we don't have desktop-only nav elements
+            const desktopOnlyNav = this.page.locator('nav .hidden.md\\:flex');
+            if (await desktopOnlyNav.count() > 0) {
+                await expect(desktopOnlyNav).not.toBeVisible();
+            }
+        }
+    }
+
     async expectCTASectionVisible() {
         await expect(this.page.getByRole('heading', { name: 'Gotowy na lepsze notatki?' })).toBeVisible();
         await expect(this.page.getByText('Zacznij ze Snipnote już dziś. Rozpocznij za darmo.')).toBeVisible();

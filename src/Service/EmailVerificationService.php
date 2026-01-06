@@ -43,7 +43,7 @@ final class EmailVerificationService
         }
 
         $user = $this->userRepository->findOneByEmailCaseInsensitive($email);
-        if ($user === null) {
+        if ($user === null || $user->isVerified()) {
             return;
         }
 

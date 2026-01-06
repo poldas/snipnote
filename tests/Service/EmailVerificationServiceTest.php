@@ -109,8 +109,9 @@ final class EmailVerificationServiceTest extends TestCase
         $this->mailer
             ->expects(self::once())
             ->method('send')
-            ->with(self::callback(function (Email $email): bool {
-                return str_contains($email->getTextBody() ?? '', 'https://example.com/verify');
+            ->with(self::callback(function ($email): bool {
+                return $email instanceof \Symfony\Bridge\Twig\Mime\TemplatedEmail 
+                    && $email->getContext()['url'] === 'https://example.com/verify';
             }));
 
         $this->service->sendForEmail('user@example.com');
