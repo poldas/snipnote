@@ -1,5 +1,5 @@
 import { Controller } from '@hotwired/stimulus';
-import { showToast, announce } from '../ui_utils.js';
+import { showToast, announce } from 'ui_utils';
 
 const defaultConfig = {
     mode: 'create',

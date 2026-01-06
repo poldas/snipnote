@@ -10,10 +10,10 @@ export default defineConfig({
     expect: {
         timeout: 5_000,
     },
-    fullyParallel: false,
+    fullyParallel: true,
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 2 : 0,
-    workers: 1,
+    workers: 4,
     reporter: [
         ['list'],
         ['html', { outputFolder: 'playwright-report', open: 'never' }],

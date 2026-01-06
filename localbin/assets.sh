@@ -10,6 +10,9 @@ if [ -z "$APP_ID" ]; then
     docker compose up -d app
 fi
 
+echo "Cleaning up old assets..."
+rm -rf public/assets/*
+
 echo "Building frontend (Node in disposable container)..."
 docker run --rm -v "$ROOT":/app -w /app node:20-alpine sh -c "npm ci && npm run tailwind:build"
 

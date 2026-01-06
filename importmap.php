@@ -28,4 +28,7 @@ return [
     '@hotwired/turbo' => [
         'version' => '7.3.0',
     ],
+    'ui_utils' => [
+        'path' => './assets/ui_utils.js',
+    ],
 ];
