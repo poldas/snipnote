@@ -39,11 +39,11 @@ class AuthService
     {
         $email = mb_strtolower(trim($request->email));
         if ($email === '') {
-            throw new ValidationException(['email' => ['Email cannot be empty']]);
+            throw new ValidationException(['email' => ['Email nie może być pusty']]);
         }
 
         if ($this->userRepository->findOneByEmailCaseInsensitive($email) !== null) {
-            throw new ValidationException(['email' => ['Email already in use']]);
+            throw new ValidationException(['email' => ['Email jest już w użyciu']]);
         }
 
         $passwordHash = $this->hashPassword($request->password);
@@ -53,7 +53,7 @@ class AuthService
             $this->entityManager->persist($user);
             $this->entityManager->flush();
         } catch (UniqueConstraintViolationException) {
-            throw new ValidationException(['email' => ['Email already in use']]);
+            throw new ValidationException(['email' => ['Email jest już w użyciu']]);
         }
 
         $tokens = $this->issueTokens($user);
@@ -71,20 +71,20 @@ class AuthService
     {
         $email = mb_strtolower(trim($request->email));
         if ($email === '') {
-            throw new AuthenticationException('Invalid credentials');
+            throw new AuthenticationException('Nieprawidłowe dane logowania');
         }
 
         $user = $this->userRepository->findOneByEmailCaseInsensitive($email);
         if ($user === null) {
-            throw new AuthenticationException('Invalid credentials');
+            throw new AuthenticationException('Nieprawidłowe dane logowania');
         }
 
         if (!$user->isVerified()) {
-            throw new AuthenticationException('Email not verified');
+            throw new AuthenticationException('Email nie został zweryfikowany');
         }
 
         if (!$this->verifyPassword($user, $request->password)) {
-            throw new AuthenticationException('Invalid credentials');
+            throw new AuthenticationException('Nieprawidłowe dane logowania');
         }
 
         $tokens = $this->issueTokens($user);

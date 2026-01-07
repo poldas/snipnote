@@ -51,7 +51,7 @@ final class AuthController extends AbstractController
             'data' => [
                 'user' => $this->userToArray($result['user']),
                 'tokens' => $this->tokensToArray($result['tokens']),
-                'message' => 'Verification email sent',
+                'message' => 'Email weryfikacyjny wysłany',
             ],
         ], JsonResponse::HTTP_CREATED);
     }
@@ -126,7 +126,7 @@ final class AuthController extends AbstractController
 
         return new JsonResponse([
             'data' => [
-                'message' => 'If the account exists and is unverified, a verification email was sent',
+                'message' => 'Jeśli konto istnieje i nie jest zweryfikowane, email weryfikacyjny został wysłany',
             ],
         ], JsonResponse::HTTP_OK);
     }
@@ -140,7 +140,7 @@ final class AuthController extends AbstractController
 
         $this->emailVerificationService->handleVerification($email, $signature, $expires);
 
-        // For browser clicks (text/html), redirect to login with a success flash.
+        // Fallback for browser clicks on API links (e.g. old emails): redirect to login
         $accept = (string) $request->headers->get('accept', '');
         if (str_contains($accept, 'text/html')) {
             $this->addFlash('success', 'Adres email został potwierdzony. Zaloguj się.');
@@ -150,7 +150,7 @@ final class AuthController extends AbstractController
 
         return new JsonResponse([
             'data' => [
-                'message' => 'Email verified',
+                'message' => 'Email zweryfikowany',
                 'status' => 'verified',
             ],
         ]);

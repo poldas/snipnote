@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout_minimal.html.twig' %}
 
 {% block title %}{{ title ?? 'Snipnote' }}{% endblock %}
 
@@ -6,7 +6,9 @@
     <link rel="stylesheet" href="{{ asset('styles/dist/auth.css') }}">
 {% endblock %}
 
-{% block javascripts %}{% endblock %}
+{% block javascripts %}
+    {{ importmap('auth') }}
+{% endblock %}
 
 {% block body %}
     <div class="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-cyan-50 flex flex-col relative">

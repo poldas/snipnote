@@ -51,7 +51,7 @@ final class EmailVerificationService
         $signature = $this->sign($email, $expires);
 
         $url = $this->urlGenerator->generate(
-            'api_auth_verify_email',
+            'app_verify_email',
             ['email' => $email, 'expires' => (string) $expires, 'signature' => $signature],
             UrlGeneratorInterface::ABSOLUTE_URL
         );

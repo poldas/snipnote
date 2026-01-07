@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Component\Security\Http\SecurityRequestAttributes;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -57,7 +58,10 @@ final class AuthPageController extends AbstractController
 
         $errors = [];
         if ($error) {
-            $errors[] = ['message' => $error->getMessageKey()];
+            $errors[] = [
+                'message' => $error->getMessageKey(),
+                'messageData' => $error->getMessageData()
+            ];
         }
 
         return $this->render('auth/login.html.twig', [
@@ -165,7 +169,17 @@ final class AuthPageController extends AbstractController
                 } else {
                     // Always show success message for security (enumeration protection)
                     $success = 'Jeśli konto istnieje, wysłaliśmy instrukcje resetu hasła.';
-                    $this->passwordResetService->requestPasswordReset($email);
+                    
+                    $user = $this->userRepository->findOneByEmailCaseInsensitive($email);
+
+                    if ($user !== null && !$user->isVerified()) {
+                        // Case: User exists but is unverified -> Send verification email
+                        $this->emailVerificationService->sendForEmail($email);
+                    } else {
+                        // Case: User exists and verified OR User does not exist (handled inside service safely)
+                        // Note: If user does not exist, PasswordResetService just returns silently.
+                        $this->passwordResetService->requestPasswordReset($email);
+                    }
                 }
             }
         }
@@ -217,9 +231,12 @@ final class AuthPageController extends AbstractController
                 if ($errors === []) {
                     $this->passwordResetService->resetPassword($user, $password);
                     
-                    // Redirect to login with success flash (simulated via query param or flash bag)
-                    // Using query param for simplicity in this MVP context if flash bag not configured, 
-                    // but AbstractController has addFlash.
+                    // Security & UX: Set the last username so the login form is prefilled.
+                    // We do not invalidate session here to avoid CSRF issues; Symfony migrates session on login.
+                    $session = $request->getSession();
+                    $session->set(SecurityRequestAttributes::LAST_USERNAME, $user->getEmail());
+
+                    // Add flash to the session
                     $this->addFlash('success', 'Hasło zostało zmienione. Zaloguj się nowym hasłem.');
                     
                     return $this->redirectToRoute('app_login_page');
@@ -253,9 +270,9 @@ final class AuthPageController extends AbstractController
         $errors = [];
 
         if (!$this->csrfTokenManager->isTokenValid(new CsrfToken('verify_email_resend', $submittedToken))) {
-            $errors[] = ['message' => 'Nieprawidłowy token bezpieczeństwa. Spróbuj ponownie.'];
+            $errors[] = 'Nieprawidłowy token bezpieczeństwa. Spróbuj ponownie.';
         } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errors[] = ['field' => 'email', 'message' => 'Podaj poprawny adres email.'];
+            $errors[] = 'Podaj poprawny adres email.';
         }
 
         if ($errors === []) {
@@ -275,10 +292,14 @@ final class AuthPageController extends AbstractController
             ]);
         }
 
-        $viewData = $this->verifyNoticeView('pending', $email);
-        $viewData['errors'] = $errors;
+        foreach ($errors as $error) {
+            $this->addFlash('error', $error);
+        }
 
-        return $this->render('auth/verify_notice.html.twig', $viewData);
+        return $this->redirectToRoute('app_verify_notice_page', [
+            'state' => 'pending',
+            'email' => $email,
+        ]);
     }
 
     #[Route('/verify/email/notice', name: 'app_verify_notice_page', methods: ['GET'])]
@@ -288,6 +309,32 @@ final class AuthPageController extends AbstractController
         $email = (string) $request->query->get('email', '');
 
         return $this->render('auth/verify_notice.html.twig', $this->verifyNoticeView($state, $email));
+    }
+
+    #[Route('/verify/email', name: 'app_verify_email', methods: ['GET'])]
+    public function verifyEmail(Request $request): Response
+    {
+        $email = (string) $request->query->get('email', '');
+        $signature = (string) $request->query->get('signature', '');
+        $expires = (string) $request->query->get('expires', '');
+
+        try {
+            $this->emailVerificationService->handleVerification($email, $signature, $expires);
+            
+            // Fix: Set session attribute for prefill, but do not invalidate to avoid CSRF token mismatch on redirect.
+            $session = $request->getSession();
+            $session->set(SecurityRequestAttributes::LAST_USERNAME, $email);
+
+            $this->addFlash('success', 'Adres email został potwierdzony. Zaloguj się.');
+
+            return $this->redirectToRoute('app_login_page');
+        } catch (ValidationException $e) {
+            // In case of error (expired/invalid), show the verify notice with 'invalid' state
+            return $this->redirectToRoute('app_verify_notice_page', [
+                'state' => 'invalid',
+                'email' => $email,
+            ]);
+        }
     }
 
     private function verifyNoticeView(string $state, string $email): array

@@ -16,6 +16,14 @@ return [
         'path' => './assets/app.js',
         'entrypoint' => true,
     ],
+    'public_note' => [
+        'path' => './assets/public_note.js',
+        'entrypoint' => true,
+    ],
+    'auth' => [
+        'path' => './assets/auth.js',
+        'entrypoint' => true,
+    ],
     'htmx.org' => [
         'version' => '2.0.3',
     ],
