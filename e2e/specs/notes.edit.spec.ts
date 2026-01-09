@@ -1,29 +1,9 @@
-import { test, expect } from '@playwright/test';
-import { LoginPage } from '../page-objects/LoginPage';
+import { test, expect } from '../fixtures/auth.fixture';
 import { DashboardPage } from '../page-objects/DashboardPage';
 import { NoteEditorPage } from '../page-objects/NoteEditorPage';
-import { UserFactory } from '../helpers/UserFactory';
 
 test.describe('Note Editing & Collaboration', () => {
-    let userEmail: string;
-    const userPass = 'K7pL9mW3xR8vT2q';
-
-    test.beforeAll(async () => {
-        userEmail = UserFactory.generateEmail('edit');
-        await UserFactory.create(userEmail, userPass);
-    });
-
-    test.afterAll(async () => {
-        await UserFactory.delete(userEmail);
-    });
-
-    test.beforeEach(async ({ page }) => {
-        const loginPage = new LoginPage(page);
-        await loginPage.goto();
-        await loginPage.login(userEmail, userPass);
-    });
-
-    test('should update note title and add a collaborator', async ({ page }) => {
+    test('should update note title and add a collaborator', async ({ authedPage: page }) => {
         const dashboardPage = new DashboardPage(page);
         const editorPage = new NoteEditorPage(page);
         const uniqueId = Date.now().toString() + Math.random().toString(36).substring(2, 8);

@@ -11,9 +11,12 @@ export class UserFactory {
 
     static async create(email: string, pass: string = 'K7pL9mW3xR8vT2q'): Promise<void> {
         let lastError;
+        const useDocker = process.env.E2E_DOCKER_DISABLED !== '1';
+        const commandPrefix = useDocker ? 'docker compose exec -T app ' : '';
+
         for (let i = 0; i < 3; i++) {
             try {
-                const command = `docker compose exec -T app php bin/console app:test-user-manage create ${email} ${pass}`;
+                const command = `${commandPrefix}php bin/console app:test-user-manage create ${email} ${pass}`;
                 execSync(command);
                 return; // Success
             } catch (error) {
@@ -26,7 +29,9 @@ export class UserFactory {
 
     static async delete(email: string): Promise<void> {
         try {
-            const command = `docker compose exec -T app php bin/console app:test-user-manage delete ${email} --no-interaction`;
+            const useDocker = process.env.E2E_DOCKER_DISABLED !== '1';
+            const commandPrefix = useDocker ? 'docker compose exec -T app ' : '';
+            const command = `${commandPrefix}php bin/console app:test-user-manage delete ${email} --no-interaction`;
             execSync(command);
         } catch (error) {
             // Silently ignore deletion errors

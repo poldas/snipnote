@@ -8,7 +8,7 @@ export class MailpitClient {
     private readonly apiUrl: string;
 
     constructor() {
-        this.apiUrl = process.env.MAILPIT_API_URL || 'http://localhost:8025/api/v1';
+        this.apiUrl = process.env.MAILPIT_API_URL || 'http://127.0.0.1:8025/api/v1';
     }
 
     async deleteAllMessages() {

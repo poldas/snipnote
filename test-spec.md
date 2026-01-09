@@ -91,7 +91,7 @@ Wszystkie testy funkcjonalne korzystają z **dynamicznej izolacji kont** (`UserF
     2. Test anulowania usuwania notatki (anulowanie w modalu).
 
 ### Scenariusz: Widoczność (Permissions)
-**Pliki:** `notes.visibility.public.spec.ts`, `notes.visibility.private.spec.ts`, `notes.visibility.draft.spec.ts`
+**Plik:** `notes.visibility.spec.ts`
 - **Pokrycie PRD:** US-02 (Widok publiczny), US-04 (Statusy)
 - **Kroki:**
     1. Weryfikacja dostępu do notatki **Publicznej** dla każdego (również niezalogowanych).

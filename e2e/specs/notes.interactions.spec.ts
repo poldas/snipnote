@@ -1,33 +1,15 @@
-import { test, expect } from '@playwright/test';
-import { LoginPage } from '../page-objects/LoginPage';
+import { test, expect } from '../fixtures/auth.fixture';
 import { DashboardPage } from '../page-objects/DashboardPage';
 import { NoteEditorPage } from '../page-objects/NoteEditorPage';
-import { UserFactory } from '../helpers/UserFactory';
 
 test.describe('Dashboard Interactions', () => {
-    let userEmail: string;
-    const userPass = 'K7pL9mW3xR8vT2q';
+    // Note: The fixture creates a NEW user for each test, so the dashboard is guaranteed to be empty initially.
 
-    test.beforeAll(async () => {
-        userEmail = UserFactory.generateEmail('actions');
-        await UserFactory.create(userEmail, userPass);
-    });
-
-    test.afterAll(async () => {
-        await UserFactory.delete(userEmail);
-    });
-
-    test.beforeEach(async ({ page }) => {
-        const loginPage = new LoginPage(page);
-        await loginPage.goto();
-        await loginPage.login(userEmail, userPass);
-    });
-
-    test('should show empty state initially', async ({ page }) => {
+    test('should show empty state initially', async ({ authedPage: page }) => {
         await expect(page.getByText('Nie ma jeszcze notatek')).toBeVisible();
     });
 
-    test('should handle cancel delete', async ({ page }) => {
+    test('should handle cancel delete', async ({ authedPage: page }) => {
         const dashboardPage = new DashboardPage(page);
         const editorPage = new NoteEditorPage(page);
         const uniqueId = Date.now().toString();

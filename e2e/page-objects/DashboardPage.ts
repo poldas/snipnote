@@ -1,10 +1,21 @@
 import { expect, Page } from '@playwright/test';
+import { SearchComponent } from './components/SearchComponent';
+import { DeleteModal } from './components/DeleteModal';
+import { ToastComponent } from './components/ToastComponent';
 
 /**
  * Dashboard page (/notes) - authenticated user dashboard with notes.
  */
 export class DashboardPage {
-    constructor(private readonly page: Page) { }
+    readonly search: SearchComponent;
+    readonly deleteModal: DeleteModal;
+    readonly toast: ToastComponent;
+
+    constructor(private readonly page: Page) {
+        this.search = new SearchComponent(page);
+        this.deleteModal = new DeleteModal(page);
+        this.toast = new ToastComponent(page);
+    }
 
     async goto() {
         const response = await this.page.goto('/notes');
@@ -50,8 +61,8 @@ export class DashboardPage {
     async clickCopyLink(title: string) {
         const card = await this.getNoteCard(title);
         await card.getByTestId('note-copy-link-btn').click({ force: true });
-        // Brief wait for toast to appear
-        await this.page.waitForTimeout(500);
+        // Use toast component instead of waitForTimeout
+        await this.toast.expectSuccess(/Skopiowano/i);
     }
 
     async clickEditNote(title: string) {
@@ -64,8 +75,9 @@ export class DashboardPage {
         await card.getByTestId('note-delete-btn').click({ force: true });
     }
 
+    // Delegated methods
     async cancelDelete() {
-        await this.page.getByTestId('modal-cancel-btn').first().click();
+        await this.deleteModal.cancel();
     }
 
     async clickLogout() {
@@ -75,24 +87,12 @@ export class DashboardPage {
     }
 
     async selectVisibility(visibility: 'owner' | 'public' | 'private' | 'draft' | 'shared') {
-        await this.page.locator('#visibility').selectOption(visibility);
-        // The change triggers a form submit, so we wait for the page to reload/update
-        await expect(this.page).toHaveURL(new RegExp(`visibility=${visibility}`));
+        await this.search.selectVisibility(visibility);
         await this.expectPageLoaded();
     }
 
     async searchFor(query: string) {
-        const input = this.page.locator('input[name="q"]');
-        await input.fill(query);
-        await this.page.getByRole('button', { name: 'Szukaj' }).click();
-        
-        // Wait for reload (URL change or search params update)
-        if (query) {
-            // Use a more flexible regex that accounts for other parameters and the full URL
-            const escaped = encodeURIComponent(query).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const pattern = new RegExp(`q=${escaped.replace(/%20/g, '(\\+|%20)')}`);
-            await expect(this.page).toHaveURL(pattern);
-        }
+        await this.search.searchFor(query);
     }
 
     async expectSearchResultsCount(count: number) {
@@ -106,7 +106,7 @@ export class DashboardPage {
     }
 
     async clickClearFilters() {
-        await this.page.getByRole('link', { name: 'Wyczyść filtry' }).click();
+        await this.search.clearFilters();
     }
 
     async takeScreenshot(name: string) {

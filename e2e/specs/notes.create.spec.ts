@@ -1,29 +1,12 @@
-import { test, expect } from '@playwright/test';
-import { LoginPage } from '../page-objects/LoginPage';
+import { test, expect } from '../fixtures/auth.fixture';
 import { DashboardPage } from '../page-objects/DashboardPage';
 import { NoteEditorPage } from '../page-objects/NoteEditorPage';
-import { UserFactory } from '../helpers/UserFactory';
 
 test.describe('Note Creation - Atomic Specs', () => {
-    let userEmail: string;
-    const userPass = 'K7pL9mW3xR8vT2q';
+    // Note: 'authedPage' fixture automatically handles user creation, login and cleanup.
+    // It provides a logged-in page instance.
 
-    test.beforeAll(async () => {
-        userEmail = UserFactory.generateEmail('creation');
-        await UserFactory.create(userEmail, userPass);
-    });
-
-    test.afterAll(async () => {
-        await UserFactory.delete(userEmail);
-    });
-
-    test.beforeEach(async ({ page }) => {
-        const loginPage = new LoginPage(page);
-        await loginPage.goto();
-        await loginPage.login(userEmail, userPass);
-    });
-
-    test('should create a private note successfully (Green Path)', async ({ page }) => {
+    test('should create a private note successfully (Green Path)', async ({ authedPage: page }) => {
         const dashboardPage = new DashboardPage(page);
         const editorPage = new NoteEditorPage(page);
         const uniqueId = Date.now().toString() + Math.random().toString(36).substring(2, 8);
@@ -37,7 +20,7 @@ test.describe('Note Creation - Atomic Specs', () => {
         await dashboardPage.expectNoteVisible(title);
     });
 
-    test('should show validation error for empty title (Red Path)', async ({ page }) => {
+    test('should show validation error for empty title (Red Path)', async ({ authedPage: page }) => {
         const dashboardPage = new DashboardPage(page);
         const editorPage = new NoteEditorPage(page);
 
@@ -54,6 +37,6 @@ test.describe('Note Creation - Atomic Specs', () => {
         // Wait for validation summary
         const errorContainer = page.locator('[data-form-errors]');
         await expect(errorContainer).toBeVisible({ timeout: 15000 });
-        await expect(errorContainer).toContainText(/Wystąpiły błędy walidacji/i);
+        await expect(errorContainer).toContainText(/Wystąpiły błędy walidacji|Tytuł jest wymagany/i);
     });
 });

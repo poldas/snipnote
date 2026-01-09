@@ -3,11 +3,12 @@ import { LoginPage } from '../page-objects/LoginPage';
 import { DashboardPage } from '../page-objects/DashboardPage';
 import { NoteEditorPage } from '../page-objects/NoteEditorPage';
 import { UserFactory } from '../helpers/UserFactory';
+import { TEST_CONFIG } from '../config/test-constants';
 
 test.describe('Dashboard Search & Filtering', () => {
     let userEmail: string;
     let otherUserEmail: string;
-    const userPass = 'K7pL9mW3xR8vT2q';
+    const userPass = TEST_CONFIG.DEFAULT_PASSWORD;
 
     // Seed Data Configuration
     const notes = [

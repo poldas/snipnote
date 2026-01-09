@@ -42,6 +42,11 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+      mailpit:
+        image: axllent/mailpit
+        ports:
+          - 1025:1025
+          - 8025:8025
 
     env:
       APP_ENV: test
@@ -49,7 +54,7 @@ jobs:
       APP_SECRET: ci-app-secret
       JWT_SECRET: ci-jwt-secret
       DATABASE_URL: "postgresql://app:app@localhost:5432/app?serverVersion=16&charset=utf8"
-      MAILER_DSN: null://null
+      MAILER_DSN: "smtp://localhost:1025"
 
     steps:
       - name: Checkout
@@ -107,10 +112,12 @@ jobs:
         run: |
           APP_ENV=test APP_DEBUG=0 php -S 0.0.0.0:8080 -t public > /tmp/php-server.log 2>&1 &
           sleep 5
+          curl -f http://localhost:8080 || (echo "PHP server failed to start" && cat /tmp/php-server.log && exit 1)
 
       - name: Run Playwright E2E
         env:
           E2E_BASE_URL: http://localhost:8080
+          E2E_DOCKER_DISABLED: 1
         run: npm run e2e
 
       - name: Print PHP server log on failure
@@ -142,6 +149,11 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+      mailpit:
+        image: axllent/mailpit
+        ports:
+          - 1025:1025
+          - 8025:8025
 
     env:
       APP_ENV: test
@@ -149,7 +161,7 @@ jobs:
       APP_SECRET: ci-app-secret
       JWT_SECRET: ci-jwt-secret
       DATABASE_URL: "postgresql://app:app@localhost:5432/app?serverVersion=16&charset=utf8"
-      MAILER_DSN: null://null
+      MAILER_DSN: "smtp://localhost:1025"
 
     steps:
       - name: Checkout
@@ -195,12 +207,14 @@ jobs:
 
       - name: Start PHP dev server
         run: |
-          APP_ENV=dev APP_DEBUG=0 php -S 0.0.0.0:8080 -t public > /tmp/php-server.log 2>&1 &
+          APP_ENV=test APP_DEBUG=0 php -S 0.0.0.0:8080 -t public > /tmp/php-server.log 2>&1 &
           sleep 5
+          curl -f http://localhost:8080 || (echo "PHP server failed to start" && cat /tmp/php-server.log && exit 1)
 
       - name: Run Playwright E2E
         env:
           E2E_BASE_URL: http://localhost:8080
+          E2E_DOCKER_DISABLED: 1
         run: npm run e2e
 
       - name: Upload Playwright report

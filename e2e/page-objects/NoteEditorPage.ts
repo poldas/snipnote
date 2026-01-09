@@ -1,16 +1,23 @@
 import { expect, Page } from '@playwright/test';
+import { ToastComponent } from './components/ToastComponent';
 
 /**
  * Note Editor page (/notes/new or /notes/{id}/edit).
  */
 export class NoteEditorPage {
-    constructor(private readonly page: Page) { }
+    readonly toast: ToastComponent;
+
+    constructor(private readonly page: Page) {
+        this.toast = new ToastComponent(page);
+    }
 
     async waitForReady() {
-        // Wait for the form element to be visible and ready for interaction
-        await this.page.locator('form#note-form, [data-controller="edit-note"]').first().waitFor({ state: 'visible', timeout: 15000 });
-        // Small delay to let JS execution finish
-        await this.page.waitForTimeout(500);
+        // Wait for the form element to be visible and initialized by Stimulus
+        // The attribute is set specifically on the element with data-controller="note-form"
+        const form = this.page.locator('[data-controller="note-form"]').first();
+        await form.waitFor({ state: 'visible', timeout: 15000 });
+        // Use the attribute set by note_form_controller.js
+        await expect(form).toHaveAttribute('data-note-form-ready', 'true', { timeout: 10000 });
     }
 
     async fillTitle(title: string) {
@@ -62,9 +69,10 @@ export class NoteEditorPage {
         const submitBtn = this.page.locator('button[data-submit-btn]');
         await expect(submitBtn).toBeVisible();
         
-        // Small delay to ensure Stimulus state is settled
-        await this.page.waitForTimeout(200);
         await submitBtn.click({ force: true });
+        
+        // Wait for the toast and then for redirect
+        await this.toast.expectSuccess(/Zapisano|Notatka utworzona/i);
         
         // Wait for the redirect to dashboard. 
         await expect(this.page).toHaveURL(/\/notes(?:\?|$)/, { timeout: 30000 });
