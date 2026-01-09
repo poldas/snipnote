@@ -3,10 +3,17 @@ name: CI / E2E Tests / Linting
 on:
   push:
     branches:
+      - 'fix-*'
+      - 'rc-*'
+  pull_request:
+    branches:
       - rc
       - main
-      - 'fix-*'
-      - 'func-*'
+
+env:
+  COMPOSER_NO_INTERACTION: 1
+  COMPOSER_PROCESS_TIMEOUT: 0
+  CI: true
 
 jobs:
   php-lint:
@@ -74,12 +81,6 @@ jobs:
           extensions: pdo_pgsql, intl, zip
           coverage: xdebug
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-
       - name: Cache Composer deps
         uses: actions/cache@v4
         with:
@@ -89,6 +90,9 @@ jobs:
 
       - name: Composer install
         run: composer install --no-interaction --prefer-dist
+
+      - name: Security audit
+        run: composer audit --no-interaction
 
       - name: Lint PHP (syntax + composer)
         run: |
@@ -101,37 +105,30 @@ jobs:
           php bin/console doctrine:migrations:migrate --no-interaction --env=test
 
       - name: PHPUnit with coverage
-        run: ./bin/phpunit --coverage-clover var/coverage/clover.xml
-
-      - name: Setup Playwright deps
         run: |
-          npm ci
-          npx playwright install --with-deps chromium
+          ./bin/phpunit --coverage-clover var/coverage/clover.xml --coverage-html var/coverage/html
+          # Check coverage threshold (80%)
+          php -r "
+          \$xml = simplexml_load_file('var/coverage/clover.xml');
+          \$metrics = \$xml->xpath('//project/metrics')[0];
+          \$covered = (int)\$metrics['coveredmethods'];
+          \$total = (int)\$metrics['methods'];
+          \$percentage = \$total > 0 ? round((\$covered / \$total) * 100, 2) : 0;
+          echo \"Coverage: \$percentage% (\$covered/\$total methods)\n\";
+          if (\$percentage < 80) {
+            echo \"ERROR: Coverage \$percentage% is below 80% threshold\n\";
+            exit(1);
+          }
+          "
 
-      - name: Start PHP dev server
-        run: |
-          APP_ENV=test APP_DEBUG=0 php -S 0.0.0.0:8080 -t public > /tmp/php-server.log 2>&1 &
-          sleep 5
-          curl -f http://localhost:8080 || (echo "PHP server failed to start" && cat /tmp/php-server.log && exit 1)
-
-      - name: Run Playwright E2E
-        env:
-          E2E_BASE_URL: http://localhost:8080
-          E2E_DOCKER_DISABLED: 1
-        run: npm run e2e
-
-      - name: Print PHP server log on failure
-        if: failure()
-        run: |
-          echo "===== /tmp/php-server.log ====="
-          cat /tmp/php-server.log || true
-
-      - name: Upload coverage artifact
+      - name: Upload coverage artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: phpunit-coverage-${{ github.run_attempt }}
-          path: var/coverage/clover.xml
+          path: |
+            var/coverage/clover.xml
+            var/coverage/html/
 
   e2e:
     runs-on: ubuntu-latest
@@ -185,6 +182,13 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
+      - name: Cache Node modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-node-
+
       - name: Cache Composer deps
         uses: actions/cache@v4
         with:
@@ -203,6 +207,7 @@ jobs:
       - name: Setup Playwright deps
         run: |
           npm ci
+          npm audit --audit-level=moderate || true
           npx playwright install --with-deps chromium
 
       - name: Start PHP dev server
@@ -224,9 +229,52 @@ jobs:
           name: playwright-report-${{ github.run_attempt }}
           path: playwright-report
 
-      - name: Upload Playwright report
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: playwright-report
+# =============================================================================
+# PROPOZYCJE DALŚZYCH ULEPSZEŃ (do rozważenia w przyszłości):
+# =============================================================================
+#
+# 1. Matrix builds dla różnych środowisk:
+#    strategy:
+#      matrix:
+#        os: [ubuntu-latest, ubuntu-20.04]
+#        php: ['8.4', '8.3']
+#        node: ['18', '20']
+#
+# 2. Performance monitoring:
+#    - uses: dorny/test-reporter@v1
+#      with:
+#        name: PHPUnit Results
+#        path: 'junit.xml'
+#        reporter: java-junit
+#
+# 3. Code quality tools:
+#    - name: PHPStan static analysis
+#      run: vendor/bin/phpstan analyse src tests
+#
+#    - name: Run Psalm static analysis
+#      run: vendor/bin/psalm
+#
+# 4. Integration tests z prawdziwą bazą:
+#    - Dodaj job dla testów integracyjnych z prawdziwymi usługami
+#
+# 5. Deployment jobs:
+#    jobs:
+#      deploy-staging:
+#        needs: [php-lint, phpunit, e2e]
+#        if: github.ref == 'refs/heads/rc'
+#        # Deploy to staging
+#
+#      deploy-production:
+#        needs: [deploy-staging]
+#        if: github.ref == 'refs/heads/main'
+#        # Deploy to production
+#
+# 6. Notifications:
+#    - Slack/Discord notifications o statusie CI
+#    - Email alerts dla krytycznych błędów
+#
+# 7. Environment-specific secrets:
+#    - Użyj różnych secrets dla różnych środowisk
+#    - Dodaj secrets encryption checks
+#
+# =============================================================================
