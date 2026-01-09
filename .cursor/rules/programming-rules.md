@@ -7,7 +7,7 @@
 - Jeżeli zmienia się DB: dołącz Doctrine migration, surowe SQL, oraz krótki rollback plan.
 - Załącz kontekst plików: entity, repo, service, controller, twig (jeśli dotyczy).
 - DB change → dołącz migration + surowe SQL + rollback note.
-- Testy: dołącz minimalny test dla zmian domenowych/auth. Drobne view-only changes mogą pójść bez testu.
+- Testy: dołącz minimalny test dla zmian domenowych/auth.
 - Lint & static checks: generuj kod zgodny z PSR-12; uruchom PHP-CS-Fixer i PHPStan (lvl 5).
 - Jeśli brakuje danych wymaganych do poprawnego kodu — odpowiedz „nie wiem” i podaj 2 alternatywy realizacji.
 - Docker-readiness: wygenerowany kod powinien działać w standardowym obrazie PHP-FPM 8.2 + nginx + postgres; dołącz modyfikację docker-compose tylko gdy konieczne.
@@ -16,10 +16,11 @@
 
 ### Symfony & Doctrine
 - aplikacja działa w dockerz, ZAWSZE uruchamiaj poprzez 'docker compose <command>'
-- testy uruchamiaj poprzez `docker compose exec app bash -c "./bin/phpunit --display-phpunit-notice"`
+- testy uruchamiaj poprzez `./localbin/test.sh`
+- testy e2e uruchamiaj poprzez `./localbin/test_e2e.sh`
 - na koniec pracy zawsze zamykaj aplikację `docker compose down`
 - Architektura: prosty podział — Entity → Repository → Service (logika domenowa) → Controller (thin). Nie pełne DDD, tylko jawne granice.
-- Target: Symfony 7.3. Preferuj attributes (routing, DI, Doctrine mapping).
+- Target: Symfony 8. Preferuj attributes (routing, DI, Doctrine mapping).
 - Kontrolery: thin — logika w serwisach.
 - DI: wstrzykiwanie zależności, unikaj statycznych helperów.
 - Formularze: Symfony Forms + Validator (server authoritative).
@@ -28,7 +29,7 @@
 - Typowanie: wymagane dla parametrów i zwracanych wartości; używaj union types, promoted properties, readonly tam gdzie sensowne.
 - Używaj maker:bundle do scaffoldingu, ale ręcznie dopracowuj wygenerowany kod.
 - Mapowania: PHP attributes preferowane dla Symfony i Doctrine
-- Stosuj gotowe i sprawdzone już rozwiązania i pakiety np. stosujesz gotowe pakiety (Supabase Auth + Storage, Symfony + API Platform/lexik/jwt lub prosty JWT verification),
+- Stosuj gotowe i sprawdzone już rozwiązania i pakiety np. stosujesz gotowe pakiety (Symfony + API Platform/lexik/jwt),
 
 ### Frontend (UI) — reguły (Twig + HTMX 2+ + Tailwind + Fluent 2 UI)
 - Komponenty: małe, pojedyncze partiale Twig (max ~200 LOC).
@@ -39,9 +40,8 @@
 - Markdown: renderowanie po stronie serwera; zawsze sanitizuj HTML przed wysłaniem do klienta.
 - Formularze: używaj Symfony Forms → prosty rendering Twig; walidacja zarówno klient + server (server authoritative).
 - Accessibility: pola formularzy powinny mieć label, błędy przy polach, keyboard focus dla modali.
-- Size limit: pliki JS/CSS minimalne; brak bundlera-heavy konfiguracji w MVP — opcjonalny build step dla Tailwind.
+
 - Używaj komponentów Fluent 2 UI
 
 ### Autoryzacja
-- użyj Supabase Auth dla logowania, Symfony tylko weryfikuje JWT przy żądaniach (biblioteka jwt, middleware), dla operacji serwerowych użyj service key tylko na backendzie, nie pisz auth od zera.
 - używaj istniejących Symfony bundles.

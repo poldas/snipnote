@@ -44,7 +44,9 @@
                     </span>
                 {% endif %}
 
-                <a href="{{ openHref }}" {% if publicHref %}target="_blank" rel="noopener noreferrer"{% endif %} class="text-indigo-600 hover:text-indigo-700 hover:scale-105 transition-all text-sm font-medium flex items-center gap-1">
+                <a href="{{ openHref }}" target="_blank" rel="noopener noreferrer" 
+                   data-testid="note-open-link"
+                   class="text-indigo-600 hover:text-indigo-700 hover:scale-105 transition-all text-sm font-medium flex items-center gap-1">
                     Otwórz
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -52,6 +54,7 @@
                 </a>
                 <button type="button"
                         data-copy-public-link
+                        data-testid="note-copy-link-btn"
                         data-link="{{ copyUrl }}"
                         class="text-indigo-600 hover:text-emerald-600 transition-colors text-sm font-medium p-3 rounded-lg hover:bg-emerald-50 min-w-[44px] min-h-[44px] flex items-center justify-center"
                         title="Kopiuj link">
@@ -61,15 +64,17 @@
                 </button>
             </div>
             <div class="flex items-center gap-1 flex-shrink-0">
-                <button class="p-3 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all min-w-[44px] min-h-[44px] flex items-center justify-center"
-                        onclick="window.location.href='{{ editUrl }}'"
-                        title="Edytuj">
+                <a href="{{ editUrl }}" 
+                   class="p-3 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all min-w-[44px] min-h-[44px] flex items-center justify-center"
+                   data-testid="note-edit-btn"
+                   title="Edytuj">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                     </svg>
-                </button>
+                </a>
                 <button type="button"
                         data-delete-note
+                        data-testid="note-delete-btn"
                         data-note-id="{{ note.id }}"
                         data-note-title="{{ note.title|default('(Bez tytułu)') }}"
                         data-delete-url="{{ note.deleteUrl }}"

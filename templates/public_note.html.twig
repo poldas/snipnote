@@ -1,9 +1,9 @@
-{% extends 'layout_minimal.html.twig' %}
+{% extends 'layout_public.html.twig' %}
 
 {% block title %}{{ note.title ?? '(Bez tytułu)' }}{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('styles/dist/public.css') }}">
+    {{ parent() }}
     {% if theme is defined and theme == 'recipe' %}
         <link rel="stylesheet" href="{{ asset('styles/recipe_view.css') }}">
     {% elseif theme is defined and theme == 'todo' %}
@@ -45,8 +45,4 @@
         {% endif %}
     </section>
 </main>
-{% endblock %}
-
-{% block javascripts %}
-    {{ importmap('public_note') }}
 {% endblock %}

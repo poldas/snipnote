@@ -32,6 +32,15 @@ export class ForgotPasswordPage {
         await this.page.getByTestId('logo-home-link').click();
     }
 
+    async requestReset(email: string) {
+        await this.page.locator('input[name="email"]').fill(email);
+        await this.page.getByRole('button', { name: 'Wyślij instrukcje resetu' }).click();
+    }
+
+    async expectSuccessMessage() {
+        await expect(this.page.getByText('Jeśli konto istnieje, wysłaliśmy instrukcje resetu hasła.')).toBeVisible();
+    }
+
     async takeScreenshot(name: string) {
         await this.page.screenshot({ path: `e2e/artifacts/screenshots/${name}.png`, fullPage: true });
     }

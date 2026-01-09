@@ -13,7 +13,7 @@ export class LoginPage {
 
     async expectPageLoaded() {
         await expect(this.page.getByRole('heading', { name: 'Wróć do swoich notatek' })).toBeVisible();
-        await expect(this.page.getByLabel('Email')).toBeVisible();
+        await expect(this.page.getByLabel('Adres email')).toBeVisible();
         await expect(this.page.getByLabel('Hasło')).toBeVisible();
         await expect(this.page.getByRole('button', { name: 'Zaloguj się' })).toBeVisible();
     }
@@ -40,7 +40,7 @@ export class LoginPage {
     }
 
     async fillLoginForm(email: string, password: string) {
-        await this.page.getByLabel('Email').fill(email);
+        await this.page.getByLabel('Adres email').fill(email);
         await this.page.getByLabel('Hasło').fill(password);
     }
 

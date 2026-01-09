@@ -35,6 +35,18 @@ export class RegisterPage {
         await this.page.getByTestId('logo-home-link').click();
     }
 
+    async register(email: string, pass: string) {
+        await this.page.locator('input[name="email"]').fill(email);
+        await this.page.locator('input[name="password"]').fill(pass);
+        await this.page.locator('input[name="passwordConfirm"]').fill(pass);
+        await this.page.getByRole('button', { name: 'Załóż konto' }).click();
+    }
+
+    async expectVerificationNotice() {
+        await expect(this.page).toHaveURL(/.*\/verify\/email\/notice/);
+        await expect(this.page.getByRole('heading', { name: /Sprawdź swoją skrzynkę|Potwierdź e-mail/ })).toBeVisible();
+    }
+
     async takeScreenshot(name: string) {
         await this.page.screenshot({ path: `e2e/artifacts/screenshots/${name}.png`, fullPage: true });
     }

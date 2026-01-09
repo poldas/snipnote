@@ -1,7 +1,5 @@
-import { startStimulusApp } from '@symfony/stimulus-bundle';
+import { Application } from '@hotwired/stimulus';
 
-// Start the Stimulus application without pre-registering all controllers.
-// Specific entry points (app.js, auth.js, public_note.js) will register what they need.
-const app = startStimulusApp();
+const app = Application.start();
 
 export { app };

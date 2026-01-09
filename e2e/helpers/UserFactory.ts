@@ -1,0 +1,35 @@
+import { execSync } from 'child_process';
+
+/**
+ * UserFactory provides a way to create unique users for each test spec.
+ * This ensures total isolation and allows maximum parallelism.
+ */
+export class UserFactory {
+    static generateEmail(prefix: string = 'test'): string {
+        return `${prefix}_${Date.now()}_${Math.floor(Math.random() * 1000)}@test.test`;
+    }
+
+    static async create(email: string, pass: string = 'K7pL9mW3xR8vT2q'): Promise<void> {
+        let lastError;
+        for (let i = 0; i < 3; i++) {
+            try {
+                const command = `docker compose exec -T app php bin/console app:test-user-manage create ${email} ${pass}`;
+                execSync(command);
+                return; // Success
+            } catch (error) {
+                lastError = error;
+                await new Promise(resolve => setTimeout(resolve, 2000)); // Wait before retry
+            }
+        }
+        throw new Error(`Failed to create test user ${email} after retries: ${lastError}`);
+    }
+
+    static async delete(email: string): Promise<void> {
+        try {
+            const command = `docker compose exec -T app php bin/console app:test-user-manage delete ${email} --no-interaction`;
+            execSync(command);
+        } catch (error) {
+            // Silently ignore deletion errors
+        }
+    }
+}

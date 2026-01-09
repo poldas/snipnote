@@ -45,13 +45,6 @@
         } %}
     </div>
 
-    {# Visibility Toggle #}
-    <div data-field="visibility">
-        {% include 'notes/components/visibility_toggle.html.twig' with {
-            initialValue: formConfig.initialVisibility
-        } %}
-    </div>
-
     {# Public Link Section #}
     {% include 'notes/components/public_link.html.twig' with {
         publicUrl: publicUrl ?? null,
@@ -65,10 +58,20 @@
         } %}
     </div>
 
-    {# Tag Input #}
-    <div data-field="labels">
-        {% include 'notes/components/tag_input.html.twig' with {
-            initialLabels: formConfig.initialLabels
-        } %}
+    {# Responsive Grid for Visibility and Labels #}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {# Visibility Toggle #}
+        <div data-field="visibility">
+            {% include 'notes/components/visibility_toggle.html.twig' with {
+                initialValue: formConfig.initialVisibility
+            } %}
+        </div>
+
+        {# Tag Input #}
+        <div data-field="labels">
+            {% include 'notes/components/tag_input.html.twig' with {
+                initialLabels: formConfig.initialLabels
+            } %}
+        </div>
     </div>
 </form>

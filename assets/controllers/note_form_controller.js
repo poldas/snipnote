@@ -43,6 +43,7 @@ export default class extends Controller {
         }, 0);
 
         announce('Formularz notatki gotowy do wypełnienia');
+        this.element.setAttribute('data-note-form-ready', 'true');
     }
 
     disconnect() {
@@ -367,6 +368,7 @@ export default class extends Controller {
             const span = document.createElement('span');
             span.className = 'inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-100 text-indigo-800 rounded-lg text-sm font-medium border border-indigo-200';
             span.setAttribute('role', 'listitem');
+            span.setAttribute('data-testid', 'tag-chip');
 
             const labelText = document.createElement('span');
             labelText.textContent = label;
@@ -374,6 +376,7 @@ export default class extends Controller {
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.setAttribute('data-remove-tag', index.toString());
+            btn.setAttribute('data-testid', 'tag-remove-btn');
             btn.setAttribute('aria-label', `Usuń etykietę ${label}`);
             btn.className = 'text-indigo-600 hover:text-indigo-900 font-bold';
             btn.textContent = '✕';

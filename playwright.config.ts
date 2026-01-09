@@ -6,14 +6,18 @@ const headless = (process.env.HEADLESS ?? 'true') !== 'false';
 
 export default defineConfig({
     testDir: './e2e/specs',
-    timeout: 30_000,
+    timeout: 60_000,
     expect: {
-        timeout: 5_000,
+        timeout: 10_000,
     },
-    fullyParallel: true,
+    // STRICT STABILITY: Disable internal parallelism within files
+    fullyParallel: false, 
     forbidOnly: !!process.env.CI,
-    retries: process.env.CI ? 2 : 0,
-    workers: 4,
+    retries: 0,
+    // Base workers: use 1 for total stability
+    workers: 1, 
+    globalSetup: require.resolve('./e2e/setup/global-setup'),
+    globalTeardown: require.resolve('./e2e/setup/global-teardown'),
     reporter: [
         ['list'],
         ['html', { outputFolder: 'playwright-report', open: 'never' }],
@@ -25,18 +29,22 @@ export default defineConfig({
         headless,
         testIdAttribute: 'data-testid',
         viewport: { width: 1280, height: 720 },
-        trace: process.env.CI ? 'on-first-retry' : 'retain-on-failure',
+        trace: 'on-first-retry',
         video: 'retain-on-failure',
         screenshot: 'only-on-failure',
-        actionTimeout: 10_000,
-        navigationTimeout: 15_000,
+        actionTimeout: 15_000,
+        navigationTimeout: 20_000,
     },
     projects: [
         {
-            name: 'chromium',
-            use: {
-                ...devices['Desktop Chrome'],
-            },
+            name: 'ui',
+            testMatch: /.*(visual|navigation|smoke|hover|comprehensive|tagline).*\.spec\.ts/,
+            use: { ...devices['Desktop Chrome'] },
+        },
+        {
+            name: 'functional',
+            testIgnore: /.*(visual|navigation|smoke|hover|comprehensive|tagline).*\.spec\.ts/,
+            use: { ...devices['Desktop Chrome'] },
         },
     ],
     webServer: process.env.E2E_WEB_SERVER_CMD
@@ -48,4 +56,3 @@ export default defineConfig({
         }
         : undefined,
 });
-

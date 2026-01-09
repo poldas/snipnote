@@ -1,15 +1,9 @@
-{% extends 'layout_minimal.html.twig' %}
+{% extends 'layout_auth.html.twig' %}
 
 {% block title %}Snipnote - Twórz i udostępniaj notatki{% endblock %}
 
-{% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('styles/dist/auth.css') }}">
-{% endblock %}
-
-{% block javascripts %}{# No JS needed for landing #}{% endblock %}
-
 {% block body %}
-    <div class="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-cyan-50">
+    <div class="flex-1">
         <!-- Navigation -->
         {% include 'auth/components/auth_nav.html.twig' %}
 

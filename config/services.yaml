@@ -36,5 +36,9 @@ services:
     League\CommonMark\ConverterInterface: '@League\CommonMark\MarkdownConverter'
     Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface: '@html_sanitizer.sanitizer.markdown'
 
+    App\Twig\ImportMapExtension:
+        arguments:
+            $importMapRenderer: '@asset_mapper.importmap.renderer'
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

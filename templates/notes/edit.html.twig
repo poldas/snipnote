@@ -1,10 +1,6 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout_dashboard.html.twig' %}
 
 {% block title %}Edytuj notatkę | Snipnote{% endblock %}
-
-{% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('styles/dist/notes.css') }}">
-{% endblock %}
 
 {% block body %}
     {% set layoutData = {
@@ -87,12 +83,14 @@
         {% endif %}
     {% endset %}
 
-    {% include 'notes/components/notes_layout.html.twig' with {
-        content: content,
-        sticky_bar: sticky_bar
-    } + layoutData %}
-{% endblock %}
+        {% include 'notes/components/notes_layout.html.twig' with {
 
-{% block javascripts %}
-    {{ parent() }}
-{% endblock %}
+            content: content,
+
+            sticky_bar: sticky_bar
+
+        } + layoutData %}
+
+    {% endblock %}
+
+    
