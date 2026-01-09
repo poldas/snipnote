@@ -3,8 +3,10 @@ name: CI / E2E Tests / Linting
 on:
   push:
     branches:
-      - 'fix-*'
-      - 'rc-*'
+      - 'fix-*'      # Feature/fix branches - test przed PR
+      - 'rc-*'       # Release candidates
+      - main         # Main branch
+      - rc           # Release branch
   pull_request:
     branches:
       - rc
@@ -16,6 +18,7 @@ env:
   CI: true
 
 jobs:
+  # Job wykonywany dla wszystkich triggerów (push + PR)
   php-lint:
     runs-on: ubuntu-latest
     steps:
@@ -153,7 +156,7 @@ jobs:
           - 8025:8025
 
     env:
-      APP_ENV: dev
+      APP_ENV: test
       APP_DEBUG: 0
       APP_SECRET: ci-app-secret
       JWT_SECRET: ci-jwt-secret
@@ -212,7 +215,7 @@ jobs:
 
       - name: Start PHP dev server
         run: |
-          APP_ENV=test APP_DEBUG=0 php -S 0.0.0.0:8080 -t public > /tmp/php-server.log 2>&1 &
+          php -S 0.0.0.0:8080 -t public > /tmp/php-server.log 2>&1 &
           sleep 5
           curl -f http://localhost:8080 || (echo "PHP server failed to start" && cat /tmp/php-server.log && exit 1)
 
