@@ -1,11 +1,7 @@
 import { FullConfig } from '@playwright/test';
 
 async function globalTeardown(config: FullConfig) {
-  const sharedEmail = 'shared_base@test.test';
-  console.log(`\nGlobal Teardown: Final cleanup...`);
-  try {
-    await UserFactory.delete(sharedEmail);
-  } catch (e) {}
+  console.log(`\nGlobal Teardown: Cleanup completed (no shared resources to clean)`);
 }
 
 export default globalTeardown;

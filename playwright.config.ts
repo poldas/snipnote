@@ -14,8 +14,7 @@ export default defineConfig({
     fullyParallel: false,
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 1 : 0, // Retry once in CI for stability
-    globalSetup: require.resolve('./e2e/setup/global-setup'),
-    globalTeardown: require.resolve('./e2e/setup/global-teardown'),
+    // Global setup/teardown removed - user creation moved to individual test fixtures
     reporter: [
         ['list'],
         ['html', { outputFolder: 'playwright-report', open: 'never' }],
@@ -35,7 +34,10 @@ export default defineConfig({
         navigationTimeout: 20_000,
     },
     projects: [
-        // STATELESS PROJECTS: No authentication required - can run in parallel
+        // ========================================================================================
+        // STATELESS PROJECTS: No authentication required - safe for parallel execution
+        // ========================================================================================
+
         {
             name: 'stateless-visual',
             testMatch: '**/auth.visual.spec.ts',
@@ -57,28 +59,31 @@ export default defineConfig({
         {
             name: 'stateless-landing',
             testMatch: '**/landing.*.spec.ts',
-            workers: process.env.CI ? 4 : 2, // High parallelism for landing page tests
+            workers: process.env.CI ? 4 : 2, // High parallelism for landing page tests (9 tests total)
             use: { ...devices['Desktop Chrome'] },
         },
         {
             name: 'stateless-hover',
             testMatch: '**/ui.hover-effects*/**/*.spec.ts',
-            workers: process.env.CI ? 3 : 2, // Parallel hover effect tests
+            workers: process.env.CI ? 3 : 2, // Parallel hover effect tests (15 tests total)
             use: { ...devices['Desktop Chrome'] },
         },
         {
             name: 'stateless-hover-main',
             testMatch: '**/ui.hover-effects.spec.ts',
-            workers: process.env.CI ? 2 : 1, // Main hover effects test
+            workers: process.env.CI ? 2 : 1, // Main hover effects test (3 tests)
             use: { ...devices['Desktop Chrome'] },
         },
 
-        // STATEFUL PROJECTS: Authentication required - sequential execution
+        // ========================================================================================
+        // STATEFUL PROJECTS: Authentication required - sequential execution to avoid interference
+        // ========================================================================================
+
         {
             name: 'stateful-auth',
             testMatch: '**/auth.*.spec.ts',
             testIgnore: ['**/auth.visual.spec.ts', '**/auth.navigation.spec.ts'], // Exclude stateless auth tests
-            workers: 1, // Sequential execution - auth tests interfere with each other
+            workers: 1, // Sequential execution - auth tests interfere with each other (5 tests)
             use: {
                 ...devices['Desktop Chrome'],
                 // Fresh browser context per test to avoid session interference
@@ -90,17 +95,21 @@ export default defineConfig({
         {
             name: 'stateful-notes',
             testMatch: '**/notes.*.spec.ts',
-            workers: 1, // Sequential - note operations require clean state
+            workers: process.env.CI ? 2 : 1, // Parallel execution - each test has isolated user/data (23 tests)
             use: {
                 ...devices['Desktop Chrome'],
                 // Consistent viewport for note editing
-                viewport: { width: 1440, height: 900 }
+                viewport: { width: 1440, height: 900 },
+                // Additional isolation for parallel execution
+                launchOptions: {
+                    args: ['--disable-web-security', '--disable-features=VizDisplayCompositor', '--no-sandbox']
+                }
             },
         },
         {
             name: 'stateful-ui-logic',
             testMatch: '**/ui.interaction.spec.ts',
-            workers: 1, // Sequential - UI interactions may have side effects
+            workers: 1, // Sequential - UI interactions may have side effects (4 tests)
             use: {
                 ...devices['Desktop Chrome'],
                 // Enable JavaScript source maps for debugging

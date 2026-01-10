@@ -227,7 +227,7 @@ jobs:
 
           # Test database connectivity
           echo "Testing database connectivity..."
-          php bin/console doctrine:query:sql "SELECT 1" --env=test || (echo "Database connection failed" && exit 1)
+          php bin/console doctrine:query:dql "SELECT 1 as test" --env=test || (echo "Database connection failed" && exit 1)
 
           # Test user creation command
           echo "Testing user creation..."
@@ -249,7 +249,7 @@ jobs:
           curl -s -o /dev/null -w "HTTP %{http_code}\n" http://localhost:8080 || echo "Server not responding"
 
           echo "Database connectivity test:"
-          php bin/console doctrine:query:sql "SELECT COUNT(*) FROM user_entity" --env=test 2>/dev/null || echo "Cannot query database"
+          php bin/console doctrine:query:dql "SELECT COUNT(u) FROM App\Entity\User u" --env=test 2>/dev/null || echo "Cannot query database"
 
           npm run e2e
 

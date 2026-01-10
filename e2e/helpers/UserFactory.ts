@@ -13,7 +13,8 @@ export class UserFactory {
         let lastError;
         const useDocker = process.env.E2E_DOCKER_DISABLED !== '1';
         const commandPrefix = useDocker ? 'docker compose exec -T app ' : '';
-        const envFlag = process.env.CI ? '--env=test' : '';
+        // Use test environment in CI, dev environment locally (since web app runs in dev)
+        const envFlag = process.env.CI ? '--env=test' : '--env=dev';
 
         for (let i = 0; i < 3; i++) {
             try {
@@ -32,7 +33,9 @@ export class UserFactory {
         try {
             const useDocker = process.env.E2E_DOCKER_DISABLED !== '1';
             const commandPrefix = useDocker ? 'docker compose exec -T app ' : '';
-            const command = `${commandPrefix}php bin/console app:test-user-manage delete ${email} --no-interaction`;
+            // Use test environment in CI, dev environment locally (since web app runs in dev)
+            const envFlag = process.env.CI ? '--env=test' : '--env=dev';
+            const command = `${commandPrefix}php bin/console app:test-user-manage delete ${email} --no-interaction ${envFlag}`;
             execSync(command);
         } catch (error) {
             // Silently ignore deletion errors
