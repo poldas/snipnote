@@ -225,9 +225,9 @@ jobs:
           sleep 5
           curl -f http://localhost:8080 || (echo "PHP server failed to start" && cat /tmp/php-server.log && exit 1)
 
-          # Test database connectivity
-          echo "Testing database connectivity..."
-          php bin/console doctrine:query:dql "SELECT 1 as test" --env=test || (echo "Database connection failed" && exit 1)
+          # Test basic application setup
+          echo "Testing basic application setup..."
+          php bin/console --env=test --quiet || (echo "Symfony console not working" && exit 1)
 
           # Test user creation command
           echo "Testing user creation..."

@@ -10,12 +10,23 @@ export E2E_WEB_SERVER_CMD="./localbin/start.sh"
 # Start Docker environment if not running
 if ! docker compose ps | grep -q "app"; then
     echo "🐳 Starting Docker containers..."
-    ./localbin/start.sh
+
+    # Build assets first (from start.sh logic)
+    echo "Building assets..."
+    ./localbin/assets.sh
+
+    # Start containers in detached mode
+    echo "Starting Docker stack..."
+    docker compose up -d
+
+    # Give containers time to start
+    echo "⏳ Waiting for containers to start..."
+    sleep 5
 fi
 
 # Wait for containers to be healthy
 echo "⏳ Waiting for services to be ready..."
-docker compose exec -T app timeout 30 bash -c 'until php bin/console doctrine:query:dql "SELECT 1" --env=test >/dev/null 2>&1; do sleep 2; done' || true
+docker compose exec -T app timeout 30 bash -c 'until php bin/console doctrine:query:dql "SELECT COUNT(u) FROM App\Entity\User u" --env=test >/dev/null 2>&1; do sleep 2; done' || true
 
 # Reset test database
 echo "🗄️ Preparing test database..."
