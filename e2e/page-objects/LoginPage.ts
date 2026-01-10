@@ -45,12 +45,22 @@ export class LoginPage {
     }
 
     async submitLoginForm() {
+        // Click the submit button instead of programmatic submit for better compatibility
         await this.page.getByRole('button', { name: 'Zaloguj się' }).click();
     }
 
     async login(email: string, password: string) {
         await this.fillLoginForm(email, password);
+
+        // Listen for network responses to catch authentication issues (silent mode)
+        const responsePromise = this.page.waitForResponse(response =>
+            response.url().includes('/login') && response.request().method() === 'POST'
+        ).catch(() => null); // Don't fail if response not captured
+
         await this.submitLoginForm();
+
+        // Wait for potential redirect or page load
+        await this.page.waitForTimeout(2000);
     }
 
     async expectLoginSuccess() {

@@ -169,7 +169,7 @@ final class AuthPageController extends AbstractController
                 } else {
                     // Always show success message for security (enumeration protection)
                     $success = 'Jeśli konto istnieje, wysłaliśmy instrukcje resetu hasła.';
-                    
+
                     $user = $this->userRepository->findOneByEmailCaseInsensitive($email);
 
                     if ($user !== null && !$user->isVerified()) {
@@ -230,7 +230,7 @@ final class AuthPageController extends AbstractController
 
                 if ($errors === []) {
                     $this->passwordResetService->resetPassword($user, $password);
-                    
+
                     // Security & UX: Set the last username so the login form is prefilled.
                     // We do not invalidate session here to avoid CSRF issues; Symfony migrates session on login.
                     $session = $request->getSession();
@@ -238,7 +238,7 @@ final class AuthPageController extends AbstractController
 
                     // Add flash to the session
                     $this->addFlash('success', 'Hasło zostało zmienione. Zaloguj się nowym hasłem.');
-                    
+
                     return $this->redirectToRoute('app_login_page');
                 }
             }
@@ -320,7 +320,7 @@ final class AuthPageController extends AbstractController
 
         try {
             $this->emailVerificationService->handleVerification($email, $signature, $expires);
-            
+
             // Fix: Set session attribute for prefill, but do not invalidate to avoid CSRF token mismatch on redirect.
             $session = $request->getSession();
             $session->set(SecurityRequestAttributes::LAST_USERNAME, $email);

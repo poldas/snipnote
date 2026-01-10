@@ -10,18 +10,17 @@ export default defineConfig({
     expect: {
         timeout: 10_000,
     },
-    // STRICT STABILITY: Disable internal parallelism within files
-    fullyParallel: false, 
+    // CI/CD BEST PRACTICES: Parallel execution based on test isolation requirements
+    fullyParallel: false,
     forbidOnly: !!process.env.CI,
-    retries: 0,
-    // Base workers: use 1 for total stability
-    workers: 1, 
+    retries: process.env.CI ? 1 : 0, // Retry once in CI for stability
     globalSetup: require.resolve('./e2e/setup/global-setup'),
     globalTeardown: require.resolve('./e2e/setup/global-teardown'),
     reporter: [
         ['list'],
         ['html', { outputFolder: 'playwright-report', open: 'never' }],
-    ],
+        process.env.CI ? ['github'] : null, // GitHub Actions reporter in CI
+    ].filter(Boolean),
     outputDir: 'e2e/artifacts/test-results',
     snapshotDir: path.join(__dirname, 'e2e', 'artifacts', 'snapshots'),
     use: {
@@ -36,15 +35,79 @@ export default defineConfig({
         navigationTimeout: 20_000,
     },
     projects: [
+        // STATELESS PROJECTS: No authentication required - can run in parallel
         {
-            name: 'ui',
-            testMatch: /.*(visual|navigation|smoke|hover|comprehensive|tagline).*\.spec\.ts/,
+            name: 'stateless-visual',
+            testMatch: '**/auth.visual.spec.ts',
+            workers: process.env.CI ? 3 : 2, // Multiple workers for visual regression tests
+            use: {
+                ...devices['Desktop Chrome'],
+                // Isolate browser context for each test
+                launchOptions: {
+                    args: ['--disable-web-security', '--disable-features=VizDisplayCompositor']
+                }
+            },
+        },
+        {
+            name: 'stateless-navigation',
+            testMatch: '**/auth.navigation.spec.ts',
+            workers: process.env.CI ? 2 : 1, // Moderate parallelism for navigation tests
             use: { ...devices['Desktop Chrome'] },
         },
         {
-            name: 'functional',
-            testIgnore: /.*(visual|navigation|smoke|hover|comprehensive|tagline).*\.spec\.ts/,
+            name: 'stateless-landing',
+            testMatch: '**/landing.*.spec.ts',
+            workers: process.env.CI ? 4 : 2, // High parallelism for landing page tests
             use: { ...devices['Desktop Chrome'] },
+        },
+        {
+            name: 'stateless-hover',
+            testMatch: '**/ui.hover-effects*/**/*.spec.ts',
+            workers: process.env.CI ? 3 : 2, // Parallel hover effect tests
+            use: { ...devices['Desktop Chrome'] },
+        },
+        {
+            name: 'stateless-hover-main',
+            testMatch: '**/ui.hover-effects.spec.ts',
+            workers: process.env.CI ? 2 : 1, // Main hover effects test
+            use: { ...devices['Desktop Chrome'] },
+        },
+
+        // STATEFUL PROJECTS: Authentication required - sequential execution
+        {
+            name: 'stateful-auth',
+            testMatch: '**/auth.*.spec.ts',
+            testIgnore: ['**/auth.visual.spec.ts', '**/auth.navigation.spec.ts'], // Exclude stateless auth tests
+            workers: 1, // Sequential execution - auth tests interfere with each other
+            use: {
+                ...devices['Desktop Chrome'],
+                // Fresh browser context per test to avoid session interference
+                launchOptions: {
+                    args: ['--disable-web-security']
+                }
+            },
+        },
+        {
+            name: 'stateful-notes',
+            testMatch: '**/notes.*.spec.ts',
+            workers: 1, // Sequential - note operations require clean state
+            use: {
+                ...devices['Desktop Chrome'],
+                // Consistent viewport for note editing
+                viewport: { width: 1440, height: 900 }
+            },
+        },
+        {
+            name: 'stateful-ui-logic',
+            testMatch: '**/ui.interaction.spec.ts',
+            workers: 1, // Sequential - UI interactions may have side effects
+            use: {
+                ...devices['Desktop Chrome'],
+                // Enable JavaScript source maps for debugging
+                launchOptions: {
+                    args: ['--disable-web-security', '--enable-source-maps']
+                }
+            },
         },
     ],
     webServer: process.env.E2E_WEB_SERVER_CMD

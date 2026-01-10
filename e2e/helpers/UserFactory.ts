@@ -13,10 +13,11 @@ export class UserFactory {
         let lastError;
         const useDocker = process.env.E2E_DOCKER_DISABLED !== '1';
         const commandPrefix = useDocker ? 'docker compose exec -T app ' : '';
+        const envFlag = process.env.CI ? '--env=test' : '';
 
         for (let i = 0; i < 3; i++) {
             try {
-                const command = `${commandPrefix}php bin/console app:test-user-manage create ${email} ${pass}`;
+                const command = `${commandPrefix}php bin/console app:test-user-manage create ${email} ${pass} ${envFlag}`.trim();
                 execSync(command);
                 return; // Success
             } catch (error) {
