@@ -14,7 +14,7 @@ final readonly class CreateNoteCommand
         public string $title,
 
         #[Assert\NotBlank]
-        #[Assert\Length(max: 50000)]
+        #[Assert\Length(max: 100000)]
         public string $description,
 
         /**

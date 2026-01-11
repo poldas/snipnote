@@ -256,7 +256,7 @@
                                 Opis (Markdown) <span class="text-red-500">*</span>
                             </label>
                             <span id="description-counter" data-description-counter class="text-xs text-slate-500"
-                                aria-live="polite">0 / 10000</span>
+                                aria-live="polite">0 / 100000</span>
                         </div>
 
                         <!-- Markdown Toolbar -->
@@ -294,7 +294,7 @@
                         </div>
 
                         <textarea id="note-description" name="description" data-description-textarea rows="10"
-                            maxlength="10000" required
+                            maxlength="100000" required
                             class="input-field w-full px-4 py-3 border border-t-0 rounded-b-xl bg-white text-slate-900 placeholder-slate-400 font-mono text-sm resize-y shadow-sm hover:shadow-md focus:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300 border-slate-200/80"
                             placeholder="Wpisz treść notatki w Markdown...">Komórka</textarea>
                     </div>
@@ -481,8 +481,8 @@
         }
 
         if (descInput && descCounter) {
-            updateCounter(descInput, descCounter, 10000);
-            descInput.addEventListener('input', () => updateCounter(descInput, descCounter, 10000));
+            updateCounter(descInput, descCounter, 100000);
+            descInput.addEventListener('input', () => updateCounter(descInput, descCounter, 100000));
         }
 
         // Initialize

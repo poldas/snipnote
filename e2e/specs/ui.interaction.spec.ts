@@ -30,7 +30,7 @@ test.describe('UI Interactions & JS Logic', () => {
         await editorPage.waitForReady();
 
         const textarea = page.getByTestId('note-description-textarea');
-        
+
         // Test Bold (default text insertion)
         await textarea.clear();
         await page.locator('button[data-md-action="bold"]').click();
@@ -54,7 +54,7 @@ test.describe('UI Interactions & JS Logic', () => {
 
         // Add "javascript"
         await editorPage.addLabel('javascript');
-        
+
         // Add "Python" (mixed case)
         await editorPage.addLabel('Python');
 
@@ -65,7 +65,7 @@ test.describe('UI Interactions & JS Logic', () => {
         // Verify chips count (should be 2: javascript, Python)
         await expect(page.getByTestId('tag-chip')).toHaveCount(2);
         await expect(page.getByTestId('tag-chip').first()).toContainText('javascript');
-        
+
         // Verify hidden input value (JSON)
         const hiddenInput = page.locator('input[data-labels-input]');
         const value = await hiddenInput.inputValue();
@@ -99,11 +99,11 @@ test.describe('UI Interactions & JS Logic', () => {
 
         // Open public note as anonymous user
         await page.goto(publicUrl);
-        
+
         // Wait for the TODO input to appear (controller initialization)
         const addInput = page.locator('[data-public-todo-target="input"]');
         await addInput.waitFor({ state: 'visible', timeout: 10000 });
-        
+
         await addInput.fill('Local Task Persist');
         await addInput.press('Enter');
 
@@ -117,15 +117,16 @@ test.describe('UI Interactions & JS Logic', () => {
     test('Client-side validation should prevent submit without request', async ({ page }) => {
         const loginPage = new LoginPage(page);
         const dashboardPage = new DashboardPage(page);
-        
+        const editorPage = new NoteEditorPage(page);
+
         await loginPage.goto();
         await loginPage.login(userEmail, userPass);
         await dashboardPage.clickAddNote();
-        await page.locator('[data-controller="note-form"]').waitFor({ state: 'visible' });
+        await editorPage.waitForReady();
 
         // Try to submit empty form
         const submitBtn = page.locator('button[data-submit-btn]');
-        
+
         // Monitor network
         let requestSent = false;
         page.on('request', request => {
@@ -136,11 +137,11 @@ test.describe('UI Interactions & JS Logic', () => {
 
         // Click and wait for JS validation to reflect in DOM
         await submitBtn.click();
-        
+
         // Use a more flexible check for validation messages
         await expect(page.locator('body')).toContainText(/Tytuł jest wymagany/i);
         await expect(page.locator('body')).toContainText(/Opis jest wymagany/i);
-        
+
         expect(requestSent).toBe(false);
     });
 });

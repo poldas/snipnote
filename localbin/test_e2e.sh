@@ -27,6 +27,8 @@ fi
 echo "⏳ Waiting for services to be ready..."
 docker compose exec -T app timeout 30 bash -c 'until php bin/console doctrine:query:sql "SELECT 1" >/dev/null 2>&1; do sleep 2; done' || true
 
+echo "🔄 Applying database migrations..."
+docker compose exec -T app php bin/console doctrine:migrations:migrate --no-interaction
+
 echo "✅ Environment ready, starting E2E tests..."
-# Playwright global-setup will handle DB reset now
 npm run e2e

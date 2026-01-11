@@ -12,7 +12,7 @@ final readonly class UpdateNoteCommand
         #[Assert\Length(max: 255)]
         public ?string $title = null,
 
-        #[Assert\Length(max: 50000)]
+        #[Assert\Length(max: 100000)]
         public ?string $description = null,
 
         /**
