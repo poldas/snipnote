@@ -14,14 +14,11 @@
         {% block javascripts %}
             {{ importmap_safe('public_note', [
                 'app', 
-                'auth',
                 'htmx', 
                 'turbo', 
                 'note_form', 
                 'edit_note', 
-                'notes_dashboard', 
-                'csrf_protection',
-                'autofocus'
+                'notes_dashboard'
             ]) }}
         {% endblock %}
     </head>

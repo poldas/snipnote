@@ -9,6 +9,7 @@ use App\Exception\ValidationException;
 use App\Repository\UserRepository;
 use App\Service\EmailVerificationService;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\MailerInterface;
@@ -21,7 +22,7 @@ final class EmailVerificationServiceTest extends TestCase
     private EntityManagerInterface $entityManager;
     private UrlGeneratorInterface $urlGenerator;
     private LoggerInterface $logger;
-    private MailerInterface $mailer;
+    private MailerInterface&MockObject $mailer;
     private EmailVerificationService $service;
 
     protected function setUp(): void
@@ -56,9 +57,8 @@ final class EmailVerificationServiceTest extends TestCase
             ->with($email)
             ->willReturn($user);
 
-        $this->mailer
-            ->expects(self::never())
-            ->method('send');
+        // Expect no emails sent
+        $this->mailer->expects(self::never())->method('send');
 
         $this->service->handleVerification($email, $signature, $expires);
 
@@ -70,13 +70,26 @@ final class EmailVerificationServiceTest extends TestCase
         $email = 'user@example.com';
         $expires = (string) (time() + 3600);
 
+        // Expect no emails sent
+        $this->mailer->expects(self::never())->method('send');
+
         $this->expectException(ValidationException::class);
 
-        $this->mailer
-            ->expects(self::never())
-            ->method('send');
-
         $this->service->handleVerification($email, 'bad', $expires);
+    }
+
+    public function testHandleVerificationRejectsExpiredToken(): void
+    {
+        $email = 'user@example.com';
+        $expires = (string) (time() - 100); // 1 minute ago
+        $signature = hash_hmac('sha256', sprintf('%s|%d', $email, (int) $expires), 'secret');
+
+        // Expect no emails sent
+        $this->mailer->expects(self::never())->method('send');
+
+        $this->expectException(ValidationException::class);
+
+        $this->service->handleVerification($email, $signature, $expires);
     }
 
     public function testSendForEmailSkipsVerifiedUser(): void
@@ -87,9 +100,8 @@ final class EmailVerificationServiceTest extends TestCase
             ->method('findOneByEmailCaseInsensitive')
             ->willReturn($user);
 
-        $this->mailer
-            ->expects(self::never())
-            ->method('send');
+        // Expect no emails sent
+        $this->mailer->expects(self::never())->method('send');
 
         $this->service->sendForEmail('user@example.com');
     }

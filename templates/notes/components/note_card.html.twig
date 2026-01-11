@@ -6,7 +6,7 @@
 {% set isShared = note.isShared|default(false) %}
 {% set isPublic = note.visibility|lower == 'public' %}
 {% set isDraft = note.visibility|lower == 'draft' %}
-{% set copyUrl = isPublic? publicHref : app.request.schemeAndHttpHost ~ editUrl %}
+{% set copyUrl = isDraft ? (app.request.schemeAndHttpHost ~ editUrl) : publicHref %}
 
 <!-- Note Card -->
 <div class="group bg-white rounded-2xl border border-slate-200 hover:border-indigo-300 hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 overflow-hidden">

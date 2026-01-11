@@ -181,7 +181,7 @@ class NoteRepository extends ServiceEntityRepository
 
         $ids = (clone $filters)
             ->select('n.id')
-            ->orderBy('n.created_at', 'DESC')
+            ->orderBy('n.updated_at', 'DESC')
             ->setMaxResults($query->perPage)
             ->setFirstResult(($query->page - 1) * $query->perPage)
             ->executeQuery()
@@ -195,7 +195,7 @@ class NoteRepository extends ServiceEntityRepository
         $items = $this->createQueryBuilder('n')
             ->andWhere('n.id IN (:ids)')
             ->setParameter('ids', $ids)
-            ->orderBy('n.createdAt', 'DESC')
+            ->orderBy('n.updatedAt', 'DESC')
             ->getQuery()
             ->getResult();
 

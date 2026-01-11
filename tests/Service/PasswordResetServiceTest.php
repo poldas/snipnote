@@ -49,4 +49,41 @@ class PasswordResetServiceTest extends TestCase
 
         $service->requestPasswordReset('test@example.com');
     }
+
+    public function testResetPasswordUpdatesHashAndClearsToken(): void
+    {
+        $user = $this->createMock(User::class);
+        $user->expects($this->once())->method('setPasswordHash')->with('new_hashed_password');
+        $user->expects($this->once())->method('clearResetToken');
+
+        $userRepository = $this->createStub(UserRepository::class);
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->once())->method('flush');
+
+        // Fixed: configurations for mocks to avoid notices
+        $mailer = $this->createMock(MailerInterface::class);
+        $mailer->expects(self::never())->method('send');
+
+        $urlGenerator = $this->createStub(UrlGeneratorInterface::class);
+        
+        $passwordHasher = $this->createStub(\Symfony\Component\PasswordHasher\PasswordHasherInterface::class);
+        $passwordHasher->method('hash')->willReturn('new_hashed_password');
+
+        $passwordHasherFactory = $this->createStub(PasswordHasherFactoryInterface::class);
+        $passwordHasherFactory->method('getPasswordHasher')->willReturn($passwordHasher);
+
+        $logger = $this->createStub(LoggerInterface::class);
+
+        $service = new PasswordResetService(
+            $userRepository,
+            $entityManager,
+            $mailer,
+            $urlGenerator,
+            $passwordHasherFactory,
+            $logger,
+            'no-reply@example.com'
+        );
+
+        $service->resetPassword($user, 'NewPassword123!');
+    }
 }
