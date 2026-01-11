@@ -3,6 +3,7 @@
 PHP 8.4+
 Symfony 8.0 (attributes dla routingu, DI, Doctrine)
 Doctrine ORM 3.5 (+ doctrine/migrations)
+Doctrine DBAL 4.x
 maker-bundle do scaffoldingu
 PostgreSQL (dev/test/prod)
 

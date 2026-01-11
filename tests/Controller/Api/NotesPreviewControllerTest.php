@@ -97,7 +97,7 @@ final class NotesPreviewControllerTest extends TestCase
     {
         $controller = $this->buildController();
 
-        $tooLong = str_repeat('a', 10001);
+        $tooLong = str_repeat('a', 100001);
         $request = Request::create(
             '/api/notes/preview',
             'POST',

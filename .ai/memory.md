@@ -57,3 +57,16 @@
 - **Logic**: When combining local user progress (`localStorage`) with updates from the author (`Markdown` from backend).
 - **Key**: Use the task content (`text`) as the unique identifier.
 - **Behavior**: Preserve the user's `completed` and `deleted` status for existing tasks while seamlessly adopting new tasks or removals made by the author in the editor.
+
+### Large Content Handling
+- **Context**: Allowing large inputs (e.g., 100k characters for notes).
+- **Problem**: Just increasing database column types (`TEXT`) and Validation constraints is not enough. `Symfony\Component\HtmlSanitizer` has a default security limit (often 20k bytes) that silently truncates output.
+- **Solution**: Always configure `max_input_length` in `config/packages/html_sanitizer.yaml` to match or exceed your entity's validation limit.
+- **Checklist**: When increasing limits, check: 1. Database column, 2. Entity/DTO Validation (`Assert\Length`), 3. Frontend Form (`maxlength`), 4. Processing Services (Sanitizers/Parsers).
+
+## Infrastructure & CI
+
+### Doctrine Command Deprecations
+- **Problem**: `doctrine:query:sql` has been removed in newer Doctrine bundles (DBAL 4+).
+- **Solution**: Use `doctrine:dbal:run-sql` for executing raw SQL queries in CLI/CI scripts.
+- **Example**: `php bin/console doctrine:dbal:run-sql "SELECT 1"`.

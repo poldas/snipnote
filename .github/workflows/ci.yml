@@ -180,7 +180,7 @@ jobs:
           docker compose exec -T app php bin/console doctrine:migrations:migrate --no-interaction --env=test
           
           # Verify User Table Exists (Smoke Test)
-          docker compose exec -T app php bin/console doctrine:query:sql "SELECT COUNT(*) FROM user_entity" --env=test
+          docker compose exec -T app php bin/console doctrine:dbal:run-sql "SELECT COUNT(*) FROM users" --env=test
 
       - name: Install Dependencies (Frontend)
         # We install node_modules on the RUNNER to run Playwright, 

@@ -23,6 +23,8 @@
 - Target: Symfony 8. Preferuj attributes (routing, DI, Doctrine mapping).
 - Kontrolery: thin — logika w serwisach.
 - DI: wstrzykiwanie zależności, unikaj statycznych helperów.
+- CLI & SQL: Używaj `doctrine:dbal:run-sql` zamiast przestarzałego `doctrine:query:sql` w skryptach i CI.
+- Limity danych: Zmieniając limity (np. długość tekstu), aktualizuj je we wszystkich warstwach: Baza Danych -> Walidacja (Entity/DTO) -> Frontend (HTML/JS) -> Konfiguracja Serwisów (np. HtmlSanitizer).
 - Formularze: Symfony Forms + Validator (server authoritative).
 - Używaj QueryBuilder/DTO, unikaj nadmiernej hydracji, profiluj zapytania i dodaj indeksy tam, gdzie wyszukiwanie (title/description/labels) jest krytyczne
 - Standard: Kod: PSR-12; typowanie parametrów/metod; PHPStan poziom 5 (MVP), phpVersion: 8.2.
