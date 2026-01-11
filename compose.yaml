@@ -4,7 +4,7 @@ services:
     ports:
       - "8080:80"
     environment:
-      APP_ENV: dev
+      APP_ENV: ${APP_ENV:-dev}
       APACHE_DOCUMENT_ROOT: /var/www/html/public
       DATABASE_URL: ${DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}

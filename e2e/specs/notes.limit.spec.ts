@@ -23,10 +23,18 @@ test.describe('Note Size Limits', () => {
         const editorPage = new NoteEditorPage(page);
 
         // Generate a large content string (approx 90k chars)
-        const largeContent = 'A'.repeat(90000); 
+        const contentSize = 90000;
+        const largeContent = 'A'.repeat(contentSize); 
 
-        await loginPage.goto();
-        await loginPage.login(userEmail, userPass);
+        try {
+            await loginPage.goto();
+            await loginPage.login(userEmail, userPass);
+        } catch (err) {
+            console.error('Login failed in limit test. Capturing state.');
+            await page.screenshot({ path: `e2e/artifacts/test-results/login-fail-${Date.now()}.png` });
+            throw err;
+        }
+
         await dashboardPage.clickAddNote();
         await editorPage.waitForReady();
 
@@ -54,10 +62,9 @@ test.describe('Note Size Limits', () => {
         const publicUrl = await editorPage.getPublicUrl();
         await page.goto(publicUrl);
 
-        // Verify content is rendered (checking length/presence)
+        // Verify content is rendered
         const publicContent = await page.getByTestId('public-note-content').innerText();
-        expect(publicContent).toContain(largeContent.substring(0, 100)); // Check start
-        expect(publicContent).toContain(largeContent.substring(largeContent.length - 100)); // Check end
-        expect(publicContent.length).toBeGreaterThanOrEqual(largeContent.length); // Should match or be larger due to HTML wrapping
+        expect(publicContent.length).toBeGreaterThanOrEqual(largeContent.length);
+        expect(publicContent).toContain(largeContent.substring(0, 1000));
     });
 });

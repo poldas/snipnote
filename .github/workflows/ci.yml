@@ -146,6 +146,7 @@ jobs:
           sed -i 's/APP_ENV=dev/APP_ENV=test/g' .env
           echo "JWT_SECRET=ci-jwt-secret" >> .env
           echo "APP_SECRET=ci-app-secret" >> .env
+          echo "DATABASE_URL=postgresql://app:app@database:5432/app?serverVersion=16&charset=utf8" >> .env
 
       - name: Start Services (Docker Compose)
         run: |
@@ -195,7 +196,7 @@ jobs:
           CI: true
         run: |
           echo "Waiting for app to be ready..."
-          curl --retry 10 --retry-delay 2 -f http://localhost:8080 || (docker compose logs app && exit 1)
+          curl --retry 10 --retry-delay 2 -fsS -o /dev/null http://localhost:8080 || (docker compose logs app && exit 1)
           
           echo "Running E2E Tests..."
           npm run e2e
