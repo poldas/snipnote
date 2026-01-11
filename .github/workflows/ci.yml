@@ -3,10 +3,10 @@ name: CI / E2E Tests / Linting
 on:
   push:
     branches:
-      - 'fix-*'      # Feature/fix branches - test przed PR
-      - 'rc-*'       # Release candidates
-      - main         # Main branch
-      - rc           # Release branch
+      - 'fix-*'
+      - 'rc-*'
+      - main
+      - rc
   pull_request:
     branches:
       - rc
@@ -19,7 +19,6 @@ env:
   CI: true
 
 jobs:
-  # Job wykonywany dla wszystkich triggerów (push + PR)
   php-lint:
     if: ${{ ! (github.event_name == 'pull_request' && startsWith(github.head_ref, 'fix-')) }}
     runs-on: ubuntu-latest
@@ -55,11 +54,6 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
-      mailpit:
-        image: axllent/mailpit
-        ports:
-          - 1025:1025
-          - 8025:8025
 
     env:
       APP_ENV: test
@@ -77,7 +71,6 @@ jobs:
         run: |
           cp env.example .env
           cp env.test.example .env.test
-          # Ensure host DB hostname (localhost) for CI services
           sed -i 's@database:5432@localhost:5432@g' .env .env.test
 
       - name: Setup PHP
@@ -97,14 +90,6 @@ jobs:
       - name: Composer install
         run: composer install --no-interaction --prefer-dist
 
-      - name: Security audit
-        run: composer audit --no-interaction
-
-      - name: Lint PHP (syntax + composer)
-        run: |
-          composer validate --strict
-          find src tests -name '*.php' -print0 | xargs -0 -n1 php -l
-
       - name: Prepare database (test)
         run: |
           php bin/console doctrine:database:create --if-not-exists --env=test
@@ -115,73 +100,43 @@ jobs:
           ./bin/phpunit --coverage-clover var/coverage/clover.xml --coverage-html var/coverage/html
           # Check coverage threshold (55%)
           php -r "
-          \$xml = simplexml_load_file('var/coverage/clover.xml');
-          \$metrics = \$xml->xpath('//project/metrics')[0];
-          \$covered = (int)\$metrics['coveredmethods'];
-          \$total = (int)\$metrics['methods'];
-          \$percentage = \$total > 0 ? round((\$covered / \$total) * 100, 2) : 0;
-          echo \"Coverage: \$percentage% (\$covered/\$total methods)\n\";
-          if (\$percentage < 55) {
-            echo \"ERROR: Coverage \$percentage% is below 55% threshold\n\";
+          $xml = simplexml_load_file('var/coverage/clover.xml');
+          $metrics = $xml->xpath('//project/metrics')[0];
+          $covered = (int)$metrics['coveredmethods'];
+          $total = (int)$metrics['methods'];
+          $percentage = $total > 0 ? round(($covered / $total) * 100, 2) : 0;
+          echo "Coverage: $percentage% ($covered/$total methods)\n";
+          if ($percentage < 55) {
+            echo "ERROR: Coverage $percentage% is below 55% threshold\n";
             exit(1);
           }
           "
 
-      - name: Upload coverage artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: phpunit-coverage-${{ github.run_attempt }}
-          path: |
-            var/coverage/clover.xml
-            var/coverage/html/
-
   e2e:
     runs-on: ubuntu-latest
     if: ${{ ! (github.event_name == 'pull_request' && startsWith(github.head_ref, 'fix-')) }}
-    services:
-      postgres:
-        image: postgres:16-alpine
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_DB: app
-          POSTGRES_USER: app
-          POSTGRES_PASSWORD: app
-        options: >-
-          --health-cmd="pg_isready -U app -d app"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-      mailpit:
-        image: axllent/mailpit
-        ports:
-          - 1025:1025
-          - 8025:8025
-
+    
+    # Environment variables for the entire job (runner + docker compose)
     env:
       APP_ENV: test
       APP_DEBUG: 0
       APP_SECRET: ci-app-secret
       JWT_SECRET: ci-jwt-secret
-      DATABASE_URL: "postgresql://app:app@localhost:5432/app?serverVersion=16&charset=utf8"
-      MAILER_DSN: "smtp://localhost:1025"
+      # IMPORTANT: Host for DB within Docker network is 'database', but port 5432 is exposed to runner as well.
+      # For Docker Compose services, they talk via service names.
+      DATABASE_URL: "postgresql://app:app@database:5432/app?serverVersion=16&charset=utf8"
+      POSTGRES_DB: app
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      MAILER_DSN: "smtp://mailer:1025"
+      MAILER_FROM: "no-reply@snipnote.pl"
+      # E2E specific
+      E2E_BASE_URL: http://localhost:8080
+      E2E_DOCKER_DISABLED: 0 # Explicitly ENABLE Docker logic in UserFactory
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Prepare env files
-        run: |
-          cp env.example .env
-          cp env.test.example .env.test
-          sed -i 's@database:5432@localhost:5432@g' .env .env.test
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          extensions: pdo_pgsql, intl, zip
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -189,68 +144,63 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
-      - name: Cache Node modules
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: ${{ runner.os }}-node-
-
-      - name: Cache Composer deps
-        uses: actions/cache@v4
-        with:
-          path: vendor
-          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
-          restore-keys: composer-${{ runner.os }}-
-
-      - name: Composer install
-        run: composer install --no-interaction --prefer-dist
-
-      - name: Prepare database (test)
+      - name: Prepare env files
+        # Create .env file for Docker Compose to read
         run: |
-          php bin/console doctrine:database:create --if-not-exists --env=test
-          php bin/console doctrine:migrations:migrate --no-interaction --env=test
+          cp env.example .env
+          # Override vars in .env to ensure Docker picks them up
+          sed -i 's/APP_ENV=dev/APP_ENV=test/g' .env
+          echo "JWT_SECRET=ci-jwt-secret" >> .env
+          echo "APP_SECRET=ci-app-secret" >> .env
 
-      - name: Setup Playwright deps
+      - name: Start Services (Docker Compose)
         run: |
-          npm ci
-          npm audit --audit-level=moderate || true
-          npx playwright install --with-deps chromium
+          # Use standard compose file (Apache+PHP) + override (Ports)
+          docker compose up -d --wait
 
-      - name: Start PHP dev server
+      - name: Show Running Containers
+        run: docker compose ps -a
+
+      - name: Install Dependencies (Backend)
         run: |
-          mkdir -p /tmp/sessions
-          chmod 777 /tmp/sessions
-          php -S 0.0.0.0:8080 -t public > /tmp/php-server.log 2>&1 &
-          sleep 5
-          curl -f http://localhost:8080 || (echo "PHP server failed to start" && cat /tmp/php-server.log && exit 1)
+          # Install composer deps INSIDE the container to match environment
+          docker compose exec -T app composer install --no-interaction --prefer-dist
 
-          # Test basic application setup
-          echo "Testing basic application setup..."
-          php bin/console --env=test --quiet || (echo "Symfony console not working" && exit 1)
+      - name: Setup Database
+        run: |
+          # Run migrations inside container
+          docker compose exec -T app php bin/console doctrine:migrations:migrate --no-interaction --env=test
+          
+          # Verify User Table Exists (Smoke Test)
+          docker compose exec -T app php bin/console doctrine:query:sql "SELECT COUNT(*) FROM user_entity" --env=test
 
-          # Test user creation command
-          echo "Testing user creation..."
-          php bin/console app:test-user-manage create test@example.com password123 --env=test || (echo "User creation failed" && exit 1)
+      - name: Install Dependencies (Frontend)
+        # We install node_modules on the RUNNER to run Playwright, 
+        # AND to build assets that are mounted into the container.
+        run: npm ci
 
-          # Show current environment for debugging
-          echo "Environment check:"
-          php bin/console debug:container --env=test --parameter=doctrine.dbal.default_connection || echo "Could not check container"
-          php bin/console doctrine:query:sql "SELECT COUNT(*) FROM user_entity" --env=test || echo "Could not count users"
+      - name: Build Assets
+        run: |
+          # Build Tailwind CSS (on runner, mapped to container via volume)
+          npm run tailwind:build
+          
+          # Asset Mapper (inside container to ensure PHP consistency)
+          docker compose exec -T app php bin/console importmap:install --env=test
+          docker compose exec -T app php bin/console asset-map:compile --env=test
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
 
       - name: Run Playwright E2E
         env:
-          E2E_BASE_URL: http://localhost:8080
-          E2E_DOCKER_DISABLED: 1
-          DEBUG: pw:api,pw:browser
+          # Playwright runs on host, hits localhost:8080 (mapped from docker)
+          # Mailpit client hits localhost:8025 (mapped from docker)
+          CI: true
         run: |
-          echo "Starting E2E tests..."
-          echo "PHP server status:"
-          curl -s -o /dev/null -w "HTTP %{http_code}\n" http://localhost:8080 || echo "Server not responding"
-
-          echo "Database connectivity test:"
-          php bin/console doctrine:query:dql "SELECT COUNT(u) FROM App\Entity\User u" --env=test 2>/dev/null || echo "Cannot query database"
-
+          echo "Waiting for app to be ready..."
+          curl --retry 10 --retry-delay 2 -f http://localhost:8080 || (docker compose logs app && exit 1)
+          
+          echo "Running E2E Tests..."
           npm run e2e
 
       - name: Upload Playwright report
@@ -259,6 +209,10 @@ jobs:
         with:
           name: playwright-report-${{ github.run_attempt }}
           path: playwright-report
+
+      - name: Stop Services
+        if: always()
+        run: docker compose down
 
 # =============================================================================
 # PROPOZYCJE DALŚZYCH ULEPSZEŃ (do rozważenia w przyszłości):

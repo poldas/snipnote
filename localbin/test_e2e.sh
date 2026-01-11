@@ -5,13 +5,12 @@ echo "🚀 Preparing E2E test environment..."
 
 # Set environment variables
 export E2E_BASE_URL=http://localhost:8080
-export E2E_WEB_SERVER_CMD="./localbin/start.sh"
 
 # Start Docker environment if not running
 if ! docker compose ps | grep -q "app"; then
     echo "🐳 Starting Docker containers..."
 
-    # Build assets first (from start.sh logic)
+    # Build assets first
     echo "Building assets..."
     ./localbin/assets.sh
 
@@ -24,15 +23,10 @@ if ! docker compose ps | grep -q "app"; then
     sleep 5
 fi
 
-# Wait for containers to be healthy
+# Wait for containers to be healthy (check DB connection from inside app)
 echo "⏳ Waiting for services to be ready..."
-docker compose exec -T app timeout 30 bash -c 'until php bin/console doctrine:query:dql "SELECT COUNT(u) FROM App\Entity\User u" --env=test >/dev/null 2>&1; do sleep 2; done' || true
+docker compose exec -T app timeout 30 bash -c 'until php bin/console doctrine:query:sql "SELECT 1" >/dev/null 2>&1; do sleep 2; done' || true
 
-# Reset test database
-echo "🗄️ Preparing test database..."
-docker compose exec -T app php bin/console doctrine:database:drop --force --if-exists --env=test || true
-docker compose exec -T app php bin/console doctrine:database:create --if-not-exists --env=test
-docker compose exec -T app php bin/console doctrine:migrations:migrate --no-interaction --env=test
-
-echo "✅ Database ready, starting E2E tests..."
+echo "✅ Environment ready, starting E2E tests..."
+# Playwright global-setup will handle DB reset now
 npm run e2e
