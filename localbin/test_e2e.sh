@@ -25,7 +25,7 @@ fi
 
 # Wait for containers to be healthy (check DB connection from inside app)
 echo "⏳ Waiting for services to be ready..."
-docker compose exec -T app timeout 30 bash -c 'until php bin/console doctrine:dbal:run-sql "SELECT 1" >/dev/null 2>&1; do sleep 2; done' || true
+docker compose exec -T app timeout 30 bash -c 'until php bin/console dbal:run-sql "SELECT 1" >/dev/null 2>&1; do sleep 2; done' || true
 
 echo "🔄 Applying database migrations..."
 docker compose exec -T app php bin/console doctrine:migrations:migrate --no-interaction

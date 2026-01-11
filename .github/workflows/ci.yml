@@ -104,18 +104,7 @@ jobs:
         run: |
           ./bin/phpunit --coverage-clover var/coverage/clover.xml --coverage-html var/coverage/html
           # Check coverage threshold (55%)
-          php -r "
-          $xml = simplexml_load_file('var/coverage/clover.xml');
-          $metrics = $xml->xpath('//project/metrics')[0];
-          $covered = (int)$metrics['coveredmethods'];
-          $total = (int)$metrics['methods'];
-          $percentage = $total > 0 ? round(($covered / $total) * 100, 2) : 0;
-          echo "Coverage: $percentage% ($covered/$total methods)\n";
-          if ($percentage < 55) {
-            echo "ERROR: Coverage $percentage% is below 55% threshold\n";
-            exit(1);
-          }
-          "
+          php bin/check-coverage.php var/coverage/clover.xml 55
 
   e2e:
     runs-on: ubuntu-latest
@@ -180,7 +169,7 @@ jobs:
           docker compose exec -T app php bin/console doctrine:migrations:migrate --no-interaction --env=test
           
           # Verify User Table Exists (Smoke Test)
-          docker compose exec -T app php bin/console doctrine:dbal:run-sql "SELECT COUNT(*) FROM users" --env=test
+          docker compose exec -T app php bin/console dbal:run-sql "SELECT COUNT(*) FROM users" --env=test
 
       - name: Install Dependencies (Frontend)
         # We install node_modules on the RUNNER to run Playwright, 

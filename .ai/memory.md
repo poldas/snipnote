@@ -70,3 +70,7 @@
 - **Problem**: `doctrine:query:sql` has been removed in newer Doctrine bundles (DBAL 4+).
 - **Solution**: Use `doctrine:dbal:run-sql` for executing raw SQL queries in CLI/CI scripts.
 - **Example**: `php bin/console doctrine:dbal:run-sql "SELECT 1"`.
+
+### Docker Modernization
+- **Syntax**: Use the new `docker compose` (v2) syntax instead of the legacy `docker-compose` (v1).
+- **Healthchecks**: Use the `docker compose up -d --wait` flag. It is the modern and recommended way to wait for containers to be fully healthy before proceeding, replacing manual `sleep` or `wait-for-it` scripts.
