@@ -146,7 +146,7 @@ jobs:
           sed -i 's/APP_ENV=dev/APP_ENV=test/g' .env
           echo "JWT_SECRET=ci-jwt-secret" >> .env
           echo "APP_SECRET=ci-app-secret" >> .env
-          echo "DATABASE_URL=postgresql://app:app@database:5432/app?serverVersion=16&charset=utf8" >> .env
+          echo "DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}?serverVersion=16&charset=utf8" >> .env
 
       - name: Start Services (Docker Compose)
         run: |

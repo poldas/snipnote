@@ -86,9 +86,8 @@ export class NoteEditorPage {
 
     async expectDescriptionContent(text: string) {
         const textarea = this.page.getByTestId('note-description-textarea');
-        const value = await textarea.inputValue();
-        expect(value.length).toBe(text.length);
-        expect(value).toBe(text);
+        // If dealing with large content (e.g. 90k chars), increase timeout for comparison
+        await expect(textarea).toHaveValue(text, { timeout: 15000 });
     }
 
     async expectTitle(title: string) {
