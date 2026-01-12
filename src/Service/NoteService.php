@@ -110,8 +110,11 @@ class NoteService
         }
 
         // Private note handling
-        if ($user !== null && $this->isOwnerOrCollaborator($note, $user)) {
-            return $note;
+        if ($user !== null) {
+            if ($this->isOwnerOrCollaborator($note, $user)) {
+                return $note;
+            }
+            throw new AccessDeniedException('You are not allowed to view this note');
         }
 
         throw new NotFoundHttpException('Note not found');

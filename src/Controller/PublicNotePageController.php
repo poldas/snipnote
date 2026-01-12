@@ -62,7 +62,7 @@ final class PublicNotePageController extends AbstractController
             if ($this->getParameter('kernel.debug')) {
                 throw $e;
             }
-            $errorCode = 0;
+            $errorCode = 500;
         }
 
         $theme = 'default';

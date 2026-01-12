@@ -1,0 +1,5 @@
+dev_error_preview:
+    path: /debug/public-error/{code}
+    controller: App\Controller\Dev\ErrorPreviewController::preview
+    requirements:
+        code: '\d+'

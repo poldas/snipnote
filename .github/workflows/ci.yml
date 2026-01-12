@@ -17,6 +17,11 @@ env:
   COMPOSER_NO_INTERACTION: 1
   COMPOSER_PROCESS_TIMEOUT: 0
   CI: true
+  POSTGRES_DB: app
+  POSTGRES_USER: app
+  POSTGRES_PASSWORD: app
+  APP_SECRET: ci-app-secret
+  JWT_SECRET: ci-jwt-secret
 
 jobs:
   php-lint:
@@ -46,11 +51,11 @@ jobs:
         ports:
           - 5432:5432
         env:
-          POSTGRES_DB: app
-          POSTGRES_USER: app
-          POSTGRES_PASSWORD: app
+          POSTGRES_DB: ${{ env.POSTGRES_DB }}
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
         options: >-
-          --health-cmd="pg_isready -U app -d app"
+          --health-cmd="pg_isready -U ${{ env.POSTGRES_USER }} -d ${{ env.POSTGRES_DB }}"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
@@ -63,9 +68,7 @@ jobs:
     env:
       APP_ENV: test
       APP_DEBUG: 0
-      APP_SECRET: ci-app-secret
-      JWT_SECRET: ci-jwt-secret
-      DATABASE_URL: "postgresql://app:app@localhost:5432/app?serverVersion=16&charset=utf8"
+      DATABASE_URL: "postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@localhost:5432/${{ env.POSTGRES_DB }}?serverVersion=16&charset=utf8"
       MAILER_DSN: "smtp://localhost:1025"
 
     steps:
@@ -76,7 +79,7 @@ jobs:
         run: |
           cp env.example .env
           cp env.test.example .env.test
-          sed -i 's@database:5432@localhost:5432@g' .env .env.test
+          sed -i "s@DATABASE_URL=.*@DATABASE_URL=${{ env.DATABASE_URL }}@g" .env .env.test
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -114,14 +117,8 @@ jobs:
     env:
       APP_ENV: test
       APP_DEBUG: 0
-      APP_SECRET: ci-app-secret
-      JWT_SECRET: ci-jwt-secret
-      # IMPORTANT: Host for DB within Docker network is 'database', but port 5432 is exposed to runner as well.
       # For Docker Compose services, they talk via service names.
-      DATABASE_URL: "postgresql://app:app@database:5432/app?serverVersion=16&charset=utf8"
-      POSTGRES_DB: app
-      POSTGRES_USER: app
-      POSTGRES_PASSWORD: app
+      DATABASE_URL: "postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@database:5432/${{ env.POSTGRES_DB }}?serverVersion=16&charset=utf8"
       MAILER_DSN: "smtp://mailer:1025"
       MAILER_FROM: "no-reply@snipnote.pl"
       # E2E specific
@@ -144,9 +141,12 @@ jobs:
           cp env.example .env
           # Override vars in .env to ensure Docker picks them up
           sed -i 's/APP_ENV=dev/APP_ENV=test/g' .env
-          echo "JWT_SECRET=ci-jwt-secret" >> .env
-          echo "APP_SECRET=ci-app-secret" >> .env
-          echo "DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}?serverVersion=16&charset=utf8" >> .env
+          echo "JWT_SECRET=${{ env.JWT_SECRET }}" >> .env
+          echo "APP_SECRET=${{ env.APP_SECRET }}" >> .env
+          echo "POSTGRES_DB=${{ env.POSTGRES_DB }}" >> .env
+          echo "POSTGRES_USER=${{ env.POSTGRES_USER }}" >> .env
+          echo "POSTGRES_PASSWORD=${{ env.POSTGRES_PASSWORD }}" >> .env
+          echo "DATABASE_URL=${{ env.DATABASE_URL }}" >> .env
 
       - name: Start Services (Docker Compose)
         run: |
@@ -211,53 +211,3 @@ jobs:
       - name: Stop Services
         if: always()
         run: docker compose down
-
-# =============================================================================
-# PROPOZYCJE DALŚZYCH ULEPSZEŃ (do rozważenia w przyszłości):
-# =============================================================================
-#
-# 1. Matrix builds dla różnych środowisk:
-#    strategy:
-#      matrix:
-#        os: [ubuntu-latest, ubuntu-20.04]
-#        php: ['8.4', '8.3']
-#        node: ['18', '20']
-#
-# 2. Performance monitoring:
-#    - uses: dorny/test-reporter@v1
-#      with:
-#        name: PHPUnit Results
-#        path: 'junit.xml'
-#        reporter: java-junit
-#
-# 3. Code quality tools:
-#    - name: PHPStan static analysis
-#      run: vendor/bin/phpstan analyse src tests
-#
-#    - name: Run Psalm static analysis
-#      run: vendor/bin/psalm
-#
-# 4. Integration tests z prawdziwą bazą:
-#    - Dodaj job dla testów integracyjnych z prawdziwymi usługami
-#
-# 5. Deployment jobs:
-#    jobs:
-#      deploy-staging:
-#        needs: [php-lint, phpunit, e2e]
-#        if: github.ref == 'refs/heads/rc'
-#        # Deploy to staging
-#
-#      deploy-production:
-#        needs: [deploy-staging]
-#        if: github.ref == 'refs/heads/main'
-#        # Deploy to production
-#
-# 6. Notifications:
-#    - Slack/Discord notifications o statusie CI
-#    - Email alerts dla krytycznych błędów
-#
-# 7. Environment-specific secrets:
-#    - Użyj różnych secrets dla różnych środowisk
-#    - Dodaj secrets encryption checks
-#
-# =============================================================================
