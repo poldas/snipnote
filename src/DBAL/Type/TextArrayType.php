@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\DBAL\Type;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
-use Doctrine\DBAL\Types\ConversionException;
+use Doctrine\DBAL\Types\Exception\InvalidType;
+use Doctrine\DBAL\Types\Exception\InvalidFormat;
 use Doctrine\DBAL\Types\Type;
 
 /**
@@ -15,19 +16,9 @@ final class TextArrayType extends Type
 {
     public const NAME = 'text_array';
 
-    public function getName(): string
-    {
-        return self::NAME;
-    }
-
     public function getSQLDeclaration(array $column, AbstractPlatform $platform): string
     {
         return 'TEXT[]';
-    }
-
-    public function requiresSQLCommentHint(AbstractPlatform $platform): bool
-    {
-        return true;
     }
 
     public function convertToDatabaseValue($value, AbstractPlatform $platform): ?string
@@ -37,7 +28,7 @@ final class TextArrayType extends Type
         }
 
         if (!is_array($value)) {
-            throw ConversionException::conversionFailedInvalidType($value, self::NAME, ['array', 'null']);
+            throw InvalidType::new($value, self::NAME, ['array', 'null']);
         }
 
         return $this->encodeArray($value);
@@ -53,10 +44,6 @@ final class TextArrayType extends Type
             return array_values($value);
         }
 
-        if (!is_string($value)) {
-            throw ConversionException::conversionFailed($value, self::NAME);
-        }
-
         return $this->decodeArray($value);
     }
 
@@ -66,11 +53,7 @@ final class TextArrayType extends Type
     private function encodeArray(array $values): string
     {
         $escaped = array_map(
-            static function ($item): string {
-                if (!is_string($item)) {
-                    throw ConversionException::conversionFailedInvalidType($item, self::NAME, ['string']);
-                }
-
+            static function (string $item): string {
                 $item = str_replace(['\\', '"'], ['\\\\', '\\"'], $item);
 
                 return '"' . $item . '"';

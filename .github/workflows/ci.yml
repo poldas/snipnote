@@ -17,6 +17,7 @@ env:
   COMPOSER_NO_INTERACTION: 1
   COMPOSER_PROCESS_TIMEOUT: 0
   CI: true
+  # Globalne wartości dla shella (dostępne w krokach 'run' jako $ZMIENNA)
   POSTGRES_DB: app
   POSTGRES_USER: app
   POSTGRES_PASSWORD: app
@@ -51,11 +52,12 @@ jobs:
         ports:
           - 5432:5432
         env:
-          POSTGRES_DB: ${{ env.POSTGRES_DB }}
-          POSTGRES_USER: ${{ env.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          # Tu MUSZĄ być literały, ${{ env.X }} tu nie działa
+          POSTGRES_DB: app
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: app
         options: >-
-          --health-cmd="pg_isready -U ${{ env.POSTGRES_USER }} -d ${{ env.POSTGRES_DB }}"
+          --health-cmd="pg_isready -U app -d app"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
@@ -68,7 +70,8 @@ jobs:
     env:
       APP_ENV: test
       APP_DEBUG: 0
-      DATABASE_URL: "postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@localhost:5432/${{ env.POSTGRES_DB }}?serverVersion=16&charset=utf8"
+      # Tu również literały dla stabilności firewalla GH
+      DATABASE_URL: "postgresql://app:app@localhost:5432/app?serverVersion=16&charset=utf8"
       MAILER_DSN: "smtp://localhost:1025"
 
     steps:
@@ -79,7 +82,8 @@ jobs:
         run: |
           cp env.example .env
           cp env.test.example .env.test
-          sed -i "s@DATABASE_URL=.*@DATABASE_URL=${{ env.DATABASE_URL }}@g" .env .env.test
+          # Używamy zmiennej powłoki $DATABASE_URL
+          sed -i "s@DATABASE_URL=.*@DATABASE_URL=${DATABASE_URL}@g" .env .env.test
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -113,17 +117,15 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ ! (github.event_name == 'pull_request' && startsWith(github.head_ref, 'fix-')) }}
     
-    # Environment variables for the entire job (runner + docker compose)
     env:
       APP_ENV: test
       APP_DEBUG: 0
-      # For Docker Compose services, they talk via service names.
-      DATABASE_URL: "postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@database:5432/${{ env.POSTGRES_DB }}?serverVersion=16&charset=utf8"
+      # Literały - host 'database' bo to sieć docker-compose
+      DATABASE_URL: "postgresql://app:app@database:5432/app?serverVersion=16&charset=utf8"
       MAILER_DSN: "smtp://mailer:1025"
       MAILER_FROM: "no-reply@snipnote.pl"
-      # E2E specific
       E2E_BASE_URL: http://localhost:8080
-      E2E_DOCKER_DISABLED: 0 # Explicitly ENABLE Docker logic in UserFactory
+      E2E_DOCKER_DISABLED: 0
 
     steps:
       - name: Checkout
@@ -136,21 +138,19 @@ jobs:
           cache: 'npm'
 
       - name: Prepare env files
-        # Create .env file for Docker Compose to read
+        # Używamy zmiennych powłoki wyeksportowanych z globalnego env
         run: |
           cp env.example .env
-          # Override vars in .env to ensure Docker picks them up
           sed -i 's/APP_ENV=dev/APP_ENV=test/g' .env
-          echo "JWT_SECRET=${{ env.JWT_SECRET }}" >> .env
-          echo "APP_SECRET=${{ env.APP_SECRET }}" >> .env
-          echo "POSTGRES_DB=${{ env.POSTGRES_DB }}" >> .env
-          echo "POSTGRES_USER=${{ env.POSTGRES_USER }}" >> .env
-          echo "POSTGRES_PASSWORD=${{ env.POSTGRES_PASSWORD }}" >> .env
-          echo "DATABASE_URL=${{ env.DATABASE_URL }}" >> .env
+          echo "JWT_SECRET=${JWT_SECRET}" >> .env
+          echo "APP_SECRET=${APP_SECRET}" >> .env
+          echo "POSTGRES_DB=${POSTGRES_DB}" >> .env
+          echo "POSTGRES_USER=${POSTGRES_USER}" >> .env
+          echo "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}" >> .env
+          echo "DATABASE_URL=${DATABASE_URL}" >> .env
 
       - name: Start Services (Docker Compose)
         run: |
-          # Use standard compose file (Apache+PHP) + override (Ports)
           docker compose up -d --wait
 
       - name: Show Running Containers
@@ -158,31 +158,20 @@ jobs:
 
       - name: Install Dependencies (Backend)
         run: |
-          # Install composer deps INSIDE the container to match environment
           docker compose exec -T app composer install --no-interaction --prefer-dist
 
       - name: Setup Database
         run: |
-          # Create test database
           docker compose exec -T app php bin/console doctrine:database:create --if-not-exists --env=test
-
-          # Run migrations inside container
           docker compose exec -T app php bin/console doctrine:migrations:migrate --no-interaction --env=test
-          
-          # Verify User Table Exists (Smoke Test)
           docker compose exec -T app php bin/console dbal:run-sql "SELECT COUNT(*) FROM users" --env=test
 
       - name: Install Dependencies (Frontend)
-        # We install node_modules on the RUNNER to run Playwright, 
-        # AND to build assets that are mounted into the container.
         run: npm ci
 
       - name: Build Assets
         run: |
-          # Build Tailwind CSS (on runner, mapped to container via volume)
           npm run tailwind:build
-          
-          # Asset Mapper (inside container to ensure PHP consistency)
           docker compose exec -T app php bin/console importmap:install --env=test
           docker compose exec -T app php bin/console asset-map:compile --env=test
 
@@ -191,8 +180,6 @@ jobs:
 
       - name: Run Playwright E2E
         env:
-          # Playwright runs on host, hits localhost:8080 (mapped from docker)
-          # Mailpit client hits localhost:8025 (mapped from docker)
           CI: true
         run: |
           echo "Waiting for app to be ready..."

@@ -76,7 +76,7 @@ final class PublicNotePageController extends AbstractController
             'theme' => $theme,
         ]);
 
-        if ($errorCode !== null && $errorCode !== 0) {
+        if ($errorCode !== null) {
             $response->setStatusCode($errorCode);
         }
 

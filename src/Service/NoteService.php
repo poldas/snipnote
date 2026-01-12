@@ -57,7 +57,7 @@ class NoteService
             }
         }
 
-        throw new RuntimeException('Failed to create note after retries');
+        throw new \RuntimeException('Failed to create note after retries');
     }
 
     public function getNoteById(int $id, User $requester): Note

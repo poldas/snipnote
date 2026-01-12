@@ -33,7 +33,7 @@ final class NoteControllerIntegrationTest extends WebTestCase
         $client->request('GET', '/api/notes', [
             'per_page' => 150,
         ], server: [
-            'HTTP_Authorization' => 'Bearer ' . $this->createJwtForUser($user, 'testsecret'),
+            'HTTP_Authorization' => 'Bearer ' . $this->createJwtForUser($user),
         ]);
 
         $response = $client->getResponse();

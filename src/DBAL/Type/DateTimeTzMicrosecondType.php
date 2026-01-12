@@ -28,7 +28,7 @@ final class DateTimeTzMicrosecondType extends DateTimeTzImmutableType
         try {
             return parent::convertToPHPValue($value, $platform);
         } catch (InvalidFormat $exception) {
-            throw InvalidFormat::new($value, $this->getName(), 'Y-m-d H:i:s.uO', $exception);
+            throw InvalidFormat::new($value, self::class, 'Y-m-d H:i:s.uO', $exception);
         }
     }
 }

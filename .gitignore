@@ -34,3 +34,7 @@
 
 .gemini/
 gha-creds-*.json
+
+###> phpstan/phpstan ###
+phpstan.neon
+###< phpstan/phpstan ###

@@ -29,8 +29,8 @@ final class PublicUserNotesController extends AbstractController
     {
         $dto = new PublicNotesQueryDto(
             userUuid: $user_uuid,
-            page: (int) $request->query->get('page', PublicNotesQueryDto::DEFAULT_PAGE),
-            perPage: (int) $request->query->get('per_page', PublicNotesQueryDto::DEFAULT_PER_PAGE),
+            page: (int) $request->query->get('page', (string) PublicNotesQueryDto::DEFAULT_PAGE),
+            perPage: (int) $request->query->get('per_page', (string) PublicNotesQueryDto::DEFAULT_PER_PAGE),
             searchQuery: $this->normalizeOptionalString($request->query->get('q')),
             labels: $this->extractLabels($request),
         );
@@ -78,9 +78,7 @@ final class PublicUserNotesController extends AbstractController
         $candidates = [];
 
         $labelsArray = $request->query->all('labels');
-        if (\is_array($labelsArray)) {
-            $candidates = array_merge($candidates, $labelsArray);
-        }
+        $candidates = array_merge($candidates, $labelsArray);
 
         $single = $request->query->get('label');
         if ($single !== null) {

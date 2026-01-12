@@ -154,7 +154,7 @@ final class NotesPageController extends AbstractController
 
         $rawQ = (string) $request->query->get('q', '');
         $q = $this->sanitizeSearch($rawQ);
-        $page = max(1, (int) $request->query->get('page', 1));
+        $page = (int) $request->query->get('page', '1');
         $visibility = $this->normalizeVisibility($request->query->get('visibility'));
 
         $parsed = $this->notesSearchParser->parse($q);

@@ -50,10 +50,11 @@ class AuthPageFlowTest extends WebTestCase
         
         // 4. Assert Email Sent (BEFORE redirecting)
         $this->assertEmailCount(1);
+        /** @var \Symfony\Component\Mime\Email $email */
         $email = $this->getMailerMessage(0);
         $this->assertEmailHeaderSame($email, 'To', 'newuser@example.com');
         
-        $rawEmailContent = $email->getHtmlBody();
+        $rawEmailContent = (string) $email->getHtmlBody();
         preg_match('/href="([^"]+verify\/email[^"]+)"/', $rawEmailContent, $matches);
         $verifyUrl = $matches[1] ?? null;
         $this->assertNotNull($verifyUrl, 'Verification URL not found in email.');

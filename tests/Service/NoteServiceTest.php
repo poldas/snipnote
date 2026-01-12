@@ -65,7 +65,6 @@ final class NoteServiceTest extends TestCase
 
         $note = $service->createNote($owner, $command);
 
-        self::assertInstanceOf(Note::class, $note);
         self::assertSame($owner, $note->getOwner());
     }
 

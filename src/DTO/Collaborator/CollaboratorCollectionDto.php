@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\DTO\Collaborator;
 
-/**
- * @psalm-import-type NoteCollaboratorDtoArray from NoteCollaboratorDto
- */
 final readonly class CollaboratorCollectionDto
 {
     /**

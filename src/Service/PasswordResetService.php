@@ -97,7 +97,7 @@ final class PasswordResetService
 
         try {
             $this->mailer->send($message);
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('Failed to send password reset email', [
                 'email' => $user->getEmail(),
                 'error' => $e->getMessage(),

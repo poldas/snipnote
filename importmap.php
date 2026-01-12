@@ -32,4 +32,7 @@ return [
     'ui_utils' => [
         'path' => './assets/ui_utils.js',
     ],
+    '@symfony/stimulus-bundle' => [
+        'path' => './vendor/symfony/stimulus-bundle/assets/dist/loader.js',
+    ],
 ];
