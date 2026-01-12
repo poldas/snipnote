@@ -1,0 +1,23 @@
+parameters:
+    app.markdown.config:
+        html_input: 'strip'
+        allow_unsafe_links: false
+        external_link:
+            internal_hosts: ['snipnote.pl', 'localhost']
+            open_in_new_window: true
+        heading_permalink:
+            html_class: 'heading-permalink'
+            id_prefix: ''
+            fragment_prefix: ''
+            insert: 'before'
+            min_heading_level: 1
+            max_heading_level: 6
+            symbol: ''
+            apply_id_to_heading: false
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    League\CommonMark\ConverterInterface:
+        factory: ['@App\Service\Markdown\MarkdownConverterFactory', '__invoke']

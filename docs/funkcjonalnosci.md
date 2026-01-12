@@ -16,6 +16,9 @@ Snipnote to aplikacja MVP do tworzenia, organizowania i bezpiecznego udostępnia
 *   **Rejestracja**: Zakładanie konta za pomocą adresu email i hasła (min. 8 znaków).
 *   **Logowanie**: Autoryzacja użytkownika z obsługą błędów i automatycznym zapamiętywaniem ostatniego maila w sesji (prefill).
 *   **Odzyskiwanie Hasła**: Procedura resetowania zapomnianego hasła poprzez link wysyłany na email (token ważny 60 min).
+    *   **Bezpieczeństwo**: System zawsze wyświetla ten sam komunikat o wysłaniu wiadomości, aby zapobiec wyciekowi bazy maili (user enumeration).
+    *   **Obsługa Kont Niezweryfikowanych**: Jeśli użytkownik poda email do konta, które nie zostało jeszcze potwierdzone, zamiast linku do resetu hasła otrzyma **nowy link aktywacyjny**, aby umożliwić mu dokończenie rejestracji.
+    *   **Brak Konta**: Jeśli podany adres nie istnieje w bazie, system nie wysyła żadnej wiadomości.
 *   **Potwierdzenie Email**: Wymóg aktywacji konta przed pełnym dostępem do funkcji (krok 2 z 2 procesu rejestracji).
 
 ### Dashboard (Panel Użytkownika) - Zalogowany
@@ -30,6 +33,7 @@ Snipnote to aplikacja MVP do tworzenia, organizowania i bezpiecznego udostępnia
 ### Edycja i Dodawanie Notatki
 *   **Tworzenie**: Formularz nowej notatki (tytuł, edytor Markdown, tagi).
 *   **Edycja**: Aktualizacja treści notatek posiadanych lub udostępnionych.
+*   **Wzbogacony Markdown**: Wsparcie dla tabel, obrazków z zewnętrznych serwisów, list zadań oraz automatycznych linków do nagłówków (permalinki).
 *   **Zarządzanie Współedytorami**: Sekcja do dodawania/usuwania osób po adresie email.
 *   **Strefa Zagrożenia**: Sekcja dla operacji nieodwracalnych (obecnie usuwanie notatki).
 

@@ -58,7 +58,10 @@ final class PublicNotePageController extends AbstractController
             $errorCode = 404;
         } catch (AccessDeniedException) {
             $errorCode = 403;
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            if ($this->getParameter('kernel.debug')) {
+                throw $e;
+            }
             $errorCode = 0;
         }
 

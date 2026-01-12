@@ -50,6 +50,30 @@ class PasswordResetServiceTest extends TestCase
         $service->requestPasswordReset('test@example.com');
     }
 
+    public function testRequestPasswordResetDoesNothingIfUserNotFound(): void
+    {
+        $userRepository = $this->createStub(UserRepository::class);
+        $userRepository->method('findOneByEmailCaseInsensitive')->willReturn(null);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects($this->never())->method('flush');
+
+        $mailer = $this->createMock(MailerInterface::class);
+        $mailer->expects($this->never())->method('send');
+
+        $service = new PasswordResetService(
+            $userRepository,
+            $entityManager,
+            $mailer,
+            $this->createStub(UrlGeneratorInterface::class),
+            $this->createStub(PasswordHasherFactoryInterface::class),
+            $this->createStub(LoggerInterface::class),
+            'no-reply@example.com'
+        );
+
+        $service->requestPasswordReset('nonexistent@example.com');
+    }
+
     public function testResetPasswordUpdatesHashAndClearsToken(): void
     {
         $user = $this->createMock(User::class);

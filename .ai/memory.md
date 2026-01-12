@@ -72,5 +72,53 @@
 - **Example**: `php bin/console doctrine:dbal:run-sql "SELECT 1"`.
 
 ### Docker Modernization
+
 - **Syntax**: Use the new `docker compose` (v2) syntax instead of the legacy `docker-compose` (v1).
+
 - **Healthchecks**: Use the `docker compose up -d --wait` flag. It is the modern and recommended way to wait for containers to be fully healthy before proceeding, replacing manual `sleep` or `wait-for-it` scripts.
+
+
+
+## Configuration & Service Architecture
+
+
+
+### Configuration Isolation
+
+- **Rule**: Avoid bloating `config/services.yaml` with library-specific parameters or complex setup logic.
+
+- **Solution**: Move specific configurations to dedicated files in `config/packages/` (e.g., `markdown.yaml`). Use the Factory pattern to encapsulate the creation of complex third-party services.
+
+
+
+### Modern DI with Symfony Attributes
+
+- **Best Practice**: Use the `#[Autowire]` attribute in constructors to inject container parameters directly into PHP classes. This reduces manual mapping in YAML and keeps the service definitions lean and readable.
+
+
+
+## Rich Markdown & Navigation
+
+
+
+### Internal Anchors & TOC
+
+- **Problem**: Table of Contents (TOC) links (e.g., `[Title](#title)`) were being stripped by the sanitizer.
+
+- **Solution**: Explicitly set `allow_relative_links: true` in `html_sanitizer.yaml`.
+
+- **Heading Alignment**: Ensure that the Markdown parser's heading ID generation matches the manual link format (avoid unnecessary prefixes like `content-` unless strictly required).
+
+
+
+## Backend Testing Excellence
+
+
+
+### Suppressing PHPUnit Notices
+
+- **Rule**: Every test run must be "Green" with zero warnings or notices.
+
+- **Stub vs Mock**: Use `createStub()` for dependency objects where you only care about return values. Use `createMock()` only when you explicitly need to verify interactions with `expects()`. This prevents "No expectations configured" notices in modern PHPUnit versions.
+
+- **Integration over Unit for Repositories**: Always use integration tests for Repository sorting and filtering logic, as unit tests with mocks cannot verify SQL execution and ordering.
