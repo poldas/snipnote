@@ -64,17 +64,21 @@ export default class extends Controller {
      */
     merge(remote, local) {
         const merged = [];
-        const localMap = new Map();
-        
-        // Indeksowanie lokalnych zadań po tekście
+        const localGroups = new Map();
+
+        // Grupuj lokalne zadania po tekście, aby obsłużyć duplikaty
         local.forEach(t => {
-            localMap.set(t.text, t);
+            if (!localGroups.has(t.text)) {
+                localGroups.set(t.text, []);
+            }
+            localGroups.get(t.text).push(t);
         });
 
         // 1. Procesuj zadania od autora (Remote)
         remote.forEach(remoteTodo => {
-            const existingLocal = localMap.get(remoteTodo.text);
-            
+            const group = localGroups.get(remoteTodo.text);
+            const existingLocal = group && group.length > 0 ? group.shift() : null;
+
             if (existingLocal) {
                 // Zachowaj stan postępu użytkownika dla zadania autora
                 merged.push({
@@ -83,7 +87,6 @@ export default class extends Controller {
                     completed: existingLocal.completed,
                     deleted: existingLocal.deleted || false
                 });
-                localMap.delete(remoteTodo.text);
             } else {
                 // Nowe zadanie dodane przez autora w edytorze
                 merged.push({

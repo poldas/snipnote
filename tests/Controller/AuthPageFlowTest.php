@@ -159,7 +159,7 @@ class AuthPageFlowTest extends WebTestCase
         self::assertResponseRedirects('/login');
         $this->client->followRedirect();
 
-        self::assertSelectorTextContains('body', 'Musisz najpierw potwierdzić adres email');
+        self::assertSelectorTextContains('body', 'Email nie został zweryfikowany');
     }
 
     public function testLoginCsrfProtection(): void

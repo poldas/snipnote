@@ -37,6 +37,9 @@ final class PasswordResetService
 
         // Security: Always return "success" to avoid enumerating users, but only act if user exists.
         if (null === $user) {
+            // Perform a dummy operation to consume time similar to token generation and DB update
+            hash_hmac('sha256', random_bytes(32), 'dummy_secret');
+
             return;
         }
 

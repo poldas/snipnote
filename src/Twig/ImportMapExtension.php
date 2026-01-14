@@ -31,6 +31,12 @@ final class ImportMapExtension extends AbstractExtension
     {
         $html = $this->importMapRenderer->render([$entryPoint]);
 
+        // 1. Filter modulepreload links
+        foreach ($excludePatterns as $pattern) {
+            $html = preg_replace('/<link rel="modulepreload" [^>]*href="[^"]*'.preg_quote($pattern, '/').'[^"]*"[^>]*>/i', '', $html);
+        }
+
+        // 2. Filter importmap JSON
         $result = preg_replace_callback('/<script type="importmap".*?>(.*?)<\/script>/s', function ($matches) use ($excludePatterns) {
             $json = $matches[1];
             $data = json_decode($json, true);

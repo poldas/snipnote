@@ -309,7 +309,18 @@ final class AuthPageController extends AbstractController
         $state = $request->query->get('state', 'pending');
         $email = $request->query->get('email', '');
 
-        return $this->render('auth/verify_notice.html.twig', $this->verifyNoticeView($state, $email));
+        $session = $request->getSession();
+        $flashErrors = [];
+        if ($session instanceof \Symfony\Component\HttpFoundation\Session\Session) {
+            $flashErrors = $session->getFlashBag()->get('error');
+        }
+
+        $errors = array_map(static fn (string $msg): array => ['message' => $msg], $flashErrors);
+
+        return $this->render('auth/verify_notice.html.twig', array_merge(
+            $this->verifyNoticeView($state, $email),
+            ['errors' => $errors]
+        ));
     }
 
     #[Route('/verify/email', name: 'app_verify_email', methods: ['GET'])]
