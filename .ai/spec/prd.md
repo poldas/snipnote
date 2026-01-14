@@ -379,6 +379,20 @@ Kryteria akceptacji:
 - Po pomyślnym resecie użytkownik jest automatycznie logowany lub przekierowany do logowania z informacją o sukcesie (decyzja techniczna).
 - Po użyciu token staje się nieważny.
 
+### US-018: Ochrona przed nadużyciami (Rate Limiting)
+Tytuł: Limity żądań dla wrażliwych akcji
+
+Opis:
+Jako system
+Chcę ograniczać liczbę wysyłanych wiadomości email (weryfikacja, reset hasła)
+Aby zapobiec nadużyciom, spamowi i kosztom infrastruktury
+
+Kryteria akceptacji:
+- Akcja ponownego wysłania linku weryfikacyjnego jest ograniczona (np. 3 próby na 15 min).
+- Akcja żądania resetu hasła jest ograniczona (np. 5 próby na 15 min na IP).
+- Po przekroczeniu limitu użytkownik otrzymuje jasny komunikat o blokadzie czasowej.
+- Limity są niezależne dla różnych typów akcji.
+
 ## 7. Metryki sukcesu
 W ramach MVP nie definiuje się szczegółowych metryk biznesowych ani rozbudowanej analityki. Sukces MVP jest rozumiany jako:
 

@@ -1,117 +1,65 @@
-# Specyfikacja Testów E2E - Snipnote
+# Kompleksowa Specyfikacja Testów - Snipnote
 
-Dokument opisuje aktualne scenariusze testowe zrealizowane w technologii Playwright oraz ich pokrycie wymagań zdefiniowanych w PRD.
-
-## Infrastruktura i Izolacja
-Wszystkie testy funkcjonalne korzystają z **dynamicznej izolacji kont** (`UserFactory`). Dla każdego pliku testowego tworzony jest unikalny użytkownik, co eliminuje konflikty w bazie danych i pozwala na stabilne uruchamianie testów w środowisku CI/CD. Testy wykorzystują również klienta **Mailpit** do przechwytywania i weryfikacji wiadomości email (rejestracja, reset hasła).
+Dokument opisuje strategię testowania aplikacji Snipnote, łącząc testy End-to-End (Playwright) oraz testy Backendowe (PHPUnit), mapując je na wymagania zdefiniowane w PRD.
 
 ---
 
-## 1. Moduł Autoryzacji (Auth)
+## 1. Infrastruktura i Metodologia
 
-### Scenariusz: Logowanie i Wylogowanie
-**Plik:** `auth.login-logout.spec.ts`
-- **Pokrycie PRD:** US-011 (Logowanie), US-012 (Wylogowanie)
-- **Kroki:**
-    1. Poprawne zalogowanie na dynamicznie utworzone konto.
-    2. Weryfikacja przekierowania na dashboard i obecności adresu email.
-    3. Wylogowanie i powrót na stronę główną.
-    4. **Red Path:** Próba logowania błędnymi danymi.
-
-### Scenariusz: Rejestracja z Weryfikacją Email
-**Plik:** `auth.register.spec.ts`
-- **Pokrycie PRD:** US-010 (Rejestracja)
-- **Kroki:**
-    1. Wypełnienie formularza rejestracji nowymi danymi.
-    2. Weryfikacja przekierowania na stronę "Sprawdź skrzynkę".
-    3. Pobranie linku aktywacyjnego z Mailpit.
-    4. Potwierdzenie adresu email (kliknięcie linku).
-    5. Zalogowanie na nowo utworzone konto.
-
-### Scenariusz: Reset Hasła
-**Plik:** `auth.password-reset.spec.ts`
-- **Pokrycie PRD:** US-016 (Przypomnienie hasła), US-017 (Reset hasła)
-- **Kroki:**
-    1. Żądanie resetu hasła dla istniejącego użytkownika.
-    2. Pobranie linku resetującego z Mailpit.
-    3. Ustawienie nowego hasła.
-    4. **Red Path:** Weryfikacja, że stare hasło już nie działa.
-    5. **Green Path:** Zalogowanie przy użyciu nowego hasła.
-
-### Scenariusz: Nawigacja i Formularze
-**Plik:** `auth.navigation.spec.ts`
-- **Cel:** Weryfikacja spójności nawigacji i elementów UI.
-- **Kroki:**
-    1. Przejście przez wszystkie strony autoryzacji (Login, Register, Forgot Password).
-    2. Weryfikacja linków powrotnych i obecności wymaganych pól.
+### Izolacja i Dane Testowe
+- **E2E (Playwright):** Korzysta z `UserFactory` do dynamicznego tworzenia kont. Każdy plik testowy to unikalny użytkownik, co zapewnia brak konfliktów w bazie danych. Wykorzystuje **Mailpit** do weryfikacji wiadomości email.
+- **Backend (PHPUnit):** 
+    - **Unit Tests:** Testy w izolacji (mocki), szybkie, sprawdzające logikę biznesową.
+    - **Integration Tests:** Testy z użyciem bazy danych (SQLite/PostgreSQL w kontenerze), weryfikujące poprawność zapytań i integrację komponentów.
 
 ---
 
-## 2. Moduł Notatek (Notes)
+## 2. Pokrycie Historyjek Użytkownika (User Stories)
 
-### Scenariusz: Wyszukiwanie i Filtrowanie (Search)
-**Plik:** `notes.search.spec.ts`
-- **Pokrycie PRD:** US-05 (Wyszukiwanie)
-- **Kroki:**
-    1. Przygotowanie danych: Utworzenie notatek o różnych statusach widoczności i z różną zawartością.
-    2. **Text Search:** Weryfikacja wyszukiwania po tytule i opisie (w tym polskie znaki, unicode, frazy wielowyrazowe).
-    3. **Visibility Filter:** Weryfikacja wyszukiwania w kontekście filtrów: Public, Private, Draft, Shared (For Me).
-    4. **Label Search:** Weryfikacja składni `label:nazwa_etykiety`.
-    5. **Empty State:** Weryfikacja komunikatu o braku wyników.
-    6. **Reset:** Powrót do pełnej listy po wyczyszczeniu filtrów.
+### Moduł Autoryzacji i Bezpieczeństwa
 
-### Scenariusz: Tworzenie Notatek
-**Plik:** `notes.create.spec.ts`
-- **Pokrycie PRD:** US-01 (Tworzenie)
-- **Kroki:**
-    1. **Green Path:** Dodanie prywatnej notatki i weryfikacja jej obecności na dashboardzie.
-    2. **Red Path:** Próba zapisu z pustym tytułem (weryfikacja komunikatów walidacji).
+| ID | User Story | Testy E2E (Playwright) | Testy Backend (PHPUnit) |
+| :--- | :--- | :--- | :--- |
+| **US-10** | Rejestracja konta | `auth.register.spec.ts` | `AuthServiceTest.php` |
+| **US-11** | Logowanie | `auth.login-logout.spec.ts` | `AuthServiceTest.php` |
+| **US-12** | Wylogowanie | `auth.login-logout.spec.ts` | - |
+| **US-16** | Przypomnienie hasła | `auth.password-reset.spec.ts` | `PasswordResetServiceTest.php` |
+| **US-17** | Reset hasła | `auth.password-reset.spec.ts` | `PasswordResetServiceTest.php` |
+| **US-18** | **Rate Limiting** | *Manualnie zweryfikowane* | `AuthPageControllerRateLimiterUnitTest.php` |
 
-### Scenariusz: Edycja Notatki
-**Plik:** `notes.edit.spec.ts`
-- **Pokrycie PRD:** US-03 (Edycja)
-- **Kroki:**
-    1. Aktualizacja tytułu i treści istniejącej notatki.
-    2. Weryfikacja zapisu zmian.
+### Moduł Notatek (Notes)
 
-### Scenariusz: Współpraca (Collaboration)
-**Plik:** `notes.collaboration.spec.ts`
-- **Pokrycie PRD:** US-08 (Współpracownicy)
-- **Kroki:**
-    1. Właściciel tworzy prywatną notatkę.
-    2. Właściciel dodaje współpracownika (inny użytkownik testowy).
-    3. Współpracownik loguje się i sprawdza dostępność notatki w zakładce "For Me" (widok współdzielony).
-    4. Weryfikacja braku dostępu dla użytkownika anonimowego.
+| ID | User Story | Testy E2E (Playwright) | Testy Backend (PHPUnit) |
+| :--- | :--- | :--- | :--- |
+| **US-01** | Tworzenie notatki | `notes.create.spec.ts` | `NoteServiceTest.php` |
+| **US-02** | Widok publiczny | `notes.visibility.spec.ts` | `NoteVoterTest.php` |
+| **US-03** | Edycja notatki | `notes.edit.spec.ts` | `NoteServiceTest.php` |
+| **US-04** | Zmiana widoczności | `notes.visibility.spec.ts` | `NoteServiceIntegrationTest.php` |
+| **US-05** | Wyszukiwanie | `notes.search.spec.ts` | `NoteRepositoryTest.php` |
+| **US-06** | Usuwanie notatki | `notes.interactions.spec.ts` | `NoteServiceTest.php` |
+| **US-07** | Dashboard (pusty) | `notes.interactions.spec.ts` | - |
+| **US-08** | Współedytorzy | `notes.collaboration.spec.ts` | `NoteCollaboratorServiceIntegrationTest.php` |
+| **US-14** | **Samousunięcie** | `notes.collaboration-advanced.spec.ts` | `NoteCollaboratorServiceTest.php` |
 
-### Scenariusz: Zaawansowane Zarządzanie Współpracą
-**Plik:** `notes.collaboration-advanced.spec.ts`
-- **Pokrycie PRD:** US-14 (Samousunięcie), Usuwanie przez właściciela
-- **Kroki:**
-    1. **Samousunięcie:** Współpracownik usuwa swój dostęp w trybie edycji i zostaje przekierowany na dashboard.
-    2. **Usuwanie przez właściciela:** Właściciel usuwa współpracownika z listy, wiersz znika.
+---
 
-### Scenariusz: Interakcje na Dashboardzie
-**Plik:** `notes.interactions.spec.ts`
-- **Pokrycie PRD:** US-06 (Usuwanie), US-07 (Stan pusty)
-- **Kroki:**
-    1. Weryfikacja komunikatu "Nie ma jeszcze notatek" dla nowego konta.
-    2. Test anulowania usuwania notatki (anulowanie w modalu).
+## 3. Szczegółowe Scenariusze Testowe
 
-### Scenariusz: Widoczność (Permissions)
-**Plik:** `notes.visibility.spec.ts`
-- **Pokrycie PRD:** US-02 (Widok publiczny), US-04 (Statusy)
-- **Kroki:**
-    1. Weryfikacja dostępu do notatki **Publicznej** dla każdego (również niezalogowanych).
-    2. Weryfikacja blokady dostępu do notatki **Prywatnej** dla osób trzecich.
-    3. Weryfikacja całkowitej blokady widoku publicznego dla notatki **Draft**.
+### 3.1. Testy Backendowe (Logika i Integracja)
+**Lokalizacja:** `tests/`
 
-### Scenariusz: Motywy Wizualne
-**Plik:** `notes.themes.spec.ts`
-- **Pokrycie PRD:** US-01 (Etykiety - wpływ na wygląd)
-- **Kroki:**
-    1. Test motywu **TODO** (etykieta `todo`).
-    2. Test motywu **Przepis** (etykieta `recipe`).
+- **NoteCollaboratorServiceTest:** Weryfikacja logiki dodawania/usuwania współpracowników, w tym zasada, że współpracownik może usunąć tylko siebie, a właściciel każdego.
+- **NoteRepositoryTest:** Testy skomplikowanych zapytań SQL dla wyszukiwania pełnotekstowego (TSVector) i filtrowania po etykietach.
+- **NoteVoterTest:** Kluczowe testy uprawnień (Security) – kto może widzieć, edytować lub usuwać notatkę w zależności od statusu (Public/Private/Draft).
+- **AuthPageControllerRateLimiterUnitTest:** Testy ochrony przed nadużyciami – sprawdzanie czy kontroler poprawnie blokuje żądania po przekroczeniu limitu prób.
 
+### 3.2. Testy E2E (Interfejs i Flow)
+**Lokalizacja:** `e2e/specs/`
+
+- **notes.collaboration-advanced.spec.ts:**
+    - **Self-Removal:** Współpracownik usuwa swój dostęp i traci możliwość edycji (redirect na dashboard).
+    - **Owner Removal:** Właściciel usuwa współpracownika i wiersz znika z listy w czasie rzeczywistym.
+- **notes.themes.spec.ts:** Weryfikacja wizualna specjalnych motywów (np. `todo`, `recipe`) – czy odpowiednie etykiety zmieniają wygląd notatki.
 ### Scenariusz: Interakcje UI i Logika JS
 **Plik:** `ui.interaction.spec.ts`
 - **Pokrycie PRD:** UX Enhancements
@@ -121,54 +69,41 @@ Wszystkie testy funkcjonalne korzystają z **dynamicznej izolacji kont** (`UserF
     3. **Client Validation:** Weryfikacja blokady wysyłania formularza przy błędach walidacji (bez requestu do API).
     4. **Public Todo (Local):** Weryfikacja dodawania lokalnych zadań w widoku publicznym (interakcja JS).
 
+### Scenariusz: Bezpieczeństwo - Ochrona XSS
+**Pliki:** `notes.security-xss.spec.ts`, `MarkdownXssTest.php`
+- **Cel:** Weryfikacja neutralizacji złośliwego kodu w opisie notatki.
+- **Kroki:**
+    1. Próba wstrzyknięcia tagów `<script>`, atrybutów `onerror` oraz pseudo-protokołów `javascript:`.
+    2. Weryfikacja sanitizacji na poziomie backendu (PHPUnit).
+    3. Weryfikacja braku wykonania kodu w przeglądarce (Playwright) w widoku publicznym.
+
+### Scenariusz: Walidacja API (Robustness)
+**Plik:** `ApiValidationTest.php`
+- **Cel:** Weryfikacja odporności API na błędne lub złośliwe dane wejściowe JSON.
+- **Kroki:**
+    1. Przesłanie uszkodzonego JSON (Malformed).
+    2. Przesłanie żądań z brakującymi polami obowiązkowymi.
+    3. Testowanie limitów długości (np. tytuł > 255 znaków) oraz niepoprawnych wartości Enum.
+    4. Weryfikacja czy API zawsze zwraca kod `400 Bad Request` z jasnymi detalami błędów.
+
 ---
 
 ## 3. Moduł Landing Page
 
-### Scenariusz: UX & Visual
-**Pliki:** `landing.*.spec.ts`, `auth.visual.spec.ts`, `ui.hover-effects.spec.ts`
-- **Kroki:**
-    1. Smoke tests sekcji strony głównej.
-    2. Weryfikacja identyfikacji wizualnej i responsywności (Screenshot testing).
-    3. Testy stanów hover i animacji (Landing, Login, Register).
+| ID | Status | Uwagi |
+| :--- | :--- | :--- |
+| US-01 - US-08 | ✅ Pokryte | Pełne testy E2E i Backend |
+| US-09 (Katalog) | ❌ Brak | Funkcjonalność nieprzetestowana |
+| US-10 - US-12 | ✅ Pokryte | Pełne flow rejestracji i logowania |
+| US-13 (Regeneracja URL)| ❌ Brak | Brak testu zmiany tokena URL |
+| US-14 (Samousunięcie)| ✅ Pokryte | Testy E2E i Unit (Service) |
+| US-16 - US-17 | ✅ Pokryte | Flow resetu hasła z Mailpit |
+| US-18 (Rate Limit) | ✅ Pokryte | **Kluczowe pokrycie Unit Testami** |
+| Security (XSS) | ✅ Pokryte | Testy Backend + E2E |
+| Walidacja API | ✅ Pokryte | Testy integracyjne (400 Bad Request) |
 
 ---
 
-## Podsumowanie pokrycia User Stories (PRD)
-
-| ID | Tytuł | Status | Uwagi |
-| :--- | :--- | :--- | :--- |
-| US-01 | Tworzenie notatki | ✅ Pokryte | Green & Red Path |
-| US-02 | Widok publicznej notatki | ✅ Pokryte | Pełna weryfikacja uprawnień |
-| US-03 | Edycja notatki | ✅ Pokryte | Zmiana treści i metadanych |
-| US-04 | Zmiana widoczności | ✅ Pokryte | Wszystkie statusy (Pub/Priv/Draft) |
-| US-05 | Wyszukiwanie | ✅ Pokryte | Pełna weryfikacja: tekst, polskie znaki, etykiety |
-| US-06 | Usuwanie notatki | ✅ Pokryte | Test modala i akcji |
-| US-07 | Dashboard bez notatek | ✅ Pokryte | Dedykowane spece `interactions` |
-| US-08 | Współedytorzy | ✅ Pokryte | Pełny flow udostępniania i dostępu |
-| US-09 | Publiczny katalog | ❌ Brak | Funkcjonalność nieprzetestowana |
-| US-10 | Rejestracja konta | ✅ Pokryte | Pełny flow z weryfikacją email |
-| US-11 | Logowanie | ✅ Pokryte | Pełny flow (UserFactory) |
-| US-12 | Wylogowanie | ✅ Pokryte | Pełny flow |
-| US-13 | Regeneracja URL | ❌ Brak | Brak testu zmiany tokena URL |
-| US-14 | Samousunięcie współedytora | ✅ Pokryte | Test rezygnacji ze współpracy |
-| US-16 | Przypomnienie hasła | ✅ Pokryte | Flow z wysyłką emaila |
-| US-17 | Reset hasła | ✅ Pokryte | Flow z ustawieniem nowego hasła |
-
----
-
-## Analiza braków i rekomendowane testy (Next Steps)
-
-Na podstawie analizy obecnego stanu, rekomenduje się dodanie następujących scenariuszy:
-
-1.  **Publiczny Katalog (US-09):**
-    *   Weryfikacja, czy notatki publiczne pojawiają się w ogólnym katalogu (jeśli zaimplementowany).
-    *   Sprawdzenie paginacji w katalogu.
-
-2.  **Zarządzanie Linkiem Publicznym (use case dla US-13):**
-    *   Weryfikacja przycisku "Regeneruj link" w edycji notatki.
-    *   Sprawdzenie, czy stary link przestaje działać.
-
-4.  **Zarządzanie Współpracą (Advanced):**
-    *   Usuwanie współpracownika przez właściciela.
-    *   Rezygnacja z dostępu przez współpracownika (US-14).
+## 5. Rekomendacje (Next Steps)
+1. **Automatyzacja US-13:** Dodanie testu E2E weryfikującego przycisk regeneracji linku i unieważnienie starego URL.
+2. **Weryfikacja US-09:** Dodanie testów dla publicznego katalogu użytkownika.
