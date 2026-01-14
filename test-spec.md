@@ -83,6 +83,13 @@ Wszystkie testy funkcjonalne korzystają z **dynamicznej izolacji kont** (`UserF
     3. Współpracownik loguje się i sprawdza dostępność notatki w zakładce "For Me" (widok współdzielony).
     4. Weryfikacja braku dostępu dla użytkownika anonimowego.
 
+### Scenariusz: Zaawansowane Zarządzanie Współpracą
+**Plik:** `notes.collaboration-advanced.spec.ts`
+- **Pokrycie PRD:** US-14 (Samousunięcie), Usuwanie przez właściciela
+- **Kroki:**
+    1. **Samousunięcie:** Współpracownik usuwa swój dostęp w trybie edycji i zostaje przekierowany na dashboard.
+    2. **Usuwanie przez właściciela:** Właściciel usuwa współpracownika z listy, wiersz znika.
+
 ### Scenariusz: Interakcje na Dashboardzie
 **Plik:** `notes.interactions.spec.ts`
 - **Pokrycie PRD:** US-06 (Usuwanie), US-07 (Stan pusty)
@@ -144,7 +151,7 @@ Wszystkie testy funkcjonalne korzystają z **dynamicznej izolacji kont** (`UserF
 | US-11 | Logowanie | ✅ Pokryte | Pełny flow (UserFactory) |
 | US-12 | Wylogowanie | ✅ Pokryte | Pełny flow |
 | US-13 | Regeneracja URL | ❌ Brak | Brak testu zmiany tokena URL |
-| US-14 | Samousunięcie współedytora | ❌ Brak | Brak testu rezygnacji ze współpracy |
+| US-14 | Samousunięcie współedytora | ✅ Pokryte | Test rezygnacji ze współpracy |
 | US-16 | Przypomnienie hasła | ✅ Pokryte | Flow z wysyłką emaila |
 | US-17 | Reset hasła | ✅ Pokryte | Flow z ustawieniem nowego hasła |
 

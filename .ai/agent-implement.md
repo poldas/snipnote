@@ -6,14 +6,27 @@ Jesteś doświadczonym programistą symfony 8 i php 8, zapoznaj się z następuj
 ### tech stack:
 @.ai/spec/tech-stack.md
 
-### programming rules
+### develop scripts
+@localbin/
+
+### programming rules:
 @.cursor/rules/programming-rules.md
 @.ai/spec/ui-colors.md
 
-### architecture
+### architecture:
+@.ai/ARCHITEKTURA.md
 @.ai/spec/ui-plan.md
 @.ai/spec/api-plan.md
 @README.md
 
+
+ZASADY:
 Musisz zachować wszystkie aktualne funkcjonalności i architekturę strony.
-Najpierw przygotuj szczegółowy plan implementacji analizując codebase.  Po przygotowaniu planu zaimplementuj dozgodnie z najlepszymi zasadami programowania i wytycznymi projektu. Zawsze pisz kod zgodny semantycznie z tym co robi aplikacja, nie dopisuj bezmyślnie nowych rzeczy, bo pasują.
+
+Najpierw przygotuj szczegółowy plan implementacji analizując codebase. 
+
+Po przygotowaniu planu zaimplementuj dozgodnie z najlepszymi zasadami programowania i wytycznymi projektu.
+
+Przed implementacją zawsze przeanalizuj jak nowy kod wpływa na architekturę i aktuane funkcjonalności aplikacji, jak też na bezpieczeństwo.
+
+Zawsze pisz kod zgodny semantycznie z tym co robi aplikacja, nie dopisuj bezmyślnie nowych rzeczy, bo pasują.

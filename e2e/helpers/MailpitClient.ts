@@ -31,6 +31,15 @@ export class MailpitClient {
         return await detailResponse.json();
     }
 
+    async getEmailsFor(email: string) {
+        const response = await fetch(`${this.apiUrl}/messages`);
+        const data = await response.json();
+        
+        return data.messages.filter((m: any) => 
+            m.To.some((to: any) => to.Address === email)
+        );
+    }
+
     async extractLinkFromEmail(email: string, regex: RegExp): Promise<string> {
         const message = await this.getLatestMessageFor(email);
         if (!message) throw new Error(`No email found for ${email}`);

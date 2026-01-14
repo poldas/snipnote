@@ -36,9 +36,10 @@
             <div class="space-y-6">
                 <!-- Status Message -->
                 {% include 'components/alert.html.twig' with {
-                    type: variant == 'invalid' ? 'warning' : 'info',
+                    type: variant,
                     title: message,
-                    messages: steps|map(s => '• ' ~ s)
+                    messages: steps|map(s => '• ' ~ s),
+                    dataTestId: dataTestId ?? null
                 } %}
 
                 <!-- Resend Form -->

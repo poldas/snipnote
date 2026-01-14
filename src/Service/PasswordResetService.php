@@ -15,7 +15,7 @@ use Symfony\Component\Mime\Address;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
-final class PasswordResetService
+class PasswordResetService
 {
     private const TOKEN_TTL_SECONDS = 3600; // 1h
 

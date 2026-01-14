@@ -20,6 +20,9 @@ Snipnote to aplikacja MVP do tworzenia, organizowania i bezpiecznego udostępnia
     *   **Obsługa Kont Niezweryfikowanych**: Jeśli użytkownik poda email do konta, które nie zostało jeszcze potwierdzone, zamiast linku do resetu hasła otrzyma **nowy link aktywacyjny**, aby umożliwić mu dokończenie rejestracji.
     *   **Brak Konta**: Jeśli podany adres nie istnieje w bazie, system nie wysyła żadnej wiadomości.
 *   **Potwierdzenie Email**: Wymóg aktywacji konta przed pełnym dostępem do funkcji (krok 2 z 2 procesu rejestracji).
+*   **Rate Limiting (Ochrona przed spamem)**:
+    *   **Weryfikacja Email**: Limit **3 prób** ponownego wysłania linku na 15 minut. Po przekroczeniu, użytkownik widzi komunikat błędu i żądanie jest blokowane.
+    *   **Reset Hasła**: Limit **5 prób** wysłania żądania resetu na 15 minut dla danego adresu IP.
 
 ### Dashboard (Panel Użytkownika) - Zalogowany
 *   **Galeria Notatek**: Wyświetlanie notatek w formie kart (grid) z informacją o dacie modyfikacji, statusie i skrótem treści.

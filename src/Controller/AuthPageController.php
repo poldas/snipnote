@@ -18,6 +18,9 @@ use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Http\SecurityRequestAttributes;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Psr\Cache\CacheItemPoolInterface;
 
 final class AuthPageController extends AbstractController
 {
@@ -27,6 +30,10 @@ final class AuthPageController extends AbstractController
         private readonly PasswordResetService $passwordResetService,
         private readonly UserRepository $userRepository,
         private readonly CsrfTokenManagerInterface $csrfTokenManager,
+        #[Autowire(service: 'limiter.email_resend')]
+        private readonly RateLimiterFactoryInterface $emailResendLimiter,
+        #[Autowire(service: 'limiter.forgot_password')]
+        private readonly RateLimiterFactoryInterface $forgotPasswordLimiter,
     ) {
     }
 
@@ -168,18 +175,24 @@ final class AuthPageController extends AbstractController
                 if (!filter_var($email, \FILTER_VALIDATE_EMAIL)) {
                     $errors[] = ['field' => 'email', 'message' => 'Podaj poprawny adres email'];
                 } else {
-                    // Always show success message for security (enumeration protection)
-                    $success = 'Jeśli konto istnieje, wysłaliśmy instrukcje resetu hasła.';
-
-                    $user = $this->userRepository->findOneByEmailCaseInsensitive($email);
-
-                    if (null !== $user && !$user->isVerified()) {
-                        // Case: User exists but is unverified -> Send verification email
-                        $this->emailVerificationService->sendForEmail($email);
+                    $limiter = $this->forgotPasswordLimiter->create($request->getClientIp());
+                    if (false === $limiter->consume(1)->isAccepted()) {
+                        $this->addFlash('error', 'Zbyt wiele prób. Spróbuj ponownie później.');
+                        $errors[] = ['message' => 'Zbyt wiele prób. Spróbuj ponownie później.'];
                     } else {
-                        // Case: User exists and verified OR User does not exist (handled inside service safely)
-                        // Note: If user does not exist, PasswordResetService just returns silently.
-                        $this->passwordResetService->requestPasswordReset($email);
+                        // Always show success message for security (enumeration protection)
+                        $success = 'Jeśli konto istnieje, wysłaliśmy instrukcje resetu hasła.';
+
+                        $user = $this->userRepository->findOneByEmailCaseInsensitive($email);
+
+                        if (null !== $user && !$user->isVerified()) {
+                            // Case: User exists but is unverified -> Send verification email
+                            $this->emailVerificationService->sendForEmail($email);
+                        } else {
+                            // Case: User exists and verified OR User does not exist (handled inside service safely)
+                            // Note: If user does not exist, PasswordResetService just returns silently.
+                            $this->passwordResetService->requestPasswordReset($email);
+                        }
                     }
                 }
             }
@@ -274,6 +287,13 @@ final class AuthPageController extends AbstractController
             $errors[] = 'Nieprawidłowy token bezpieczeństwa. Spróbuj ponownie.';
         } elseif (!filter_var($email, \FILTER_VALIDATE_EMAIL)) {
             $errors[] = 'Podaj poprawny adres email.';
+        }
+
+        if ([] === $errors) {
+            $limiter = $this->emailResendLimiter->create($request->getClientIp());
+            if (false === $limiter->consume(1)->isAccepted()) {
+                $errors[] = 'Zbyt wiele prób wysłania linku. Spróbuj ponownie później.';
+            }
         }
 
         if ([] === $errors) {

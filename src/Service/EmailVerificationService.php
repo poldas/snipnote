@@ -19,7 +19,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  * Generates HMAC-signed URLs and marks users verified on success.
  * In this MVP we log the link instead of sending real email.
  */
-final class EmailVerificationService
+class EmailVerificationService
 {
     private const LINK_TTL_SECONDS = 86400; // 24h
 

@@ -122,3 +122,15 @@
 - **Stub vs Mock**: Use `createStub()` for dependency objects where you only care about return values. Use `createMock()` only when you explicitly need to verify interactions with `expects()`. This prevents "No expectations configured" notices in modern PHPUnit versions.
 
 - **Integration over Unit for Repositories**: Always use integration tests for Repository sorting and filtering logic, as unit tests with mocks cannot verify SQL execution and ordering.
+
+### Rate Limiter & Cache in Testing
+
+- **Context**: Implementing rate limiting (`symfony/rate-limiter`) using the `fixed_window` policy.
+- **Problem 1 (Dev Environment)**: The default filesystem cache in Docker containers often had permission issues or stale "zombie" states where the limit appeared exhausted immediately on the first request.
+- **Solution 1**: Explicitly configure `cache.adapter.filesystem` and the directory path in `config/packages/dev/framework.yaml` (and test env) to ensure reliable read/write operations by the `www-data` user.
+- **Problem 2 (Unit Testing)**: `cache.adapter.array` (in-memory) does not persist state between multiple calls to the controller within a single test method if the `RateLimiterFactory` is instantiated manually for each call without sharing the storage backend.
+- **Solution 2**: In unit tests, instantiate the `Storage` (with `ArrayAdapter`) once and pass it to the `RateLimiterFactory`.
+- **Problem 3 (Final Classes)**: Core domain services (`EmailVerificationService`) were `final`, preventing standard mocking.
+- **Decision**: Remove `final` from internal domain services to allow standard PHPUnit mocking ("Social Unit Testing" approach was considered but deemed too complex for this scope).
+- **Problem 4 (E2E Testing)**: Playwright tests for rate limiting were flaky due to timing issues with page reloads and redirect handling in the CI environment.
+- **Strategy**: Rely on robust Unit Tests for the rate limiting logic (controller + limiter integration) and manual verification for the UI aspect, rather than maintaining a flaky E2E test.
