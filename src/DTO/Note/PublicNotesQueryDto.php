@@ -16,16 +16,13 @@ final readonly class PublicNotesQueryDto
         #[Assert\NotBlank]
         #[Assert\Uuid]
         public string $userUuid,
-
         #[Assert\NotBlank]
         #[Assert\Positive]
         public int $page = self::DEFAULT_PAGE,
-
         #[Assert\NotBlank]
         #[Assert\Positive]
         #[Assert\LessThanOrEqual(self::MAX_PER_PAGE)]
         public int $perPage = self::DEFAULT_PER_PAGE,
-
         #[Assert\Length(max: 255)]
         public ?string $searchQuery = null,
 
@@ -38,5 +35,6 @@ final readonly class PublicNotesQueryDto
             new Assert\Length(min: 1, max: 64),
         ])]
         public array $labels = [],
-    ) {}
+    ) {
+    }
 }

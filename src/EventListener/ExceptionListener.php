@@ -20,7 +20,9 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 #[AsEventListener(event: KernelEvents::EXCEPTION)]
 final class ExceptionListener
 {
-    public function __construct(private readonly LoggerInterface $logger) {}
+    public function __construct(private readonly LoggerInterface $logger)
+    {
+    }
 
     public function onKernelException(ExceptionEvent $event): void
     {

@@ -12,5 +12,6 @@ final readonly class PublicNoteResponseDTO
         /** @var list<string> */
         public array $labels,
         public string $createdAt,
-    ) {}
+    ) {
+    }
 }

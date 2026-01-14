@@ -25,7 +25,8 @@ final class NotesPreviewController extends AbstractController
     public function __construct(
         private readonly MarkdownPreviewService $previewService,
         private readonly ValidatorInterface $validator,
-    ) {}
+    ) {
+    }
 
     #[Route('/preview', name: 'api_notes_preview', methods: ['POST'])]
     public function preview(Request $request, #[CurrentUser] ?User $user): JsonResponse
@@ -35,7 +36,7 @@ final class NotesPreviewController extends AbstractController
         $payload = $this->decodeJson($request);
 
         $description = (string) ($payload['description'] ?? '');
-        if (trim($description) === '') {
+        if ('' === mb_trim($description)) {
             throw new ValidationException(['description' => ['This value should not be blank.']]);
         }
 
@@ -56,11 +57,14 @@ final class NotesPreviewController extends AbstractController
         }
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function decodeJson(Request $request): array
     {
         $decoded = json_decode($request->getContent(), true);
 
-        if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
+        if (null === $decoded && \JSON_ERROR_NONE !== json_last_error()) {
             throw new ValidationException(['_request' => ['Invalid JSON payload']]);
         }
 
@@ -69,8 +73,8 @@ final class NotesPreviewController extends AbstractController
 
     private function assertJsonContentType(Request $request): void
     {
-        $contentType = (string) $request->headers->get('Content-Type', '');
-        if (!str_starts_with(strtolower($contentType), 'application/json')) {
+        $contentType = $request->headers->get('Content-Type', '');
+        if (!str_starts_with(mb_strtolower($contentType), 'application/json')) {
             throw new UnsupportedMediaTypeHttpException('Content-Type must be application/json');
         }
     }
@@ -78,7 +82,7 @@ final class NotesPreviewController extends AbstractController
     private function validate(object $command): void
     {
         $violations = $this->validator->validate($command);
-        if ($violations->count() === 0) {
+        if (0 === $violations->count()) {
             return;
         }
 

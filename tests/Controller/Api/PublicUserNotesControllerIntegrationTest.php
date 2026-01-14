@@ -48,7 +48,7 @@ final class PublicUserNotesControllerIntegrationTest extends WebTestCase
 
         $response = $client->getResponse();
         self::assertSame(Response::HTTP_OK, $response->getStatusCode());
-        $payload = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $payload = json_decode((string) $response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
         self::assertSame('Title', $payload['data'][0]['title']);
         self::assertSame(['demo'], $payload['data'][0]['labels']);
         self::assertSame(1, $payload['meta']['total_items']);
@@ -63,7 +63,7 @@ final class PublicUserNotesControllerIntegrationTest extends WebTestCase
 
         $response = $client->getResponse();
         self::assertSame(Response::HTTP_BAD_REQUEST, $response->getStatusCode());
-        $payload = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $payload = json_decode((string) $response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
         self::assertSame('Validation failed', $payload['error']);
         self::assertArrayHasKey('userUuid', $payload['details']);
     }

@@ -6,7 +6,6 @@ namespace App\DBAL\Type;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\Exception\InvalidType;
-use Doctrine\DBAL\Types\Exception\InvalidFormat;
 use Doctrine\DBAL\Types\Type;
 
 /**
@@ -23,24 +22,27 @@ final class TextArrayType extends Type
 
     public function convertToDatabaseValue($value, AbstractPlatform $platform): ?string
     {
-        if ($value === null) {
+        if (null === $value) {
             return null;
         }
 
-        if (!is_array($value)) {
+        if (!\is_array($value)) {
             throw InvalidType::new($value, self::NAME, ['array', 'null']);
         }
 
         return $this->encodeArray($value);
     }
 
+    /**
+     * @return list<string>
+     */
     public function convertToPHPValue($value, AbstractPlatform $platform): array
     {
-        if ($value === null || $value === '') {
+        if (null === $value || '' === $value) {
             return [];
         }
 
-        if (is_array($value)) {
+        if (\is_array($value)) {
             return array_values($value);
         }
 
@@ -56,12 +58,12 @@ final class TextArrayType extends Type
             static function (string $item): string {
                 $item = str_replace(['\\', '"'], ['\\\\', '\\"'], $item);
 
-                return '"' . $item . '"';
+                return '"'.$item.'"';
             },
             $values
         );
 
-        return '{' . implode(',', $escaped) . '}';
+        return '{'.implode(',', $escaped).'}';
     }
 
     /**
@@ -69,8 +71,8 @@ final class TextArrayType extends Type
      */
     private function decodeArray(string $value): array
     {
-        $trimmed = trim($value, '{}');
-        if ($trimmed === '') {
+        $trimmed = mb_trim($value, '{}');
+        if ('' === $trimmed) {
             return [];
         }
 
@@ -82,4 +84,3 @@ final class TextArrayType extends Type
         );
     }
 }
-

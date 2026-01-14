@@ -13,8 +13,8 @@ final class NotesSearchParser
     {
         $labels = [];
 
-        $original = trim((string) $q);
-        if ($original === '') {
+        $original = mb_trim((string) $q);
+        if ('' === $original) {
             return ['labels' => [], 'text' => null];
         }
 
@@ -27,28 +27,29 @@ final class NotesSearchParser
 
         $labelCandidates = array_merge($matches[1], $matches[2], $matches[3]);
         foreach ($labelCandidates as $candidate) {
-            if ($candidate === '') {
+            if ('' === $candidate) {
                 continue;
             }
 
-            $maybeLabels = preg_split('/[,]+/', $candidate) ?: [];
+            $maybeLabels = preg_split('/[,]+/', $candidate);
+            $maybeLabels = false === $maybeLabels ? [] : $maybeLabels;
             foreach ($maybeLabels as $label) {
-                $label = trim($label);
+                $label = mb_trim($label);
                 if (str_starts_with($label, 'label:')) {
-                    $label = substr($label, 6);
+                    $label = mb_substr($label, 6);
                 }
-                if ($label !== '') {
+                if ('' !== $label) {
                     $labels[] = $label;
                 }
             }
         }
 
-        $text = trim(preg_replace($pattern, '', $normalized));
-        $text = trim(preg_replace('/\s+/', ' ', $text));
+        $text = mb_trim(preg_replace($pattern, '', $normalized));
+        $text = mb_trim(preg_replace('/\s+/', ' ', $text));
 
         return [
             'labels' => array_values(array_unique($labels)),
-            'text' => $text === '' ? null : $text,
+            'text' => '' === $text ? null : $text,
         ];
     }
 }

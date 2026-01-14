@@ -10,28 +10,28 @@ use App\Repository\UserRepository;
 use App\Service\EmailVerificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class EmailVerificationServiceTest extends TestCase
 {
-    private UserRepository $userRepository;
-    private EntityManagerInterface $entityManager;
-    private UrlGeneratorInterface $urlGenerator;
-    private LoggerInterface $logger;
+    private UserRepository&Stub $userRepository;
+    private EntityManagerInterface&Stub $entityManager;
+    private UrlGeneratorInterface&Stub $urlGenerator;
+    private LoggerInterface&Stub $logger;
     private MailerInterface&MockObject $mailer;
     private EmailVerificationService $service;
 
     protected function setUp(): void
     {
-        $this->userRepository = $this->createStub(UserRepository::class);
-        $this->entityManager = $this->createStub(EntityManagerInterface::class);
-        $this->urlGenerator = $this->createStub(UrlGeneratorInterface::class);
-        $this->logger = $this->createStub(LoggerInterface::class);
-        $this->mailer = $this->createMock(MailerInterface::class);
+        $this->userRepository = self::createStub(UserRepository::class);
+        $this->entityManager = self::createStub(EntityManagerInterface::class);
+        $this->urlGenerator = self::createStub(UrlGeneratorInterface::class);
+        $this->logger = self::createStub(LoggerInterface::class);
+        $this->mailer = self::createMock(MailerInterface::class);
 
         $this->service = new EmailVerificationService(
             userRepository: $this->userRepository,
@@ -48,7 +48,7 @@ final class EmailVerificationServiceTest extends TestCase
     {
         $email = 'user@example.com';
         $expires = (string) (time() + 3600);
-        $signature = hash_hmac('sha256', sprintf('%s|%d', $email, (int) $expires), 'secret');
+        $signature = hash_hmac('sha256', \sprintf('%s|%d', $email, (int) $expires), 'secret');
 
         $user = new User($email, 'hash', null, false);
 
@@ -73,7 +73,7 @@ final class EmailVerificationServiceTest extends TestCase
         // Expect no emails sent
         $this->mailer->expects(self::never())->method('send');
 
-        $this->expectException(ValidationException::class);
+        self::expectException(ValidationException::class);
 
         $this->service->handleVerification($email, 'bad', $expires);
     }
@@ -82,12 +82,12 @@ final class EmailVerificationServiceTest extends TestCase
     {
         $email = 'user@example.com';
         $expires = (string) (time() - 100); // 1 minute ago
-        $signature = hash_hmac('sha256', sprintf('%s|%d', $email, (int) $expires), 'secret');
+        $signature = hash_hmac('sha256', \sprintf('%s|%d', $email, (int) $expires), 'secret');
 
         // Expect no emails sent
         $this->mailer->expects(self::never())->method('send');
 
-        $this->expectException(ValidationException::class);
+        self::expectException(ValidationException::class);
 
         $this->service->handleVerification($email, $signature, $expires);
     }
@@ -122,8 +122,8 @@ final class EmailVerificationServiceTest extends TestCase
             ->expects(self::once())
             ->method('send')
             ->with(self::callback(function ($email): bool {
-                return $email instanceof \Symfony\Bridge\Twig\Mime\TemplatedEmail 
-                    && $email->getContext()['url'] === 'https://example.com/verify';
+                return $email instanceof \Symfony\Bridge\Twig\Mime\TemplatedEmail
+                    && 'https://example.com/verify' === $email->getContext()['url'];
             }));
 
         $this->service->sendForEmail('user@example.com');

@@ -11,7 +11,6 @@ final readonly class ListCollaboratorsQuery
     public function __construct(
         #[Assert\Positive]
         public int $noteId,
-    ) {}
+    ) {
+    }
 }
-
-

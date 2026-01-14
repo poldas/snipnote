@@ -17,7 +17,8 @@ final class PublicNoteController extends AbstractController
     public function __construct(
         private readonly NoteService $noteService,
         private readonly PublicNoteJsonMapper $mapper,
-    ) {}
+    ) {
+    }
 
     #[Route('/{urlToken}', name: 'api_public_notes_get', methods: ['GET'])]
     public function getByToken(string $urlToken): JsonResponse

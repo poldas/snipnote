@@ -44,14 +44,15 @@ final class TestUserManageCommand extends Command
         $email = $input->getArgument('email');
         $password = $input->getArgument('password');
 
-        if ($action === 'create') {
-            if (!$password) {
+        if ('create' === $action) {
+            if (null === $password || '' === $password) {
                 $io->error('Password is required for create action.');
+
                 return Command::FAILURE;
             }
 
             $existingUser = $this->userRepository->findOneByEmailCaseInsensitive($email);
-            if ($existingUser) {
+            if (null !== $existingUser) {
                 $this->entityManager->remove($existingUser);
                 $this->entityManager->flush();
             }
@@ -60,30 +61,33 @@ final class TestUserManageCommand extends Command
             // (Standard practice in Symfony to hash against the user object)
             $user = new User($email, 'temporary_hash');
             $hashedPassword = $this->passwordHasher->hashPassword($user, $password);
-            
+
             // Re-create user with correct hash
             $user = new User($email, $hashedPassword, isVerified: true);
 
             $this->entityManager->persist($user);
             $this->entityManager->flush();
 
-            $io->success(sprintf('Test user %s created successfully.', $email));
+            $io->success(\sprintf('Test user %s created successfully.', $email));
+
             return Command::SUCCESS;
         }
 
-        if ($action === 'delete') {
+        if ('delete' === $action) {
             $user = $this->userRepository->findOneByEmailCaseInsensitive($email);
-            if ($user) {
+            if (null !== $user) {
                 $this->entityManager->remove($user);
                 $this->entityManager->flush();
-                $io->success(sprintf('Test user %s deleted successfully.', $email));
+                $io->success(\sprintf('Test user %s deleted successfully.', $email));
             } else {
-                $io->note(sprintf('Test user %s not found, skipping delete.', $email));
+                $io->note(\sprintf('Test user %s not found, skipping delete.', $email));
             }
+
             return Command::SUCCESS;
         }
 
         $io->error('Invalid action. Use "create" or "delete".');
+
         return Command::INVALID;
     }
 }

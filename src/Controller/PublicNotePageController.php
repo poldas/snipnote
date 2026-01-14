@@ -24,7 +24,8 @@ final class PublicNotePageController extends AbstractController
         private readonly NoteService $noteService,
         private readonly MarkdownPreviewService $markdownPreviewService,
         private readonly NoteViewSelector $noteViewSelector,
-    ) {}
+    ) {
+    }
 
     #[Route('/n/{urlToken}', name: 'public_notes_show', methods: ['GET'])]
     public function show(string $urlToken, #[CurrentUser] ?User $user): Response
@@ -48,10 +49,10 @@ final class PublicNotePageController extends AbstractController
                 'title' => $note->getTitle(),
                 'descriptionHtml' => $preview->html,
                 'contentRaw' => $note->getDescription(),
-                'labels' => array_values(array_filter($note->getLabels(), static fn(string $label): bool => trim($label) !== '')),
+                'labels' => array_values(array_filter($note->getLabels(), static fn (string $label): bool => '' !== mb_trim($label))),
                 'createdAt' => $note->getCreatedAt(),
                 'canEdit' => $canEdit,
-                'editUrl' => $canEdit ? '/notes/' . $note->getUrlToken() . '/edit' : null,
+                'editUrl' => $canEdit ? '/notes/'.$note->getUrlToken().'/edit' : null,
                 'loginUrl' => $this->buildLoginUrl($note->getUrlToken()),
             ];
         } catch (NotFoundHttpException) {
@@ -66,7 +67,7 @@ final class PublicNotePageController extends AbstractController
         }
 
         $theme = 'default';
-        if ($note !== null && $errorCode === null) {
+        if (null !== $note && null === $errorCode) {
             $theme = $this->noteViewSelector->getTheme($note->getLabels());
         }
 
@@ -76,7 +77,7 @@ final class PublicNotePageController extends AbstractController
             'theme' => $theme,
         ]);
 
-        if ($errorCode !== null) {
+        if (null !== $errorCode) {
             $response->setStatusCode($errorCode);
         }
 
@@ -87,6 +88,6 @@ final class PublicNotePageController extends AbstractController
     {
         $redirectPath = $this->generateUrl('public_notes_show', ['urlToken' => $urlToken], UrlGeneratorInterface::ABSOLUTE_PATH);
 
-        return '/login?redirect=' . rawurlencode($redirectPath);
+        return '/login?redirect='.rawurlencode($redirectPath);
     }
 }

@@ -23,10 +23,10 @@ final class NotesPageControllerTest extends WebTestCase
 
         $metadata = $this->entityManager->getMetadataFactory()->getAllMetadata();
         $schemaTool = new SchemaTool($this->entityManager);
-        
+
         $schemaTool->dropDatabase();
         $schemaTool->createSchema($metadata);
-        
+
         self::ensureKernelShutdown();
     }
 
@@ -39,7 +39,7 @@ final class NotesPageControllerTest extends WebTestCase
         foreach ($urls as $url) {
             $client->request('GET', $url);
             // Symfony firewall redirects to /login by default because of access_control in security.yaml
-            $this->assertResponseRedirects('http://localhost/login');
+            self::assertResponseRedirects('http://localhost/login');
         }
     }
 
@@ -55,10 +55,10 @@ final class NotesPageControllerTest extends WebTestCase
         $client->loginUser($user);
         $client->request('GET', '/notes');
 
-        $this->assertResponseIsSuccessful();
+        self::assertResponseIsSuccessful();
         // The dashboard doesn't have an H1 with "Twoje notatki", but the title contains it
-        $this->assertPageTitleContains('Twoje notatki');
-        $this->assertSelectorTextContains('.text-slate-600', 'Znalezionych notatek');
+        self::assertPageTitleContains('Twoje notatki');
+        self::assertSelectorTextContains('.text-slate-600', 'Znalezionych notatek');
     }
 
     public function testNewNoteFormIsAccessible(): void
@@ -73,9 +73,9 @@ final class NotesPageControllerTest extends WebTestCase
         $client->loginUser($user);
         $client->request('GET', '/notes/new');
 
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorExists('form');
-        $this->assertSelectorExists('input[name="title"]');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('form');
+        self::assertSelectorExists('input[name="title"]');
     }
 
     public function testEditNoteFormIsAccessibleForOwner(): void
@@ -92,11 +92,11 @@ final class NotesPageControllerTest extends WebTestCase
         $em->flush();
 
         $client->loginUser($user);
-        $client->request('GET', '/notes/' . $note->getId() . '/edit');
+        $client->request('GET', '/notes/'.$note->getId().'/edit');
 
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h1', 'Edytuj notatkę');
-        $this->assertSelectorExists('div[data-controller="edit-note"]');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('h1', 'Edytuj notatkę');
+        self::assertSelectorExists('div[data-controller="edit-note"]');
     }
 
     public function testEditNonExistentNoteReturns404(): void
@@ -111,8 +111,8 @@ final class NotesPageControllerTest extends WebTestCase
         $client->loginUser($user);
         $client->request('GET', '/notes/99999/edit');
 
-        $this->assertResponseStatusCodeSame(404);
-        $this->assertSelectorTextContains('body', 'Notatka niedostępna lub została usunięta.');
+        self::assertResponseStatusCodeSame(404);
+        self::assertSelectorTextContains('body', 'Notatka niedostępna lub została usunięta.');
     }
 
     public function testEditNoteWithoutAccessReturns403(): void
@@ -130,10 +130,10 @@ final class NotesPageControllerTest extends WebTestCase
         $em->flush();
 
         $client->loginUser($otherUser);
-        $client->request('GET', '/notes/' . $note->getId() . '/edit');
+        $client->request('GET', '/notes/'.$note->getId().'/edit');
 
-        $this->assertResponseStatusCodeSame(403);
-        $this->assertSelectorTextContains('body', 'Brak dostępu do tej notatki.');
+        self::assertResponseStatusCodeSame(403);
+        self::assertSelectorTextContains('body', 'Brak dostępu do tej notatki.');
     }
 
     public function testDashboardFiltersWork(): void
@@ -143,24 +143,24 @@ final class NotesPageControllerTest extends WebTestCase
 
         $user = new User('user@example.com', 'password');
         $em->persist($user);
-        
+
         $note1 = new Note($user, 'Public Note', 'Desc', [], NoteVisibility::Public);
         $note1->setUrlToken('123e4567-e89b-12d3-a456-426614174001');
         $note2 = new Note($user, 'Private Note', 'Desc', [], NoteVisibility::Private);
         $note2->setUrlToken('123e4567-e89b-12d3-a456-426614174002');
-        
+
         $em->persist($note1);
         $em->persist($note2);
         $em->flush();
 
         $client->loginUser($user);
-        
+
         // Filter by public
         $client->request('GET', '/notes?visibility=public');
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('.bg-indigo-100', '1');
-        $this->assertSelectorTextContains('body', 'Public Note');
-        $this->assertSelectorTextNotContains('body', 'Private Note');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('.bg-indigo-100', '1');
+        self::assertSelectorTextContains('body', 'Public Note');
+        self::assertSelectorTextNotContains('body', 'Private Note');
     }
 
     public function testEditNoteShowsCollaborators(): void
@@ -176,16 +176,16 @@ final class NotesPageControllerTest extends WebTestCase
         $note = new Note($owner, 'Shared Note', 'Description', [], NoteVisibility::Private);
         $note->setUrlToken('123e4567-e89b-12d3-a456-426614174003');
         $em->persist($note);
-        
+
         $collaborator = new NoteCollaborator($note, $collabUser->getEmail(), $collabUser);
         $em->persist($collaborator);
         $em->flush();
 
         $client->loginUser($owner);
-        $client->request('GET', '/notes/' . $note->getId() . '/edit');
+        $client->request('GET', '/notes/'.$note->getId().'/edit');
 
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('body', 'collab@example.com');
-        $this->assertSelectorTextContains('body', 'owner@example.com');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('body', 'collab@example.com');
+        self::assertSelectorTextContains('body', 'owner@example.com');
     }
 }

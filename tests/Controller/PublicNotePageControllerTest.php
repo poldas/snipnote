@@ -23,7 +23,7 @@ final class PublicNotePageControllerTest extends WebTestCase
         $schemaTool = new SchemaTool($em);
         $schemaTool->dropDatabase();
         $schemaTool->createSchema($metadata);
-        
+
         self::ensureKernelShutdown();
     }
 
@@ -43,8 +43,8 @@ final class PublicNotePageControllerTest extends WebTestCase
         $client->loginUser($user);
         $client->request('GET', '/n/11111111-1111-1111-1111-111111111111');
 
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h1', 'Private Title');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('h1', 'Private Title');
     }
 
     public function testGuestGets404ForPrivateNote(): void
@@ -61,8 +61,8 @@ final class PublicNotePageControllerTest extends WebTestCase
 
         $client->request('GET', '/n/22222222-2222-2222-2222-222222222222');
 
-        $this->assertResponseStatusCodeSame(404);
-        $this->assertSelectorTextContains('h2', 'Notatka niedostępna lub nieprawidłowy link');
+        self::assertResponseStatusCodeSame(404);
+        self::assertSelectorTextContains('h2', 'Notatka niedostępna lub nieprawidłowy link');
     }
 
     public function testOtherUserGets403ForPrivateNoteMaskedAsNotFoundMessage(): void
@@ -84,8 +84,8 @@ final class PublicNotePageControllerTest extends WebTestCase
         $client->request('GET', '/n/33333333-3333-3333-3333-333333333333');
 
         // Security check: status is 403, but message is the same as 404
-        $this->assertResponseStatusCodeSame(403);
-        $this->assertSelectorTextContains('h2', 'Notatka niedostępna lub nieprawidłowy link');
+        self::assertResponseStatusCodeSame(403);
+        self::assertSelectorTextContains('h2', 'Notatka niedostępna lub nieprawidłowy link');
     }
 
     public function testDraftNoteIsMaskedAs404EvenForOwner(): void
@@ -103,6 +103,6 @@ final class PublicNotePageControllerTest extends WebTestCase
         $client->loginUser($user);
         $client->request('GET', '/n/44444444-4444-4444-4444-444444444444');
 
-        $this->assertResponseStatusCodeSame(404);
+        self::assertResponseStatusCodeSame(404);
     }
 }

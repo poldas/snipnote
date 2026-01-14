@@ -12,5 +12,6 @@ final readonly class NoteCollaboratorDto
         public string $email,
         public ?int $userId,
         public \DateTimeImmutable $createdAt,
-    ) {}
+    ) {
+    }
 }

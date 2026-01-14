@@ -59,8 +59,8 @@ final class NoteRepositorySharedTest extends KernelTestCase
 
         $result = $this->noteRepository->findPaginatedForOwnerWithFilters($query);
 
-        $this->assertCount(1, $result->items);
-        $this->assertSame('Shared Note', $result->items[0]->getTitle());
+        self::assertCount(1, $result->items);
+        self::assertSame('Shared Note', $result->items[0]->getTitle());
     }
 
     public function testNotesAreSortedByUpdatedAtDescending(): void
@@ -71,7 +71,7 @@ final class NoteRepositorySharedTest extends KernelTestCase
         // Note 1 created first, but updated later
         $note1 = new Note($owner, 'Note 1', 'Content', [], NoteVisibility::Private);
         $note1->setUrlToken('111e4567-e89b-12d3-a456-426614174001');
-        
+
         // Note 2 created second
         $note2 = new Note($owner, 'Note 2', 'Content', [], NoteVisibility::Private);
         $note2->setUrlToken('222e4567-e89b-12d3-a456-426614174001');
@@ -96,10 +96,10 @@ final class NoteRepositorySharedTest extends KernelTestCase
 
         $result = $this->noteRepository->findPaginatedForOwnerWithFilters($query);
 
-        $this->assertCount(2, $result->items);
+        self::assertCount(2, $result->items);
         // Note 1 should be first because it was updated most recently
-        $this->assertSame('Note 1', $result->items[0]->getTitle());
-        $this->assertSame('Note 2', $result->items[1]->getTitle());
+        self::assertSame('Note 1', $result->items[0]->getTitle());
+        self::assertSame('Note 2', $result->items[1]->getTitle());
     }
 
     public function testPublicNotesAreSortedByUpdatedAtDescending(): void
@@ -110,7 +110,7 @@ final class NoteRepositorySharedTest extends KernelTestCase
         // Note 1 created first
         $note1 = new Note($owner, 'Public 1', 'Content', [], NoteVisibility::Public);
         $note1->setUrlToken('11111111-1111-1111-1111-111111111111');
-        
+
         // Note 2 created second
         $note2 = new Note($owner, 'Public 2', 'Content', [], NoteVisibility::Public);
         $note2->setUrlToken('22222222-2222-2222-2222-222222222222');
@@ -133,8 +133,8 @@ final class NoteRepositorySharedTest extends KernelTestCase
 
         $result = $this->noteRepository->findPublicNotesForOwner($query);
 
-        $this->assertCount(2, $result->items);
-        $this->assertSame('Public 1', $result->items[0]->getTitle());
-        $this->assertSame('Public 2', $result->items[1]->getTitle());
+        self::assertCount(2, $result->items);
+        self::assertSame('Public 1', $result->items[0]->getTitle());
+        self::assertSame('Public 2', $result->items[1]->getTitle());
     }
 }

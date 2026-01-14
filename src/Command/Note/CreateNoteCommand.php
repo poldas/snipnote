@@ -12,7 +12,6 @@ final readonly class CreateNoteCommand
         #[Assert\NotBlank]
         #[Assert\Length(max: 255)]
         public string $title,
-
         #[Assert\NotBlank]
         #[Assert\Length(max: 100000)]
         public string $description,
@@ -26,8 +25,8 @@ final readonly class CreateNoteCommand
             new Assert\Length(max: 100),
         ])]
         public array $labels = [],
-
         #[Assert\Choice(choices: ['public', 'private', 'draft'])]
         public string $visibility = 'private',
-    ) {}
+    ) {
+    }
 }

@@ -17,10 +17,10 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<Note>
  *
- * @method Note|null find($id, $lockMode = null, $lockVersion = null)
- * @method Note|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Note|null        find($id, $lockMode = null, $lockVersion = null)
+ * @method Note|null        findOneBy(array<string, mixed> $criteria, array<string, string>|null $orderBy = null)
  * @method array<int, Note> findAll()
- * @method array<int, Note> findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method array<int, Note> findBy(array<string, mixed> $criteria, array<string, string>|null $orderBy = null, $limit = null, $offset = null)
  */
 class NoteRepository extends ServiceEntityRepository
 {
@@ -77,13 +77,13 @@ class NoteRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $conn = $em->getConnection();
 
-        $search = $query->q !== null ? trim($query->q) : null;
+        $search = null !== $query->q ? mb_trim($query->q) : null;
         $visibility = $query->visibility ?? 'owner';
 
         $dbalFilters = $conn->createQueryBuilder()
             ->from('notes', 'n');
 
-        if ($visibility === 'shared') {
+        if ('shared' === $visibility) {
             $dbalFilters
                 ->innerJoin('n', 'note_collaborators', 'c', 'c.note_id = n.id')
                 ->where('(c.user_id = :userId OR c.email = :email)')
@@ -94,7 +94,7 @@ class NoteRepository extends ServiceEntityRepository
                 ->where('n.owner_id = :ownerId')
                 ->setParameter('ownerId', $query->ownerId, Types::INTEGER);
 
-            if (in_array($visibility, [NoteVisibility::Public->value, NoteVisibility::Private->value, NoteVisibility::Draft->value], true)) {
+            if (\in_array($visibility, [NoteVisibility::Public->value, NoteVisibility::Private->value, NoteVisibility::Draft->value], true)) {
                 $dbalFilters
                     ->andWhere('n.visibility = :visibility')
                     ->setParameter('visibility', $visibility, Types::STRING);
@@ -103,14 +103,14 @@ class NoteRepository extends ServiceEntityRepository
             }
         }
 
-        if ($search !== null && $search !== '') {
+        if (null !== $search && '' !== $search) {
             $dbalFilters
                 ->andWhere("(n.search_vector_simple @@ plainto_tsquery('simple', :q) OR n.title ILIKE :pattern OR n.description ILIKE :pattern)")
                 ->setParameter('q', $search, Types::STRING)
-                ->setParameter('pattern', '%' . $search . '%', Types::STRING);
+                ->setParameter('pattern', '%'.$search.'%', Types::STRING);
         }
 
-        if ($query->labels !== []) {
+        if ([] !== $query->labels) {
             $labelsLiteral = $this->toPgTextArrayLiteral($query->labels);
             $dbalFilters
                 ->andWhere('n.labels && :labels')
@@ -132,7 +132,7 @@ class NoteRepository extends ServiceEntityRepository
             ->executeQuery()
             ->fetchFirstColumn();
 
-        if ($ids === []) {
+        if ([] === $ids) {
             return new PaginatedResult([], $total);
         }
 
@@ -152,7 +152,7 @@ class NoteRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $conn = $em->getConnection();
 
-        $search = $query->search !== null ? trim($query->search) : null;
+        $search = null !== $query->search ? mb_trim($query->search) : null;
         $filters = $conn->createQueryBuilder()
             ->from('notes', 'n')
             ->where('n.owner_id = :ownerId')
@@ -160,14 +160,14 @@ class NoteRepository extends ServiceEntityRepository
             ->setParameter('ownerId', $query->ownerId, Types::INTEGER)
             ->setParameter('visibility', NoteVisibility::Public->value, Types::STRING);
 
-        if ($search !== null && $search !== '') {
+        if (null !== $search && '' !== $search) {
             $filters
                 ->andWhere("(n.search_vector_simple @@ plainto_tsquery('simple', :q) OR n.title ILIKE :pattern OR n.description ILIKE :pattern)")
                 ->setParameter('q', $search, Types::STRING)
-                ->setParameter('pattern', '%' . $search . '%', Types::STRING);
+                ->setParameter('pattern', '%'.$search.'%', Types::STRING);
         }
 
-        if ($query->labels !== []) {
+        if ([] !== $query->labels) {
             $labelsLiteral = $this->toPgTextArrayLiteral($query->labels);
             $filters
                 ->andWhere('n.labels && :labels')
@@ -187,7 +187,7 @@ class NoteRepository extends ServiceEntityRepository
             ->executeQuery()
             ->fetchFirstColumn();
 
-        if ($ids === []) {
+        if ([] === $ids) {
             return new PaginatedResult([], $total);
         }
 
@@ -208,10 +208,10 @@ class NoteRepository extends ServiceEntityRepository
     private function toPgTextArrayLiteral(array $labels): string
     {
         $escaped = array_map(
-            static fn(string $label): string => '"' . str_replace(['\\', '"'], ['\\\\', '\\"'], $label) . '"',
+            static fn (string $label): string => '"'.str_replace(['\\', '"'], ['\\\\', '\\"'], $label).'"',
             $labels
         );
 
-        return '{' . implode(',', $escaped) . '}';
+        return '{'.implode(',', $escaped).'}';
     }
 }

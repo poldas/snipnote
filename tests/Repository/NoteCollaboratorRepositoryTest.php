@@ -45,6 +45,6 @@ final class NoteCollaboratorRepositoryTest extends KernelTestCase
         $this->entityManager->persist($collab);
         $this->entityManager->flush();
 
-        $this->assertTrue($this->repository->isCollaborator($note, $collaboratorUser));
+        self::assertTrue($this->repository->isCollaborator($note, $collaboratorUser));
     }
 }

@@ -10,4 +10,3 @@ enum NoteVisibility: string
     case Private = 'private';
     case Draft = 'draft';
 }
-

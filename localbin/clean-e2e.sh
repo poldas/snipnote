@@ -9,7 +9,7 @@ docker compose down --volumes --remove-orphans 2>/dev/null || true
 
 # Clean sessions
 echo "Cleaning PHP sessions..."
-sudo rm -rf /tmp/sessions/ 2>/dev/null || true
+rm -rf /tmp/sessions/ 2>/dev/null || true
 mkdir -p /tmp/sessions
 chmod 777 /tmp/sessions
 

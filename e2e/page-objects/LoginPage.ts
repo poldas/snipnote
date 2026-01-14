@@ -77,6 +77,8 @@ export class LoginPage {
                 this.page.getByText('Błąd logowania')
             ).or(
                 this.page.getByText('Nieprawidłowe dane logowania')
+            ).or(
+                this.page.getByText('Nieprawidłowy adres email lub hasło')
             )
         ).toBeVisible();
     }

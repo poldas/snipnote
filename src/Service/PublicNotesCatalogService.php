@@ -21,12 +21,13 @@ class PublicNotesCatalogService
     public function __construct(
         private readonly UserRepository $userRepository,
         private readonly NoteRepository $noteRepository,
-    ) {}
+    ) {
+    }
 
     public function getPublicNotes(PublicNotesQueryDto $queryDto): PublicNoteListResponseDto
     {
         $ownerId = $this->userRepository->findIdByUuid($queryDto->userUuid);
-        if ($ownerId === null) {
+        if (null === $ownerId) {
             throw new NotFoundHttpException('User not found');
         }
 
@@ -41,7 +42,7 @@ class PublicNotesCatalogService
         $result = $this->noteRepository->findPublicNotesForOwner($query);
 
         $items = array_map(
-            fn(Note $note): PublicNoteListItemDto => new PublicNoteListItemDto(
+            fn (Note $note): PublicNoteListItemDto => new PublicNoteListItemDto(
                 title: $note->getTitle(),
                 descriptionExcerpt: $this->excerpt($note->getDescription()),
                 labels: $note->getLabels(),
@@ -66,28 +67,26 @@ class PublicNotesCatalogService
 
     private function normalize(?string $value): ?string
     {
-        if ($value === null) {
+        if (null === $value) {
             return null;
         }
 
-        $trimmed = trim($value);
+        $trimmed = mb_trim($value);
 
-        return $trimmed === '' ? null : $trimmed;
+        return '' === $trimmed ? null : $trimmed;
     }
 
     /**
      * @param list<string> $labels
+     *
      * @return list<string>
      */
     private function normalizeLabels(array $labels): array
     {
         $result = [];
         foreach ($labels as $label) {
-            if (!\is_string($label)) {
-                continue;
-            }
             $normalized = $this->normalize($label);
-            if ($normalized !== null) {
+            if (null !== $normalized) {
                 $result[] = $normalized;
             }
         }
@@ -97,12 +96,12 @@ class PublicNotesCatalogService
 
     private function excerpt(string $description): string
     {
-        $trimmed = trim($description);
+        $trimmed = mb_trim($description);
 
         if (mb_strlen($trimmed) <= self::EXCERPT_LENGTH) {
             return $trimmed;
         }
 
-        return rtrim(mb_substr($trimmed, 0, self::EXCERPT_LENGTH - 1)) . '…';
+        return mb_rtrim(mb_substr($trimmed, 0, self::EXCERPT_LENGTH - 1)).'…';
     }
 }

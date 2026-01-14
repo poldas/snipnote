@@ -12,6 +12,8 @@ use App\Repository\UserRepository;
 use App\Service\AuthService;
 use App\Service\RefreshTokenService;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\PasswordHasher\PasswordHasherInterface;
@@ -19,20 +21,20 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
 final class AuthServiceTest extends TestCase
 {
-    private EntityManagerInterface $entityManager;
-    private UserRepository $userRepository;
-    private PasswordHasherFactoryInterface $passwordHasherFactory;
-    private PasswordHasherInterface $passwordHasher;
-    private RefreshTokenService $refreshTokenService;
+    private EntityManagerInterface&Stub $entityManager;
+    private UserRepository&Stub $userRepository;
+    private PasswordHasherFactoryInterface&Stub $passwordHasherFactory;
+    private PasswordHasherInterface&Stub $passwordHasher;
+    private RefreshTokenService&Stub $refreshTokenService;
     private AuthService $service;
 
     protected function setUp(): void
     {
-        $this->entityManager = $this->createStub(EntityManagerInterface::class);
-        $this->userRepository = $this->createStub(UserRepository::class);
-        $this->passwordHasherFactory = $this->createStub(PasswordHasherFactoryInterface::class);
-        $this->passwordHasher = $this->createStub(PasswordHasherInterface::class);
-        $this->refreshTokenService = $this->createStub(RefreshTokenService::class);
+        $this->entityManager = self::createStub(EntityManagerInterface::class);
+        $this->userRepository = self::createStub(UserRepository::class);
+        $this->passwordHasherFactory = self::createStub(PasswordHasherFactoryInterface::class);
+        $this->passwordHasher = self::createStub(PasswordHasherInterface::class);
+        $this->refreshTokenService = self::createStub(RefreshTokenService::class);
 
         $this->passwordHasherFactory
             ->method('getPasswordHasher')
@@ -116,7 +118,8 @@ final class AuthServiceTest extends TestCase
 
         $request = new LoginRequestDTO('user@example.com', 'StrongPass1');
 
-        $this->expectException(AuthenticationException::class);
+        self::expectException(AuthenticationException::class);
+        self::expectExceptionMessage('Email not verified.');
 
         $this->service->login($request);
     }
@@ -130,7 +133,7 @@ final class AuthServiceTest extends TestCase
 
         $request = new RegisterRequestDTO('user@example.com', 'StrongPass1', false);
 
-        $this->expectException(ValidationException::class);
+        self::expectException(ValidationException::class);
 
         $this->service->register($request);
     }

@@ -126,7 +126,7 @@ class Note
      */
     public function setLabels(array $labels): void
     {
-        $this->labels = array_values($labels);
+        $this->labels = $labels;
     }
 
     public function getVisibility(): NoteVisibility

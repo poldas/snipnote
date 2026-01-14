@@ -101,7 +101,7 @@ final class NoteServiceIntegrationTest extends KernelTestCase
 
         $this->entityManager->clear();
 
-        $this->expectException(AccessDeniedException::class);
+        self::expectException(AccessDeniedException::class);
         $this->noteService->getNoteById($note->getId(), $outsider);
     }
 
@@ -124,7 +124,7 @@ final class NoteServiceIntegrationTest extends KernelTestCase
         $resolved = $this->noteService->getPublicNoteByToken($public->getUrlToken());
         self::assertSame('Public note', $resolved->getTitle());
 
-        $this->expectException(NotFoundHttpException::class);
+        self::expectException(NotFoundHttpException::class);
         $this->noteService->getPublicNoteByToken($private->getUrlToken());
     }
 
@@ -153,7 +153,7 @@ final class NoteServiceIntegrationTest extends KernelTestCase
             visibility: 'private'
         ));
 
-        $this->expectException(AccessDeniedException::class);
+        self::expectException(AccessDeniedException::class);
         $this->noteService->getNotePreview($note->getUrlToken(), $outsider);
     }
 

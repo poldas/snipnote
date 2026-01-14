@@ -13,5 +13,6 @@ final readonly class NotesMarkdownPreviewRequestDto
         #[Assert\Type('string')]
         #[Assert\Length(max: 100000)]
         public string $description,
-    ) {}
+    ) {
+    }
 }

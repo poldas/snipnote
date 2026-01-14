@@ -37,14 +37,15 @@ final class SendTestResetEmailCommand extends Command
         $email = (string) $input->getArgument('email');
 
         $user = $this->userRepository->findOneByEmailCaseInsensitive($email);
-        if ($user === null) {
-            $io->error(sprintf('Użytkownik %s nie został znaleziony.', $email));
+        if (null === $user) {
+            $io->error(\sprintf('Użytkownik %s nie został znaleziony.', $email));
+
             return Command::FAILURE;
         }
 
         $this->passwordResetService->requestPasswordReset($email);
 
-        $io->success(sprintf('Email resetu hasła został wysłany do %s (sprawdź Mailpit).', $email));
+        $io->success(\sprintf('Email resetu hasła został wysłany do %s (sprawdź Mailpit).', $email));
 
         return Command::SUCCESS;
     }

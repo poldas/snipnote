@@ -11,8 +11,9 @@ use Twig\TwigFunction;
 final class ImportMapExtension extends AbstractExtension
 {
     public function __construct(
-        private readonly ImportMapRenderer $importMapRenderer
-    ) {}
+        private readonly ImportMapRenderer $importMapRenderer,
+    ) {
+    }
 
     public function getFunctions(): array
     {
@@ -23,16 +24,18 @@ final class ImportMapExtension extends AbstractExtension
 
     /**
      * Renders importmap but removes keys that should not be visible on public pages.
+     *
+     * @param list<string> $excludePatterns
      */
     public function renderSafe(string $entryPoint, array $excludePatterns = []): string
     {
         $html = $this->importMapRenderer->render([$entryPoint]);
 
-        return (string) preg_replace_callback('/<script type="importmap".*?>(.*?)<\/script>/s', function ($matches) use ($excludePatterns) {
+        $result = preg_replace_callback('/<script type="importmap".*?>(.*?)<\/script>/s', function ($matches) use ($excludePatterns) {
             $json = $matches[1];
             $data = json_decode($json, true);
 
-            if (isset($data['imports']) && is_array($data['imports'])) {
+            if (isset($data['imports']) && \is_array($data['imports'])) {
                 foreach ($data['imports'] as $key => $value) {
                     foreach ($excludePatterns as $pattern) {
                         // Match if pattern is in the key (e.g. 'app' or 'note_form')
@@ -44,7 +47,9 @@ final class ImportMapExtension extends AbstractExtension
                 }
             }
 
-            return '<script type="importmap" data-turbo-track="reload">' . json_encode($data, JSON_UNESCAPED_SLASHES) . '</script>';
+            return '<script type="importmap" data-turbo-track="reload">'.json_encode($data, \JSON_UNESCAPED_SLASHES).'</script>';
         }, $html);
+
+        return $result ?? $html;
     }
 }

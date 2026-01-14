@@ -13,9 +13,9 @@ final readonly class LoginRequestDTO
         #[Assert\Email(mode: Assert\Email::VALIDATION_MODE_STRICT)]
         #[Assert\Length(max: 255)]
         public string $email,
-
         #[Assert\NotBlank]
         #[Assert\Length(min: 8, max: 255)]
         public string $password,
-    ) {}
+    ) {
+    }
 }

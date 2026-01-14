@@ -13,23 +13,25 @@ use App\Repository\NoteRepository;
 use App\Repository\UserRepository;
 use App\Service\NoteCollaboratorService;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 final class NoteCollaboratorServiceTest extends TestCase
 {
-    private EntityManagerInterface $entityManager;
-    private NoteRepository $noteRepository;
-    private NoteCollaboratorRepository $collaboratorRepository;
-    private UserRepository $userRepository;
+    private EntityManagerInterface&Stub $entityManager;
+    private NoteRepository&Stub $noteRepository;
+    private NoteCollaboratorRepository&Stub $collaboratorRepository;
+    private UserRepository&Stub $userRepository;
 
     protected function setUp(): void
     {
-        $this->entityManager = $this->createStub(EntityManagerInterface::class);
-        $this->noteRepository = $this->createStub(NoteRepository::class);
-        $this->collaboratorRepository = $this->createStub(NoteCollaboratorRepository::class);
-        $this->userRepository = $this->createStub(UserRepository::class);
+        $this->entityManager = self::createStub(EntityManagerInterface::class);
+        $this->noteRepository = self::createStub(NoteRepository::class);
+        $this->collaboratorRepository = self::createStub(NoteCollaboratorRepository::class);
+        $this->userRepository = self::createStub(UserRepository::class);
     }
 
     public function testAddCollaboratorRequiresOwnerOrCollaborator(): void
@@ -48,7 +50,7 @@ final class NoteCollaboratorServiceTest extends TestCase
             $this->userRepository,
         );
 
-        $this->expectException(AccessDeniedException::class);
+        self::expectException(AccessDeniedException::class);
         $service->addCollaborator(new AddCollaboratorCommand(1, 'collab@example.com'), $requester);
     }
 
@@ -70,7 +72,7 @@ final class NoteCollaboratorServiceTest extends TestCase
             $this->userRepository,
         );
 
-        $this->expectException(ConflictHttpException::class);
+        self::expectException(ConflictHttpException::class);
         $service->addCollaborator(new AddCollaboratorCommand(1, 'collab@example.com'), $owner);
     }
 
@@ -81,20 +83,18 @@ final class NoteCollaboratorServiceTest extends TestCase
         $note = new Note($owner, 't', 'd');
         $collaboratorEntity = new \App\Entity\NoteCollaborator($note, 'collab@example.com', $collaboratorUser);
 
-        $noteRepository = $this->createStub(NoteRepository::class);
-        $noteRepository->method('find')->willReturn($note);
+        $this->noteRepository->method('find')->willReturn($note);
+        $this->collaboratorRepository->method('findByNoteAndId')->willReturn($collaboratorEntity);
 
-        $collaboratorRepository = $this->createStub(NoteCollaboratorRepository::class);
-        $collaboratorRepository->method('findByNoteAndId')->willReturn($collaboratorEntity);
-
+        /** @var EntityManagerInterface&MockObject $entityManager */
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('remove')->with($collaboratorEntity);
         $entityManager->expects(self::once())->method('flush');
 
         $service = new NoteCollaboratorService(
             $entityManager,
-            $noteRepository,
-            $collaboratorRepository,
+            $this->noteRepository,
+            $this->collaboratorRepository,
             $this->userRepository,
         );
 
@@ -109,25 +109,21 @@ final class NoteCollaboratorServiceTest extends TestCase
         // No user linked in entity
         $collaboratorEntity = new \App\Entity\NoteCollaborator($note, 'collab@example.com', null);
 
-        $noteRepository = $this->createStub(NoteRepository::class);
-        $noteRepository->method('find')->willReturn($note);
+        $this->noteRepository->method('find')->willReturn($note);
+        $this->collaboratorRepository->method('findByNoteAndId')->willReturn($collaboratorEntity);
 
-        $collaboratorRepository = $this->createStub(NoteCollaboratorRepository::class);
-        $collaboratorRepository->method('findByNoteAndId')->willReturn($collaboratorEntity);
-
+        /** @var EntityManagerInterface&MockObject $entityManager */
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('remove')->with($collaboratorEntity);
         $entityManager->expects(self::once())->method('flush');
 
         $service = new NoteCollaboratorService(
             $entityManager,
-            $noteRepository,
-            $collaboratorRepository,
+            $this->noteRepository,
+            $this->collaboratorRepository,
             $this->userRepository,
         );
 
         $service->removeById(new RemoveCollaboratorByIdCommand(1, 5), $collaboratorUser);
     }
 }
-
-

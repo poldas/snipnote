@@ -22,7 +22,8 @@ final class MarkdownConverterFactory
     public function __construct(
         #[Autowire('%app.markdown.config%')]
         private readonly array $config,
-    ) {}
+    ) {
+    }
 
     public function __invoke(): ConverterInterface
     {

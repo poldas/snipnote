@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Security;
 
 use App\Repository\UserRepository;
-use JsonException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,7 +24,8 @@ final class JwtAuthenticator extends AbstractAuthenticator implements Authentica
         private readonly UserRepository $userRepository,
         #[Autowire('%env(JWT_SECRET)%')]
         private readonly string $jwtSecret,
-    ) {}
+    ) {
+    }
 
     public function supports(Request $request): bool
     {
@@ -50,7 +50,7 @@ final class JwtAuthenticator extends AbstractAuthenticator implements Authentica
         $this->assertSignature($headerB64, $payloadB64, $signatureB64);
 
         $subject = $payload['sub'] ?? null;
-        if (!is_string($subject) || $subject === '') {
+        if (!\is_string($subject) || '' === $subject) {
             throw new CustomUserMessageAuthenticationException('Invalid JWT subject');
         }
 
@@ -61,7 +61,7 @@ final class JwtAuthenticator extends AbstractAuthenticator implements Authentica
                     : ['uuid' => $identifier];
 
                 $user = $this->userRepository->findOneBy($criteria);
-                if ($user === null) {
+                if (null === $user) {
                     throw new CustomUserMessageAuthenticationException('User not found for token');
                 }
 
@@ -95,8 +95,8 @@ final class JwtAuthenticator extends AbstractAuthenticator implements Authentica
             throw new CustomUserMessageAuthenticationException('Missing Authorization header');
         }
 
-        $token = substr($header, 7);
-        if ($token === '') {
+        $token = mb_substr($header, 7);
+        if ('' === $token) {
             throw new CustomUserMessageAuthenticationException('Empty bearer token');
         }
 
@@ -109,7 +109,7 @@ final class JwtAuthenticator extends AbstractAuthenticator implements Authentica
     private function splitToken(string $token): array
     {
         $parts = explode('.', $token);
-        if (count($parts) !== 3) {
+        if (3 !== \count($parts)) {
             throw new CustomUserMessageAuthenticationException('Malformed JWT');
         }
 
@@ -125,14 +125,14 @@ final class JwtAuthenticator extends AbstractAuthenticator implements Authentica
             return;
         }
 
-        if (!is_int($payload['exp']) || $payload['exp'] <= time()) {
+        if (!\is_int($payload['exp']) || $payload['exp'] <= time()) {
             throw new CustomUserMessageAuthenticationException('Token expired');
         }
     }
 
     private function assertSignature(string $headerB64, string $payloadB64, string $signatureB64): void
     {
-        $data = $headerB64 . '.' . $payloadB64;
+        $data = $headerB64.'.'.$payloadB64;
         $expected = $this->base64UrlEncode(hash_hmac('sha256', $data, $this->jwtSecret, true));
         if (!hash_equals($expected, $signatureB64)) {
             throw new CustomUserMessageAuthenticationException('Invalid token signature');
@@ -142,7 +142,7 @@ final class JwtAuthenticator extends AbstractAuthenticator implements Authentica
     private function base64UrlDecode(string $data): string
     {
         $decoded = base64_decode(strtr($data, '-_', '+/'), true);
-        if ($decoded === false) {
+        if (false === $decoded) {
             throw new CustomUserMessageAuthenticationException('Invalid base64 payload');
         }
 
@@ -151,7 +151,7 @@ final class JwtAuthenticator extends AbstractAuthenticator implements Authentica
 
     private function base64UrlEncode(string $data): string
     {
-        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+        return mb_rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
 
     /**
@@ -160,13 +160,13 @@ final class JwtAuthenticator extends AbstractAuthenticator implements Authentica
     private function jsonDecode(string $json, string $section): array
     {
         try {
-            $decoded = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+            $decoded = json_decode($json, true, 512, \JSON_THROW_ON_ERROR);
         } catch (\JsonException $exception) {
-            throw new CustomUserMessageAuthenticationException(sprintf('Invalid JWT %s', $section), previous: $exception);
+            throw new CustomUserMessageAuthenticationException(\sprintf('Invalid JWT %s', $section), previous: $exception);
         }
 
-        if (!is_array($decoded)) {
-            throw new CustomUserMessageAuthenticationException(sprintf('Invalid JWT %s structure', $section));
+        if (!\is_array($decoded)) {
+            throw new CustomUserMessageAuthenticationException(\sprintf('Invalid JWT %s structure', $section));
         }
 
         return $decoded;

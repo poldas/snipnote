@@ -27,12 +27,13 @@ final class AuthPageController extends AbstractController
         private readonly PasswordResetService $passwordResetService,
         private readonly UserRepository $userRepository,
         private readonly CsrfTokenManagerInterface $csrfTokenManager,
-    ) {}
+    ) {
+    }
 
     #[Route('/', name: 'app_landing', methods: ['GET'])]
     public function landing(): Response
     {
-        if ($this->getUser()) {
+        if (null !== $this->getUser()) {
             return $this->redirect('/notes');
         }
 
@@ -48,7 +49,7 @@ final class AuthPageController extends AbstractController
     #[Route('/login', name: 'app_login_page', methods: ['GET', 'POST'])]
     public function login(Request $request, AuthenticationUtils $authUtils): Response
     {
-        if ($this->getUser()) {
+        if (null !== $this->getUser()) {
             return $this->redirect('/notes');
         }
 
@@ -57,10 +58,10 @@ final class AuthPageController extends AbstractController
         $redirect = $request->query->get('redirect');
 
         $errors = [];
-        if ($error) {
+        if (null !== $error) {
             $errors[] = [
                 'message' => $error->getMessageKey(),
-                'messageData' => $error->getMessageData()
+                'messageData' => $error->getMessageData(),
             ];
         }
 
@@ -81,7 +82,7 @@ final class AuthPageController extends AbstractController
     #[Route('/register', name: 'app_register_page', methods: ['GET', 'POST'])]
     public function register(Request $request): Response
     {
-        if ($this->getUser()) {
+        if (null !== $this->getUser()) {
             return $this->redirect('/notes');
         }
 
@@ -109,7 +110,7 @@ final class AuthPageController extends AbstractController
                 $errors[] = ['field' => 'passwordConfirm', 'message' => 'Hasła muszą być identyczne.'];
             }
 
-            if ($errors === []) {
+            if ([] === $errors) {
                 try {
                     $dto = new RegisterRequestDTO($email, $password, false);
                     $this->authService->register($dto);
@@ -157,14 +158,14 @@ final class AuthPageController extends AbstractController
         $prefill = [];
 
         if ($request->isMethod('POST')) {
-            $submittedToken = (string) $request->request->get('_csrf_token', '');
+            $submittedToken = $request->request->get('_csrf_token', '');
             if (!$this->csrfTokenManager->isTokenValid(new CsrfToken('forgot_password', $submittedToken))) {
                 $errors[] = ['message' => 'Nieprawidłowy token bezpieczeństwa. Spróbuj ponownie.'];
             } else {
                 $email = (string) $request->request->get('email', '');
                 $prefill['email'] = $email;
 
-                if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                if (!filter_var($email, \FILTER_VALIDATE_EMAIL)) {
                     $errors[] = ['field' => 'email', 'message' => 'Podaj poprawny adres email'];
                 } else {
                     // Always show success message for security (enumeration protection)
@@ -172,7 +173,7 @@ final class AuthPageController extends AbstractController
 
                     $user = $this->userRepository->findOneByEmailCaseInsensitive($email);
 
-                    if ($user !== null && !$user->isVerified()) {
+                    if (null !== $user && !$user->isVerified()) {
                         // Case: User exists but is unverified -> Send verification email
                         $this->emailVerificationService->sendForEmail($email);
                     } else {
@@ -200,20 +201,20 @@ final class AuthPageController extends AbstractController
     #[Route('/reset-password/{token}', name: 'app_reset_password_page', methods: ['GET', 'POST'], defaults: ['token' => null])]
     public function resetPassword(Request $request, ?string $token = null): Response
     {
-        if (!$token) {
+        if (null === $token || '' === $token) {
             return $this->redirectToRoute('app_forgot_password_page');
         }
 
         $user = $this->passwordResetService->validateToken($token);
         $errors = [];
 
-        if (!$user) {
+        if (null === $user) {
             $errors[] = ['message' => 'Link wygasł lub jest nieprawidłowy. Poproś o nowy.'];
             // If token is invalid, we might want to disable the form or just show the error.
             // We pass null token to view to indicate issue or just handle via errors.
         }
 
-        if ($user && $request->isMethod('POST')) {
+        if (null !== $user && $request->isMethod('POST')) {
             $submittedToken = (string) $request->request->get('_csrf_token', '');
             if (!$this->csrfTokenManager->isTokenValid(new CsrfToken('reset_password', $submittedToken))) {
                 $errors[] = ['message' => 'Nieprawidłowy token bezpieczeństwa. Spróbuj ponownie.'];
@@ -221,14 +222,14 @@ final class AuthPageController extends AbstractController
                 $password = (string) $request->request->get('password', '');
                 $passwordConfirm = (string) $request->request->get('passwordConfirm', '');
 
-                if (strlen($password) < 8) {
+                if (mb_strlen($password) < 8) {
                     $errors[] = ['field' => 'password', 'message' => 'Hasło musi mieć min. 8 znaków.'];
                 }
                 if ($password !== $passwordConfirm) {
                     $errors[] = ['field' => 'passwordConfirm', 'message' => 'Hasła muszą być identyczne.'];
                 }
 
-                if ($errors === []) {
+                if ([] === $errors) {
                     $this->passwordResetService->resetPassword($user, $password);
 
                     // Security & UX: Set the last username so the login form is prefilled.
@@ -247,7 +248,7 @@ final class AuthPageController extends AbstractController
         return $this->render('auth/reset_password.html.twig', [
             'token' => $token,
             'errors' => $errors,
-            'action' => '/reset-password/' . $token,
+            'action' => '/reset-password/'.$token,
             'hero' => [
                 'headline' => 'Ustaw nowe hasło',
                 'subcopy' => 'Skorzystaj z linku z maila, aby odzyskać dostęp do konta.',
@@ -271,13 +272,13 @@ final class AuthPageController extends AbstractController
 
         if (!$this->csrfTokenManager->isTokenValid(new CsrfToken('verify_email_resend', $submittedToken))) {
             $errors[] = 'Nieprawidłowy token bezpieczeństwa. Spróbuj ponownie.';
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        } elseif (!filter_var($email, \FILTER_VALIDATE_EMAIL)) {
             $errors[] = 'Podaj poprawny adres email.';
         }
 
-        if ($errors === []) {
+        if ([] === $errors) {
             $user = $this->userRepository->findOneByEmailCaseInsensitive($email);
-            if ($user !== null && $user->isVerified()) {
+            if (null !== $user && $user->isVerified()) {
                 return $this->redirectToRoute('app_verify_notice_page', [
                     'state' => 'already_verified',
                     'email' => $email,
@@ -305,8 +306,8 @@ final class AuthPageController extends AbstractController
     #[Route('/verify/email/notice', name: 'app_verify_notice_page', methods: ['GET'])]
     public function verifyNotice(Request $request): Response
     {
-        $state = (string) $request->query->get('state', 'pending');
-        $email = (string) $request->query->get('email', '');
+        $state = $request->query->get('state', 'pending');
+        $email = $request->query->get('email', '');
 
         return $this->render('auth/verify_notice.html.twig', $this->verifyNoticeView($state, $email));
     }
@@ -314,9 +315,9 @@ final class AuthPageController extends AbstractController
     #[Route('/verify/email', name: 'app_verify_email', methods: ['GET'])]
     public function verifyEmail(Request $request): Response
     {
-        $email = (string) $request->query->get('email', '');
-        $signature = (string) $request->query->get('signature', '');
-        $expires = (string) $request->query->get('expires', '');
+        $email = $request->query->get('email', '');
+        $signature = $request->query->get('signature', '');
+        $expires = $request->query->get('expires', '');
 
         try {
             $this->emailVerificationService->handleVerification($email, $signature, $expires);
@@ -337,13 +338,16 @@ final class AuthPageController extends AbstractController
         }
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function verifyNoticeView(string $state, string $email): array
     {
-        $state = $state ?: 'pending';
+        $state = '' !== $state ? $state : 'pending';
 
         $view = [
             'state' => $state,
-            'prefill' => $email !== '' ? ['email' => $email] : [],
+            'prefill' => '' !== $email ? ['email' => $email] : [],
             'hero' => [
                 'headline' => 'Potwierdź swój adres email',
                 'subcopy' => 'Kliknij w link aktywacyjny, aby dokończyć rejestrację.',
@@ -418,11 +422,17 @@ final class AuthPageController extends AbstractController
         };
     }
 
+    /**
+     * @return array{href: string, label: string}
+     */
     private function navToLogin(): array
     {
         return ['href' => '/login', 'label' => 'Masz już konto? Zaloguj się'];
     }
 
+    /**
+     * @return array{href: string, label: string}
+     */
     private function navToRegister(): array
     {
         return ['href' => '/register', 'label' => 'Nie masz konta? Zarejestruj się'];

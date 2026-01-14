@@ -17,12 +17,10 @@ final readonly class ListNotesQueryDto
         #[Assert\NotBlank]
         #[Assert\Positive]
         public int $page = self::DEFAULT_PAGE,
-
         #[Assert\NotBlank]
         #[Assert\Positive]
         #[Assert\LessThanOrEqual(self::MAX_PER_PAGE)]
         public int $perPage = self::DEFAULT_PER_PAGE,
-
         #[Assert\Length(max: 255)]
         public ?string $q = null,
 
@@ -35,9 +33,9 @@ final readonly class ListNotesQueryDto
             new Assert\Length(max: 64),
         ])]
         public array $labels = [],
-
         #[Assert\Choice(choices: ['owner', NoteVisibility::Public->value, NoteVisibility::Private->value, NoteVisibility::Draft->value, 'shared'])]
         #[Assert\Length(max: 16)]
         public string $visibility = 'owner',
-    ) {}
+    ) {
+    }
 }

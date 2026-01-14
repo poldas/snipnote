@@ -22,7 +22,8 @@ final class PublicUserNotesController extends AbstractController
         private readonly PublicNotesCatalogService $catalogService,
         private readonly PublicNoteJsonMapper $mapper,
         private readonly ValidatorInterface $validator,
-    ) {}
+    ) {
+    }
 
     #[Route('/{user_uuid}/notes', name: 'api_public_user_notes_list', methods: ['GET'])]
     public function list(Request $request, string $user_uuid): JsonResponse
@@ -45,7 +46,7 @@ final class PublicUserNotesController extends AbstractController
     private function validate(object $command): void
     {
         $violations = $this->validator->validate($command);
-        if ($violations->count() === 0) {
+        if (0 === $violations->count()) {
             return;
         }
 
@@ -65,9 +66,9 @@ final class PublicUserNotesController extends AbstractController
             return null;
         }
 
-        $trimmed = trim($value);
+        $trimmed = mb_trim($value);
 
-        return $trimmed === '' ? null : $trimmed;
+        return '' === $trimmed ? null : $trimmed;
     }
 
     /**
@@ -81,7 +82,7 @@ final class PublicUserNotesController extends AbstractController
         $candidates = array_merge($candidates, $labelsArray);
 
         $single = $request->query->get('label');
-        if ($single !== null) {
+        if (null !== $single) {
             $candidates[] = $single;
         }
 
@@ -91,7 +92,7 @@ final class PublicUserNotesController extends AbstractController
                 continue;
             }
             $normalized = $this->normalizeOptionalString($candidate);
-            if ($normalized !== null) {
+            if (null !== $normalized) {
                 $labels[] = $normalized;
             }
         }

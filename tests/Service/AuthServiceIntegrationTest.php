@@ -77,7 +77,7 @@ final class AuthServiceIntegrationTest extends KernelTestCase
         $this->entityManager->persist($existing);
         $this->entityManager->flush();
 
-        $this->expectException(ValidationException::class);
+        self::expectException(ValidationException::class);
         $this->service->register(new RegisterRequestDTO('dup@example.com', 'StrongPass1', true));
     }
 
@@ -102,7 +102,7 @@ final class AuthServiceIntegrationTest extends KernelTestCase
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
-        $this->expectException(AuthenticationException::class);
+        self::expectException(AuthenticationException::class);
         $this->service->login(new LoginRequestDTO('user@example.com', 'StrongPass1'));
     }
 
@@ -112,7 +112,7 @@ final class AuthServiceIntegrationTest extends KernelTestCase
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
-        $this->expectException(AuthenticationException::class);
+        self::expectException(AuthenticationException::class);
         $this->service->login(new LoginRequestDTO('user@example.com', 'bad'));
     }
 

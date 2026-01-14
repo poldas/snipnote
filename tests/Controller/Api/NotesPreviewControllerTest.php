@@ -52,15 +52,15 @@ final class NotesPreviewControllerTest extends TestCase
         $request = Request::create(
             '/api/notes/preview',
             'POST',
-            content: json_encode(['description' => '**bold**'], JSON_THROW_ON_ERROR),
+            content: json_encode(['description' => '**bold**'], \JSON_THROW_ON_ERROR),
             server: ['CONTENT_TYPE' => 'application/json']
         );
 
         $response = $controller->preview($request, new User('user@example.com', 'hash'));
 
         self::assertSame(Response::HTTP_OK, $response->getStatusCode());
-        $payload = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
-        self::assertSame('<p><strong>bold</strong></p>', trim($payload['data']['html']));
+        $payload = json_decode((string) $response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+        self::assertSame('<p><strong>bold</strong></p>', mb_trim($payload['data']['html']));
     }
 
     public function testPreviewValidatesInput(): void
@@ -70,11 +70,11 @@ final class NotesPreviewControllerTest extends TestCase
         $request = Request::create(
             '/api/notes/preview',
             'POST',
-            content: json_encode(['description' => ''], JSON_THROW_ON_ERROR),
+            content: json_encode(['description' => ''], \JSON_THROW_ON_ERROR),
             server: ['CONTENT_TYPE' => 'application/json']
         );
 
-        $this->expectException(ValidationException::class);
+        self::expectException(ValidationException::class);
         $controller->preview($request, new User('user@example.com', 'hash'));
     }
 
@@ -85,11 +85,11 @@ final class NotesPreviewControllerTest extends TestCase
         $request = Request::create(
             '/api/notes/preview',
             'POST',
-            content: json_encode(['description' => '**bold**'], JSON_THROW_ON_ERROR),
+            content: json_encode(['description' => '**bold**'], \JSON_THROW_ON_ERROR),
             server: ['CONTENT_TYPE' => 'text/plain']
         );
 
-        $this->expectException(UnsupportedMediaTypeHttpException::class);
+        self::expectException(UnsupportedMediaTypeHttpException::class);
         $controller->preview($request, new User('user@example.com', 'hash'));
     }
 
@@ -101,11 +101,11 @@ final class NotesPreviewControllerTest extends TestCase
         $request = Request::create(
             '/api/notes/preview',
             'POST',
-            content: json_encode(['description' => $tooLong], JSON_THROW_ON_ERROR),
+            content: json_encode(['description' => $tooLong], \JSON_THROW_ON_ERROR),
             server: ['CONTENT_TYPE' => 'application/json']
         );
 
-        $this->expectException(ValidationException::class);
+        self::expectException(ValidationException::class);
         $controller->preview($request, new User('user@example.com', 'hash'));
     }
 }

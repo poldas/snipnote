@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Service;
 
 use App\Command\Note\CreateNoteCommand;
-use App\Command\Note\UpdateNoteCommand;
 use App\Entity\Note;
 use App\Entity\NoteVisibility;
 use App\Entity\User;
@@ -16,29 +15,32 @@ use App\Service\NoteService;
 use Doctrine\DBAL\Exception\InvalidArgumentException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 final class NoteServiceTest extends TestCase
 {
-    private EntityManagerInterface $entityManager;
-    private NoteRepository $noteRepository;
-    private NoteCollaboratorRepository $collaboratorRepository;
+    private EntityManagerInterface&Stub $entityManager;
+    private NoteRepository&Stub $noteRepository;
+    private NoteCollaboratorRepository&Stub $collaboratorRepository;
 
     protected function setUp(): void
     {
-        $this->entityManager = $this->createStub(EntityManagerInterface::class);
-        $this->noteRepository = $this->createStub(NoteRepository::class);
-        $this->collaboratorRepository = $this->createStub(NoteCollaboratorRepository::class);
+        $this->entityManager = self::createStub(EntityManagerInterface::class);
+        $this->noteRepository = self::createStub(NoteRepository::class);
+        $this->collaboratorRepository = self::createStub(NoteCollaboratorRepository::class);
     }
 
     public function testCreateNoteRetriesOnUuidCollision(): void
     {
         $owner = new User('owner@example.com', 'hash');
         $command = new CreateNoteCommand('t', 'd');
-        $driverException = $this->createStub(\Doctrine\DBAL\Driver\Exception::class);
+        $driverException = self::createStub(\Doctrine\DBAL\Driver\Exception::class);
 
+        /** @var EntityManagerInterface&MockObject $entityManager */
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager
             ->expects(self::exactly(2))
@@ -72,8 +74,9 @@ final class NoteServiceTest extends TestCase
     {
         $owner = new User('owner@example.com', 'hash');
         $command = new CreateNoteCommand('t', 'd');
-        $driverException = $this->createStub(\Doctrine\DBAL\Driver\Exception::class);
+        $driverException = self::createStub(\Doctrine\DBAL\Driver\Exception::class);
 
+        /** @var EntityManagerInterface&MockObject $entityManager */
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager
             ->method('persist')
@@ -93,7 +96,7 @@ final class NoteServiceTest extends TestCase
             $this->collaboratorRepository,
         );
 
-        $this->expectException(UuidCollisionException::class);
+        self::expectException(UuidCollisionException::class);
         $service->createNote($owner, $command);
     }
 
@@ -111,7 +114,7 @@ final class NoteServiceTest extends TestCase
             $this->collaboratorRepository,
         );
 
-        $this->expectException(AccessDeniedException::class);
+        self::expectException(AccessDeniedException::class);
         $service->getNoteById(1, $other);
     }
 
@@ -131,7 +134,7 @@ final class NoteServiceTest extends TestCase
             $this->collaboratorRepository,
         );
 
-        $this->expectException(NotFoundHttpException::class);
+        self::expectException(NotFoundHttpException::class);
         $service->getPublicNoteByToken('uuid');
     }
 
@@ -150,7 +153,7 @@ final class NoteServiceTest extends TestCase
             $this->collaboratorRepository,
         );
 
-        $this->expectException(NotFoundHttpException::class);
+        self::expectException(NotFoundHttpException::class);
         $service->getPublicNoteByToken('not-a-valid-uuid');
     }
 
@@ -229,7 +232,9 @@ final class NoteServiceTest extends TestCase
     public function testDeleteNoteRequiresOwner(): void
     {
         $owner = new User('owner@example.com', 'hash');
+        $this->setId($owner, 1);
         $other = new User('other@example.com', 'hash');
+        $this->setId($other, 2);
         $note = new Note($owner, 't', 'd');
 
         $this->noteRepository->method('find')->willReturn($note);
@@ -240,7 +245,14 @@ final class NoteServiceTest extends TestCase
             $this->collaboratorRepository,
         );
 
-        $this->expectException(AccessDeniedException::class);
+        self::expectException(AccessDeniedException::class);
         $service->deleteNote(1, $other);
+    }
+
+    private function setId(object $entity, int $id): void
+    {
+        $reflection = new \ReflectionClass($entity);
+        $property = $reflection->getProperty('id');
+        $property->setValue($entity, $id);
     }
 }

@@ -7,7 +7,6 @@ namespace App\Controller\Api;
 use App\Command\Collaborator\AddCollaboratorCommand;
 use App\Command\Collaborator\RemoveCollaboratorByEmailCommand;
 use App\Command\Collaborator\RemoveCollaboratorByIdCommand;
-use App\DTO\Collaborator\CollaboratorCollectionDto;
 use App\DTO\Collaborator\NoteCollaboratorDto;
 use App\Entity\User;
 use App\Exception\ValidationException;
@@ -28,7 +27,8 @@ final class NoteCollaboratorController extends AbstractController
     public function __construct(
         private readonly NoteCollaboratorService $service,
         private readonly ValidatorInterface $validator,
-    ) {}
+    ) {
+    }
 
     #[Route('/{noteId<\d+>}/collaborators', name: 'api_notes_collaborators_add', methods: ['POST'])]
     public function add(int $noteId, Request $request, #[CurrentUser] ?User $user): JsonResponse
@@ -99,7 +99,7 @@ final class NoteCollaboratorController extends AbstractController
 
         return new JsonResponse([
             'data' => array_map(
-                fn(NoteCollaboratorDto $collaborator): array => $this->collaboratorToArray($collaborator),
+                fn (NoteCollaboratorDto $collaborator): array => $this->collaboratorToArray($collaborator),
                 $collection->collaborators
             ),
         ], JsonResponse::HTTP_OK);
@@ -114,11 +114,14 @@ final class NoteCollaboratorController extends AbstractController
         return $user;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function decodeJson(Request $request): array
     {
         $decoded = json_decode($request->getContent(), true);
 
-        if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
+        if (null === $decoded && \JSON_ERROR_NONE !== json_last_error()) {
             throw new ValidationException(['_request' => ['Invalid JSON payload']]);
         }
 
@@ -128,7 +131,7 @@ final class NoteCollaboratorController extends AbstractController
     private function validate(object $command): void
     {
         $violations = $this->validator->validate($command);
-        if ($violations->count() === 0) {
+        if (0 === $violations->count()) {
             return;
         }
 
@@ -142,6 +145,9 @@ final class NoteCollaboratorController extends AbstractController
         throw new ValidationException($errors);
     }
 
+    /**
+     * @return array{id: int, note_id: int, email: string, user_id: int|null, created_at: string}
+     */
     private function collaboratorToArray(NoteCollaboratorDto $dto): array
     {
         return [
@@ -153,5 +159,3 @@ final class NoteCollaboratorController extends AbstractController
         ];
     }
 }
-
-

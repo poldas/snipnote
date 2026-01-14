@@ -13,5 +13,6 @@ final readonly class PublicNotesQuery
         public ?string $search,
         /** @var list<string> */
         public array $labels,
-    ) {}
+    ) {
+    }
 }

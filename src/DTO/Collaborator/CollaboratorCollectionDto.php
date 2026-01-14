@@ -12,7 +12,6 @@ final readonly class CollaboratorCollectionDto
     public function __construct(
         public int $noteId,
         public array $collaborators,
-    ) {}
+    ) {
+    }
 }
-
-

@@ -28,10 +28,10 @@ final class PublicUserNotesControllerTest extends TestCase
             ->expects(self::once())
             ->method('getPublicNotes')
             ->with(self::callback(static function (PublicNotesQueryDto $dto): bool {
-                return $dto->userUuid === '550e8400-e29b-41d4-a716-446655440000'
-                    && $dto->page === 2
-                    && $dto->perPage === 5
-                    && $dto->searchQuery === 'hello'
+                return '550e8400-e29b-41d4-a716-446655440000' === $dto->userUuid
+                    && 2 === $dto->page
+                    && 5 === $dto->perPage
+                    && 'hello' === $dto->searchQuery
                     && $dto->labels === ['demo', 'kod'];
             }))
             ->willReturn(new PublicNoteListResponseDto(
@@ -47,7 +47,7 @@ final class PublicUserNotesControllerTest extends TestCase
                 meta: new PublicNotesPaginationMetaDto(page: 2, perPage: 5, totalItems: 10, totalPages: 2),
             ));
 
-        $validator = $this->createStub(ValidatorInterface::class);
+        $validator = self::createStub(ValidatorInterface::class);
         $validator->method('validate')->willReturn(new ConstraintViolationList());
 
         $mapper = new PublicNoteJsonMapper();
@@ -63,7 +63,7 @@ final class PublicUserNotesControllerTest extends TestCase
         $response = $controller->list($request, '550e8400-e29b-41d4-a716-446655440000');
 
         self::assertSame(Response::HTTP_OK, $response->getStatusCode());
-        $payload = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $payload = json_decode((string) $response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
         self::assertSame('Title', $payload['data'][0]['title']);
         self::assertSame('Excerpt', $payload['data'][0]['description_excerpt']);
         self::assertSame(['work'], $payload['data'][0]['labels']);
@@ -76,11 +76,11 @@ final class PublicUserNotesControllerTest extends TestCase
 
     public function testValidationExceptionOnInvalidParams(): void
     {
-        $service = $this->createStub(PublicNotesCatalogService::class);
+        $service = self::createStub(PublicNotesCatalogService::class);
         $violations = new ConstraintViolationList([
             new ConstraintViolation('Invalid', null, [], null, 'page', null),
         ]);
-        $validator = $this->createStub(ValidatorInterface::class);
+        $validator = self::createStub(ValidatorInterface::class);
         $validator->method('validate')->willReturn($violations);
 
         $mapper = new PublicNoteJsonMapper();
@@ -88,7 +88,7 @@ final class PublicUserNotesControllerTest extends TestCase
 
         $request = new Request(query: ['page' => 0]);
 
-        $this->expectException(ValidationException::class);
+        self::expectException(ValidationException::class);
 
         $controller->list($request, '550e8400-e29b-41d4-a716-446655440000');
     }

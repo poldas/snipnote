@@ -58,7 +58,7 @@ final class MarkdownPreviewServiceTest extends TestCase
 
         self::assertStringNotContainsString($unexpected, $response->html, "Security check failed: Found unexpected '$unexpected' in output.");
 
-        if ($expected) {
+        if (null !== $expected) {
             self::assertStringContainsString($expected, $response->html);
         }
     }
@@ -72,19 +72,19 @@ final class MarkdownPreviewServiceTest extends TestCase
 
         yield 'script_tag' => [
             '<script>alert(1)</script>',
-            '<script>'
+            '<script>',
         ];
 
         yield 'img_onerror' => [
             '<img src="http://example.com/x.jpg" onerror=alert(1)>',
             'onerror',
-            '<img src="http://example.com/x.jpg"' // Basic validation that img tag remains but attribute is gone
+            '<img src="http://example.com/x.jpg"', // Basic validation that img tag remains but attribute is gone
         ];
 
         yield 'javascript_link' => [
             '[Click me](javascript:alert(1))',
             'javascript:',
-            '<a>Click me</a>' // Sanitizer typically strips the href if invalid scheme, leaving the tag or stripping the tag depending on config. 
+            '<a>Click me</a>', // Sanitizer typically strips the href if invalid scheme, leaving the tag or stripping the tag depending on config.
             // With current config, it might strip the href attribute.
         ];
 
@@ -95,33 +95,33 @@ final class MarkdownPreviewServiceTest extends TestCase
 
         yield 'iframe_injection' => [
             '<iframe src="https://malicious.com"></iframe>',
-            '<iframe'
+            '<iframe',
         ];
 
         yield 'object_injection' => [
             '<object data="something"></object>',
-            '<object'
+            '<object',
         ];
 
         yield 'embed_injection' => [
             '<embed src="something">',
-            '<embed'
+            '<embed',
         ];
 
         yield 'style_tag' => [
             '<style>body { display: none; }</style>',
-            '<style>'
+            '<style>',
         ];
 
         yield 'form_injection' => [
             '<form action="https://evil.com"><input type="submit"></form>',
-            '<form'
+            '<form',
         ];
 
         yield 'onclick_attribute' => [
             '<a href="http://example.com" onclick="stealCookies()">Link</a>',
             'onclick',
-            '<a href="http://example.com">Link</a>'
+            '<a href="http://example.com">Link</a>',
         ];
     }
 }

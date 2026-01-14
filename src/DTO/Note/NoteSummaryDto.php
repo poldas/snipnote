@@ -18,6 +18,6 @@ final readonly class NoteSummaryDto
         public string $visibility,
         public \DateTimeImmutable $createdAt,
         public \DateTimeImmutable $updatedAt,
-    ) {}
+    ) {
+    }
 }
-

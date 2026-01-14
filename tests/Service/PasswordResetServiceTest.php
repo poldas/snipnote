@@ -22,7 +22,7 @@ class PasswordResetServiceTest extends TestCase
         $user->method('getEmail')->willReturn('test@example.com');
         $user->expects($this->once())->method('setResetToken');
 
-        $userRepository = $this->createStub(UserRepository::class);
+        $userRepository = self::createStub(UserRepository::class);
         $userRepository->method('findOneByEmailCaseInsensitive')->willReturn($user);
 
         $entityManager = $this->createMock(EntityManagerInterface::class);
@@ -31,11 +31,11 @@ class PasswordResetServiceTest extends TestCase
         $mailer = $this->createMock(MailerInterface::class);
         $mailer->expects($this->once())->method('send');
 
-        $urlGenerator = $this->createStub(UrlGeneratorInterface::class);
+        $urlGenerator = self::createStub(UrlGeneratorInterface::class);
         $urlGenerator->method('generate')->willReturn('http://localhost/reset-password/token');
 
-        $passwordHasherFactory = $this->createStub(PasswordHasherFactoryInterface::class);
-        $logger = $this->createStub(LoggerInterface::class);
+        $passwordHasherFactory = self::createStub(PasswordHasherFactoryInterface::class);
+        $logger = self::createStub(LoggerInterface::class);
 
         $service = new PasswordResetService(
             $userRepository,
@@ -52,7 +52,7 @@ class PasswordResetServiceTest extends TestCase
 
     public function testRequestPasswordResetDoesNothingIfUserNotFound(): void
     {
-        $userRepository = $this->createStub(UserRepository::class);
+        $userRepository = self::createStub(UserRepository::class);
         $userRepository->method('findOneByEmailCaseInsensitive')->willReturn(null);
 
         $entityManager = $this->createMock(EntityManagerInterface::class);
@@ -65,9 +65,9 @@ class PasswordResetServiceTest extends TestCase
             $userRepository,
             $entityManager,
             $mailer,
-            $this->createStub(UrlGeneratorInterface::class),
-            $this->createStub(PasswordHasherFactoryInterface::class),
-            $this->createStub(LoggerInterface::class),
+            self::createStub(UrlGeneratorInterface::class),
+            self::createStub(PasswordHasherFactoryInterface::class),
+            self::createStub(LoggerInterface::class),
             'no-reply@example.com'
         );
 
@@ -80,7 +80,7 @@ class PasswordResetServiceTest extends TestCase
         $user->expects($this->once())->method('setPasswordHash')->with('new_hashed_password');
         $user->expects($this->once())->method('clearResetToken');
 
-        $userRepository = $this->createStub(UserRepository::class);
+        $userRepository = self::createStub(UserRepository::class);
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects($this->once())->method('flush');
 
@@ -88,15 +88,15 @@ class PasswordResetServiceTest extends TestCase
         $mailer = $this->createMock(MailerInterface::class);
         $mailer->expects(self::never())->method('send');
 
-        $urlGenerator = $this->createStub(UrlGeneratorInterface::class);
-        
-        $passwordHasher = $this->createStub(\Symfony\Component\PasswordHasher\PasswordHasherInterface::class);
+        $urlGenerator = self::createStub(UrlGeneratorInterface::class);
+
+        $passwordHasher = self::createStub(\Symfony\Component\PasswordHasher\PasswordHasherInterface::class);
         $passwordHasher->method('hash')->willReturn('new_hashed_password');
 
-        $passwordHasherFactory = $this->createStub(PasswordHasherFactoryInterface::class);
+        $passwordHasherFactory = self::createStub(PasswordHasherFactoryInterface::class);
         $passwordHasherFactory->method('getPasswordHasher')->willReturn($passwordHasher);
 
-        $logger = $this->createStub(LoggerInterface::class);
+        $logger = self::createStub(LoggerInterface::class);
 
         $service = new PasswordResetService(
             $userRepository,

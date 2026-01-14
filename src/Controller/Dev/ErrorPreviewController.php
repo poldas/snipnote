@@ -6,7 +6,6 @@ namespace App\Controller\Dev;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
 
 /**
  * Controller for previewing error pages during development.
