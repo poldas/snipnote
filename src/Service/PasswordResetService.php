@@ -15,7 +15,7 @@ use Symfony\Component\Mime\Address;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
-final class PasswordResetService
+class PasswordResetService
 {
     private const TOKEN_TTL_SECONDS = 3600; // 1h
 
@@ -28,19 +28,23 @@ final class PasswordResetService
         private readonly LoggerInterface $logger,
         #[Autowire('%env(default::MAILER_FROM)%')]
         private readonly string $mailerFrom,
-    ) {}
+    ) {
+    }
 
     public function requestPasswordReset(string $email): void
     {
         $user = $this->userRepository->findOneByEmailCaseInsensitive($email);
 
         // Security: Always return "success" to avoid enumerating users, but only act if user exists.
-        if ($user === null) {
+        if (null === $user) {
+            // Perform a dummy operation to consume time similar to token generation and DB update
+            hash_hmac('sha256', random_bytes(32), 'dummy_secret');
+
             return;
         }
 
         $token = bin2hex(random_bytes(32));
-        $expiresAt = (new \DateTimeImmutable())->modify(sprintf('+%d seconds', self::TOKEN_TTL_SECONDS));
+        $expiresAt = (new \DateTimeImmutable())->modify(\sprintf('+%d seconds', self::TOKEN_TTL_SECONDS));
 
         $user->setResetToken($token, $expiresAt);
         $this->entityManager->flush();
@@ -50,13 +54,13 @@ final class PasswordResetService
 
     public function validateToken(string $token): ?User
     {
-        if ($token === '') {
+        if ('' === $token) {
             return null;
         }
 
         $user = $this->userRepository->findOneBy(['resetToken' => $token]);
 
-        if ($user === null) {
+        if (null === $user) {
             return null;
         }
 
@@ -74,7 +78,7 @@ final class PasswordResetService
 
         $user->setPasswordHash($hashedPassword);
         $user->clearResetToken();
-        
+
         $this->entityManager->flush();
     }
 
@@ -87,7 +91,7 @@ final class PasswordResetService
         );
 
         $message = (new TemplatedEmail())
-            ->from(new Address($this->mailerFrom ?: 'no-reply@snipnote.local', 'Snipnote'))
+            ->from(new Address('' !== $this->mailerFrom ? $this->mailerFrom : 'no-reply@snipnote.local', 'Snipnote'))
             ->to($user->getEmail())
             ->subject('Zresetuj swoje hasło | Snipnote')
             ->htmlTemplate('emails/password_reset.html.twig')
@@ -97,7 +101,7 @@ final class PasswordResetService
 
         try {
             $this->mailer->send($message);
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('Failed to send password reset email', [
                 'email' => $user->getEmail(),
                 'error' => $e->getMessage(),

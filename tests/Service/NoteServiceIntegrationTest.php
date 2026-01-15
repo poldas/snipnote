@@ -101,7 +101,7 @@ final class NoteServiceIntegrationTest extends KernelTestCase
 
         $this->entityManager->clear();
 
-        $this->expectException(AccessDeniedException::class);
+        self::expectException(AccessDeniedException::class);
         $this->noteService->getNoteById($note->getId(), $outsider);
     }
 
@@ -124,7 +124,7 @@ final class NoteServiceIntegrationTest extends KernelTestCase
         $resolved = $this->noteService->getPublicNoteByToken($public->getUrlToken());
         self::assertSame('Public note', $resolved->getTitle());
 
-        $this->expectException(NotFoundHttpException::class);
+        self::expectException(NotFoundHttpException::class);
         $this->noteService->getPublicNoteByToken($private->getUrlToken());
     }
 
@@ -145,19 +145,16 @@ final class NoteServiceIntegrationTest extends KernelTestCase
 
     public function testGetNotePreviewDeniesOutsider(): void
     {
-        $owner = $this->persistUser('owner@example.com');
-        $outsider = $this->persistUser('outsider@example.com');
-
-        $private = $this->noteService->createNote($owner, new CreateNoteCommand(
-            title: 'Private note',
-            description: 'Hidden',
-            visibility: 'private',
+        $owner = $this->persistUser('owner@test.com');
+        $outsider = $this->persistUser('outsider@test.com');
+        $note = $this->noteService->createNote($owner, new CreateNoteCommand(
+            title: 'Private',
+            description: 'Content',
+            visibility: 'private'
         ));
 
-        $this->entityManager->clear();
-
-        $this->expectException(NotFoundHttpException::class);
-        $this->noteService->getNotePreview($private->getUrlToken(), $outsider);
+        self::expectException(AccessDeniedException::class);
+        $this->noteService->getNotePreview($note->getUrlToken(), $outsider);
     }
 
     public function testGetNotePreviewAllowsPublicNoteForGuest(): void

@@ -39,8 +39,9 @@ final class SendAllTestEmailsCommand extends Command
         $email = (string) $input->getArgument('email');
 
         $user = $this->userRepository->findOneByEmailCaseInsensitive($email);
-        if ($user === null) {
-            $io->error(sprintf('Użytkownik %s nie istnieje.', $email));
+        if (null === $user) {
+            $io->error(\sprintf('Użytkownik %s nie istnieje.', $email));
+
             return Command::FAILURE;
         }
 
@@ -48,7 +49,7 @@ final class SendAllTestEmailsCommand extends Command
 
         $io->text('1. Wysyłka maila weryfikacyjnego...');
         $this->verificationService->sendForEmail($email);
-        
+
         $io->text('2. Wysyłka maila resetu hasła...');
         $this->passwordResetService->requestPasswordReset($email);
 

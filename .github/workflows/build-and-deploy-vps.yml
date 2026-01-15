@@ -3,8 +3,13 @@ name: Build & Deploy on VPS
 on:
   push:
     branches:
-      - main
       - deploy
+  workflow_run:
+    workflows: ["CI / E2E Tests / Linting"]
+    types:
+      - completed
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -14,6 +19,7 @@ permissions:
 jobs:
   build-push:
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4

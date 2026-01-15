@@ -26,7 +26,23 @@ export class VerifyNoticePage {
     async expectFormElements() {
         await expect(this.page.getByLabel('Adres email')).toBeVisible();
         await expect(this.page.getByRole('button', { name: 'Wyślij ponownie link' })).toBeVisible();
+        await expect(this.page.getByTestId('resend-verification-button')).toBeVisible();
         await expect(this.page.getByRole('link', { name: 'Wróć do logowania' })).toBeVisible();
+    }
+
+    async clickResendVerificationButton() {
+        await this.page.getByTestId('resend-verification-button').click();
+    }
+
+    async expectRateLimitAlert() {
+        await expect(this.page.getByTestId('rate-limit-alert')).toBeVisible();
+        await expect(this.page.getByTestId('rate-limit-alert')).toContainText('Zbyt wiele prób wysłania linku. Spróbuj ponownie później.');
+    }
+
+    async expectSuccessAlert() {
+        // Wait for all network requests to complete, to ensure the page is fully rendered
+        await this.page.waitForLoadState('networkidle');
+        await expect(this.page.getByText('Nowy link weryfikacyjny został wysłany.')).toBeVisible();
     }
 
     async clickBackToLogin() {

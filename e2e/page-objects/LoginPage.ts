@@ -13,7 +13,7 @@ export class LoginPage {
 
     async expectPageLoaded() {
         await expect(this.page.getByRole('heading', { name: 'Wróć do swoich notatek' })).toBeVisible();
-        await expect(this.page.getByLabel('Email')).toBeVisible();
+        await expect(this.page.getByLabel('Adres email')).toBeVisible();
         await expect(this.page.getByLabel('Hasło')).toBeVisible();
         await expect(this.page.getByRole('button', { name: 'Zaloguj się' })).toBeVisible();
     }
@@ -40,17 +40,27 @@ export class LoginPage {
     }
 
     async fillLoginForm(email: string, password: string) {
-        await this.page.getByLabel('Email').fill(email);
+        await this.page.getByLabel('Adres email').fill(email);
         await this.page.getByLabel('Hasło').fill(password);
     }
 
     async submitLoginForm() {
+        // Click the submit button instead of programmatic submit for better compatibility
         await this.page.getByRole('button', { name: 'Zaloguj się' }).click();
     }
 
     async login(email: string, password: string) {
         await this.fillLoginForm(email, password);
+
+        // Listen for network responses to catch authentication issues (silent mode)
+        const responsePromise = this.page.waitForResponse(response =>
+            response.url().includes('/login') && response.request().method() === 'POST'
+        ).catch(() => null); // Don't fail if response not captured
+
         await this.submitLoginForm();
+
+        // Wait for potential redirect or page load
+        await this.page.waitForTimeout(2000);
     }
 
     async expectLoginSuccess() {
@@ -67,6 +77,8 @@ export class LoginPage {
                 this.page.getByText('Błąd logowania')
             ).or(
                 this.page.getByText('Nieprawidłowe dane logowania')
+            ).or(
+                this.page.getByText('Nieprawidłowy adres email lub hasło')
             )
         ).toBeVisible();
     }

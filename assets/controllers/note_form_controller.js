@@ -43,6 +43,7 @@ export default class extends Controller {
         }, 0);
 
         announce('Formularz notatki gotowy do wypełnienia');
+        this.element.setAttribute('data-note-form-ready', 'true');
     }
 
     disconnect() {
@@ -222,7 +223,7 @@ export default class extends Controller {
         }
         if (field === 'description') {
             if (!value.trim()) errors.push('Opis jest wymagany');
-            if (value.length > 10000) errors.push('Opis nie może przekraczać 10000 znaków');
+            if (value.length > 100000) errors.push('Opis nie może przekraczać 100000 znaków');
         }
         if (field === 'visibility' && !['private', 'public', 'draft'].includes(value)) {
             errors.push('Nieprawidłowa widoczność');
@@ -269,10 +270,10 @@ export default class extends Controller {
 
     showGlobalErrors(errors) {
         if (!this.elements.formErrors || !this.elements.errorList) return;
-        
+
         // Clear list safely
         this.elements.errorList.textContent = '';
-        
+
         const allErrors = [];
         Object.values(errors).forEach((messages) => {
             if (Array.isArray(messages)) {
@@ -311,9 +312,9 @@ export default class extends Controller {
     updateDescriptionCounter() {
         if (!this.elements.descriptionCounter) return;
         const length = this.state.description.length;
-        this.elements.descriptionCounter.textContent = `${length} / 10000`;
-        this.elements.descriptionCounter.classList.toggle('text-red-600', length > 10000);
-        this.elements.descriptionCounter.classList.toggle('font-semibold', length > 10000);
+        this.elements.descriptionCounter.textContent = `${length} / 100000`;
+        this.elements.descriptionCounter.classList.toggle('text-red-600', length > 100000);
+        this.elements.descriptionCounter.classList.toggle('font-semibold', length > 100000);
     }
 
     deduplicateLabels(labels) {
@@ -351,7 +352,7 @@ export default class extends Controller {
 
     renderTags() {
         if (!this.elements.tagsContainer) return;
-        
+
         // Clear container safely
         this.elements.tagsContainer.textContent = '';
 
@@ -367,6 +368,7 @@ export default class extends Controller {
             const span = document.createElement('span');
             span.className = 'inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-100 text-indigo-800 rounded-lg text-sm font-medium border border-indigo-200';
             span.setAttribute('role', 'listitem');
+            span.setAttribute('data-testid', 'tag-chip');
 
             const labelText = document.createElement('span');
             labelText.textContent = label;
@@ -374,6 +376,7 @@ export default class extends Controller {
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.setAttribute('data-remove-tag', index.toString());
+            btn.setAttribute('data-testid', 'tag-remove-btn');
             btn.setAttribute('aria-label', `Usuń etykietę ${label}`);
             btn.className = 'text-indigo-600 hover:text-indigo-900 font-bold';
             btn.textContent = '✕';
@@ -442,7 +445,7 @@ export default class extends Controller {
             Object.entries(validation.errors).forEach(([field, messages]) => this.showFieldError(field, messages));
             this.showGlobalErrors(validation.errors);
             announce('Formularz zawiera błędy. Popraw je przed zapisaniem.');
-            
+
             // Smooth scroll to the top of the form where errors are displayed
             this.elements.form.scrollIntoView({ behavior: 'smooth', block: 'start' });
             return;

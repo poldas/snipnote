@@ -46,29 +46,8 @@ body::before {
 
 main.public-note {
     min-height: 100vh;
-    padding: 64px 16px;
     position: relative;
     z-index: 1;
-}
-
-@media (min-width: 640px) {
-    main.public-note {
-        padding: 96px 24px;
-    }
-}
-
-.public-note__container {
-    position: relative;
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 0 8px;
-}
-
-.pn-shell {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    align-items: center;
 }
 
 .pn-card {
@@ -81,6 +60,12 @@ main.public-note {
     backdrop-filter: blur(10px);
     position: relative;
     overflow: hidden;
+}
+
+@media (max-width: 640px) {
+    .pn-card {
+        padding: 28px;
+    }
 }
 
 .pn-card::before {

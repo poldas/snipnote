@@ -1,9 +1,5 @@
 # yaml-language-server: $schema=../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
 
-# This file is the entry point to configure your own services.
-# Files in the packages/ subdirectory configure your dependencies.
-# See also https://symfony.com/doc/current/service_container/import.html
-
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
@@ -19,22 +15,8 @@ services:
     App\:
         resource: '../src/'
 
-    League\CommonMark\Environment\Environment:
-        class: League\CommonMark\Environment\Environment
-        arguments:
-            - { }
-        calls:
-            - [addExtension, ['@League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension']]
-
-    League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension: ~
-
-    League\CommonMark\MarkdownConverter:
-        class: League\CommonMark\MarkdownConverter
-        arguments:
-            - '@League\CommonMark\Environment\Environment'
-
-    League\CommonMark\ConverterInterface: '@League\CommonMark\MarkdownConverter'
+    # Global interface aliasing
     Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface: '@html_sanitizer.sanitizer.markdown'
 
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
+    # AssetMapper tweaks
+    Symfony\Component\AssetMapper\ImportMap\ImportMapRenderer: '@asset_mapper.importmap.renderer'

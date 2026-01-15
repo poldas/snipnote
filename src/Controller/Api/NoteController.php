@@ -31,7 +31,8 @@ final class NoteController extends AbstractController
         private readonly NoteService $noteService,
         private readonly NotesQueryService $notesQueryService,
         private readonly ValidatorInterface $validator,
-    ) {}
+    ) {
+    }
 
     #[Route('', name: 'api_notes_list', methods: ['GET'])]
     public function list(Request $request, #[CurrentUser] ?User $user): JsonResponse
@@ -39,11 +40,11 @@ final class NoteController extends AbstractController
         $requester = $this->requireUser($user);
 
         $dto = new ListNotesQueryDto(
-            page: (int) $request->query->get('page', ListNotesQueryDto::DEFAULT_PAGE),
-            perPage: (int) $request->query->get('per_page', ListNotesQueryDto::DEFAULT_PER_PAGE),
+            page: (int) $request->query->get('page', (string) ListNotesQueryDto::DEFAULT_PAGE),
+            perPage: (int) $request->query->get('per_page', (string) ListNotesQueryDto::DEFAULT_PER_PAGE),
             q: $request->query->get('q'),
             labels: $this->extractLabels($request),
-            visibility: (string) $request->query->get('visibility', 'owner'),
+            visibility: $request->query->get('visibility', 'owner'),
         );
 
         $this->validate($dto);
@@ -53,14 +54,14 @@ final class NoteController extends AbstractController
             page: $dto->page,
             perPage: $dto->perPage,
             q: $dto->q,
-            labels: array_values($dto->labels),
+            labels: $dto->labels,
             visibility: $dto->visibility,
         );
 
         $response = $this->notesQueryService->listOwnedNotes($query);
 
         return new JsonResponse([
-            'data' => array_map(fn(NoteSummaryDto $note): array => $this->noteSummaryToArray($note), $response->data),
+            'data' => array_map(fn (NoteSummaryDto $note): array => $this->noteSummaryToArray($note), $response->data),
             'meta' => [
                 'page' => $response->meta->page,
                 'per_page' => $response->meta->perPage,
@@ -76,10 +77,10 @@ final class NoteController extends AbstractController
         $payload = $this->decodeJson($request);
 
         $command = new CreateNoteCommand(
-            title: (string) ($payload['title'] ?? ''),
-            description: (string) ($payload['description'] ?? ''),
-            labels: \is_array($payload['labels'] ?? null) ? $payload['labels'] : [],
-            visibility: (string) ($payload['visibility'] ?? 'private'),
+            title: $payload['title'] ?? '',
+            description: $payload['description'] ?? '',
+            labels: $payload['labels'] ?? [],
+            visibility: $payload['visibility'] ?? 'private',
         );
 
         $this->validate($command);
@@ -105,10 +106,10 @@ final class NoteController extends AbstractController
         $payload = $this->decodeJson($request);
 
         $command = new UpdateNoteCommand(
-            title: array_key_exists('title', $payload) ? (string) $payload['title'] : null,
-            description: array_key_exists('description', $payload) ? (string) $payload['description'] : null,
-            labels: array_key_exists('labels', $payload) && \is_array($payload['labels']) ? $payload['labels'] : null,
-            visibility: array_key_exists('visibility', $payload) ? (string) $payload['visibility'] : null,
+            title: $payload['title'] ?? null,
+            description: $payload['description'] ?? null,
+            labels: $payload['labels'] ?? null,
+            visibility: $payload['visibility'] ?? null,
         );
 
         $this->validate($command);
@@ -136,11 +137,14 @@ final class NoteController extends AbstractController
         return $user;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function decodeJson(Request $request): array
     {
         $decoded = json_decode($request->getContent(), true);
 
-        if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
+        if (null === $decoded && \JSON_ERROR_NONE !== json_last_error()) {
             throw new ValidationException(['_request' => ['Invalid JSON payload']]);
         }
 
@@ -150,7 +154,7 @@ final class NoteController extends AbstractController
     private function validate(object $command): void
     {
         $violations = $this->validator->validate($command);
-        if ($violations->count() === 0) {
+        if (0 === $violations->count()) {
             return;
         }
 
@@ -187,11 +191,14 @@ final class NoteController extends AbstractController
         $all = $request->query->all();
         $raw = $all['label'] ?? $request->query->get('label');
 
-        $labels = \is_array($raw) ? $raw : ($raw !== null ? [$raw] : []);
+        $labels = \is_array($raw) ? $raw : (null !== $raw ? [$raw] : []);
 
-        return array_values(array_filter($labels, static fn($value): bool => \is_string($value) && $value !== ''));
+        return array_values(array_filter($labels, static fn ($value): bool => \is_string($value) && '' !== $value));
     }
 
+    /**
+     * @return array{id: int, url_token: string, title: string, description: string, labels: list<string>, visibility: string, created_at: string, updated_at: string}
+     */
     private function noteSummaryToArray(NoteSummaryDto $note): array
     {
         return [

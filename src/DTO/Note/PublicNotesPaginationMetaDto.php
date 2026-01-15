@@ -11,6 +11,6 @@ final readonly class PublicNotesPaginationMetaDto
         public int $perPage,
         public int $totalItems,
         public int $totalPages,
-    ) {}
+    ) {
+    }
 }
-

@@ -17,6 +17,7 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Uid\Uuid;
 
 class NoteService
 {
@@ -26,14 +27,15 @@ class NoteService
         private readonly EntityManagerInterface $entityManager,
         private readonly NoteRepository $noteRepository,
         private readonly NoteCollaboratorRepository $collaboratorRepository,
-    ) {}
+    ) {
+    }
 
     public function createNote(User $owner, CreateNoteCommand $command): Note
     {
-        $labels = array_values($command->labels);
+        $labels = $command->labels;
         $visibility = NoteVisibility::from($command->visibility);
 
-        for ($attempt = 1; $attempt <= self::MAX_UUID_ATTEMPTS; $attempt++) {
+        for ($attempt = 1; $attempt <= self::MAX_UUID_ATTEMPTS; ++$attempt) {
             try {
                 $note = new Note(
                     owner: $owner,
@@ -42,14 +44,14 @@ class NoteService
                     labels: $labels,
                     visibility: $visibility,
                 );
-                $note->setUrlToken($this->generateUuidV4());
+                $note->setUrlToken(Uuid::v4()->toRfc4122());
 
                 $this->entityManager->persist($note);
                 $this->entityManager->flush();
 
                 return $note;
             } catch (UniqueConstraintViolationException $exception) {
-                if ($attempt === self::MAX_UUID_ATTEMPTS) {
+                if (self::MAX_UUID_ATTEMPTS === $attempt) {
                     throw new UuidCollisionException('UUID generation failed after retries', $exception->getCode(), $exception);
                 }
 
@@ -57,13 +59,13 @@ class NoteService
             }
         }
 
-        throw new RuntimeException('Failed to create note after retries');
+        throw new \RuntimeException('Failed to create note after retries');
     }
 
     public function getNoteById(int $id, User $requester): Note
     {
         $note = $this->noteRepository->find($id);
-        if ($note === null) {
+        if (null === $note) {
             throw new NotFoundHttpException('Note not found');
         }
 
@@ -82,7 +84,7 @@ class NoteService
             throw new NotFoundHttpException('Note not found', $exception);
         }
 
-        if ($note === null) {
+        if (null === $note) {
             throw new NotFoundHttpException('Note not found');
         }
 
@@ -97,21 +99,24 @@ class NoteService
             throw new NotFoundHttpException('Note not found', $exception);
         }
 
-        if ($note === null) {
+        if (null === $note) {
             throw new NotFoundHttpException('Note not found');
         }
 
-        if ($note->getVisibility() === NoteVisibility::Draft) {
+        if (NoteVisibility::Draft === $note->getVisibility()) {
             throw new NotFoundHttpException('Note not found');
         }
 
-        if ($note->getVisibility() === NoteVisibility::Public) {
+        if (NoteVisibility::Public === $note->getVisibility()) {
             return $note;
         }
 
         // Private note handling
-        if ($user !== null && $this->isOwnerOrCollaborator($note, $user)) {
-            return $note;
+        if (null !== $user) {
+            if ($this->isOwnerOrCollaborator($note, $user)) {
+                return $note;
+            }
+            throw new AccessDeniedException('You are not allowed to view this note');
         }
 
         throw new NotFoundHttpException('Note not found');
@@ -121,19 +126,19 @@ class NoteService
     {
         $note = $this->getNoteById($id, $requester);
 
-        if ($command->title !== null) {
+        if (null !== $command->title) {
             $note->setTitle($command->title);
         }
 
-        if ($command->description !== null) {
+        if (null !== $command->description) {
             $note->setDescription($command->description);
         }
 
-        if ($command->labels !== null) {
-            $note->setLabels(array_values($command->labels));
+        if (null !== $command->labels) {
+            $note->setLabels($command->labels);
         }
 
-        if ($command->visibility !== null) {
+        if (null !== $command->visibility) {
             $note->setVisibility(NoteVisibility::from($command->visibility));
         }
 
@@ -146,11 +151,11 @@ class NoteService
     public function deleteNote(int $id, User $requester): void
     {
         $note = $this->noteRepository->find($id);
-        if ($note === null) {
+        if (null === $note) {
             throw new NotFoundHttpException('Note not found');
         }
 
-        if ($note->getOwner() !== $requester) {
+        if (!$this->isOwner($note, $requester)) {
             throw new AccessDeniedException('Only the owner can delete this note');
         }
 
@@ -158,21 +163,24 @@ class NoteService
         $this->entityManager->flush();
     }
 
+    private function isOwner(Note $note, User $user): bool
+    {
+        if ($note->getOwner() === $user) {
+            return true;
+        }
+
+        $ownerId = $note->getOwner()->getId();
+        $userId = $user->getId();
+
+        return null !== $ownerId && $ownerId === $userId;
+    }
+
     private function isOwnerOrCollaborator(Note $note, User $user): bool
     {
-        if ($note->getOwner() === $user || ($note->getOwner()->getId() !== null && $note->getOwner()->getId() === $user->getId())) {
+        if ($this->isOwner($note, $user)) {
             return true;
         }
 
         return $this->collaboratorRepository->isCollaborator($note, $user);
-    }
-
-    private function generateUuidV4(): string
-    {
-        $data = random_bytes(16);
-        $data[6] = chr((ord($data[6]) & 0x0f) | 0x40);
-        $data[8] = chr((ord($data[8]) & 0x3f) | 0x80);
-
-        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
     }
 }

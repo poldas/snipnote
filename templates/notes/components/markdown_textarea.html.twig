@@ -1,7 +1,7 @@
 {#
   MarkdownTextarea Component
   Large textarea with markdown toolbar and character counter
-  Max length: 10000 characters
+  Max length: 100000 characters
 #}
 <div data-field="description" class="group">
     <div class="flex items-center justify-between mb-3">
@@ -10,7 +10,7 @@
             <span class="text-red-500 ml-1">*</span>
         </label>
         <span id="description-counter" data-description-counter class="text-sm text-gray-500 font-semibold" aria-live="polite">
-            0 / 10000
+            0 / 100000
         </span>
     </div>
 
@@ -40,17 +40,40 @@
         </button>
     </div>
 
-    <textarea id="note-description" name="description" data-description-textarea rows="14" maxlength="10000" required
+    <textarea id="note-description" name="description" data-description-textarea rows="30" maxlength="100000" required
+              data-testid="note-description-textarea"
               class="input-modern w-full px-4 sm:px-6 py-3 sm:py-4 border-2 border-t-0 border-indigo-200 rounded-b-2xl bg-white text-gray-900 placeholder-gray-400 font-mono text-sm resize-y shadow-md hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-indigo-300 focus:border-indigo-400"
               placeholder="✍️ Wpisz treść notatki w formacie Markdown...
 
-**Przykłady:**
-- **pogrubienie**
-- *kursywa*
-- `kod`
-- [link](https://example.com)">{{ initialDescription ?? '' }}</textarea>
+**Przykłady użycia składni markdown:**
+
+# Nagłówek 1
+
+## Nagłówek 2
+
+### Nagłówek 3
+
+**pogrubienie** | *kursywa* | ~~skreślenie~~ | `kod inline`
+
+- Lista punktowana (lub 1. numerowana)
+
+> Cytat blokowy
+
+> > Zagnieżdżony cytat
+
+```javascript
+// Blok kodu z kolorowaniem składni
+console.log('Witaj w Snipnote!');
+```
+
+[Link z opisem](https://snipnote.pl 'Tytuł po najechaniu')
+
+![Opis alternatywny (alt)](https://snipnote.pl/favicon.svg 'Tytuł obrazka')
+
+| Tabela | Przykład |
+| :--- | :--- |
+| Komórka 1 | Komórka 2 |">{{ initialDescription ?? '' }}</textarea>
     <div id="description-error" data-description-error class="hidden mt-3 text-sm text-red-600 font-medium" role="alert">
         {# Error messages will be inserted here by JavaScript #}
     </div>
 </div>
-

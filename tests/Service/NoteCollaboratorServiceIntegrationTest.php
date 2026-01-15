@@ -84,7 +84,7 @@ final class NoteCollaboratorServiceIntegrationTest extends KernelTestCase
 
         $this->service->addCollaborator(new AddCollaboratorCommand($note->getId(), 'dup@example.com'), $owner);
 
-        $this->expectException(ConflictHttpException::class);
+        self::expectException(ConflictHttpException::class);
         $this->service->addCollaborator(new AddCollaboratorCommand($note->getId(), 'dup@example.com'), $owner);
     }
 
@@ -94,7 +94,7 @@ final class NoteCollaboratorServiceIntegrationTest extends KernelTestCase
         $outsider = $this->persistUser('outsider@example.com');
         $note = $this->persistNote($owner, 'Note');
 
-        $this->expectException(AccessDeniedException::class);
+        self::expectException(AccessDeniedException::class);
         $this->service->addCollaborator(new AddCollaboratorCommand($note->getId(), 'x@example.com'), $outsider);
     }
 
@@ -104,7 +104,7 @@ final class NoteCollaboratorServiceIntegrationTest extends KernelTestCase
         $outsider = $this->persistUser('outsider@example.com');
         $note = $this->persistNote($owner, 'Note');
 
-        $this->expectException(AccessDeniedException::class);
+        self::expectException(AccessDeniedException::class);
         $this->service->listForNote($note->getId(), $outsider);
     }
 
@@ -122,7 +122,7 @@ final class NoteCollaboratorServiceIntegrationTest extends KernelTestCase
         $collection = $this->service->listForNote($note->getId(), $owner);
 
         self::assertCount(2, $collection->collaborators);
-        $emails = array_map(static fn($dto) => $dto->email, $collection->collaborators);
+        $emails = array_map(static fn ($dto) => $dto->email, $collection->collaborators);
         self::assertEqualsCanonicalizing(['a@example.com', 'b@example.com'], $emails);
     }
 
@@ -131,7 +131,7 @@ final class NoteCollaboratorServiceIntegrationTest extends KernelTestCase
         $owner = $this->persistUser('owner@example.com');
         $note = $this->persistNote($owner, 'Note');
 
-        $this->expectException(NotFoundHttpException::class);
+        self::expectException(NotFoundHttpException::class);
         $this->service->removeById(new RemoveCollaboratorByIdCommand($note->getId(), 999), $owner);
     }
 
@@ -163,7 +163,7 @@ final class NoteCollaboratorServiceIntegrationTest extends KernelTestCase
     {
         $note = new Note($owner, $title, 'body', visibility: NoteVisibility::Private);
         $token = $this->uuidPool[$this->uuidIndex % \count($this->uuidPool)];
-        $this->uuidIndex++;
+        ++$this->uuidIndex;
         $note->setUrlToken($token);
 
         $this->entityManager->persist($note);

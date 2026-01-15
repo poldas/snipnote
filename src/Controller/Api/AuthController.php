@@ -29,7 +29,8 @@ final class AuthController extends AbstractController
         private readonly AuthService $authService,
         private readonly EmailVerificationService $emailVerificationService,
         private readonly ValidatorInterface $validator,
-    ) {}
+    ) {
+    }
 
     #[Route('/register', name: 'api_auth_register', methods: ['POST'])]
     public function register(Request $request): JsonResponse
@@ -37,9 +38,9 @@ final class AuthController extends AbstractController
         $payload = $this->decodeJson($request);
 
         $dto = new RegisterRequestDTO(
-            email: (string) ($payload['email'] ?? ''),
-            password: (string) ($payload['password'] ?? ''),
-            acceptTerms: (bool) ($payload['accept_terms'] ?? false),
+            email: $payload['email'] ?? '',
+            password: $payload['password'] ?? '',
+            acceptTerms: $payload['accept_terms'] ?? false,
         );
 
         $this->validate($dto);
@@ -51,7 +52,7 @@ final class AuthController extends AbstractController
             'data' => [
                 'user' => $this->userToArray($result['user']),
                 'tokens' => $this->tokensToArray($result['tokens']),
-                'message' => 'Verification email sent',
+                'message' => 'Email weryfikacyjny wysłany',
             ],
         ], JsonResponse::HTTP_CREATED);
     }
@@ -62,8 +63,8 @@ final class AuthController extends AbstractController
         $payload = $this->decodeJson($request);
 
         $dto = new LoginRequestDTO(
-            email: (string) ($payload['email'] ?? ''),
-            password: (string) ($payload['password'] ?? ''),
+            email: $payload['email'] ?? '',
+            password: $payload['password'] ?? '',
         );
 
         $this->validate($dto);
@@ -83,7 +84,7 @@ final class AuthController extends AbstractController
     {
         $payload = $this->decodeJson($request);
         $dto = new RefreshTokenRequestDTO(
-            refreshToken: (string) ($payload['refresh_token'] ?? ''),
+            refreshToken: $payload['refresh_token'] ?? '',
         );
 
         $this->validate($dto);
@@ -102,7 +103,7 @@ final class AuthController extends AbstractController
     {
         $payload = $this->decodeJson($request);
         $dto = new LogoutRequestDTO(
-            refreshToken: (string) ($payload['refresh_token'] ?? ''),
+            refreshToken: $payload['refresh_token'] ?? '',
         );
 
         $this->validate($dto);
@@ -117,7 +118,7 @@ final class AuthController extends AbstractController
     {
         $payload = $this->decodeJson($request);
         $dto = new ResendVerifyRequestDTO(
-            email: (string) ($payload['email'] ?? ''),
+            email: $payload['email'] ?? '',
         );
 
         $this->validate($dto);
@@ -126,7 +127,7 @@ final class AuthController extends AbstractController
 
         return new JsonResponse([
             'data' => [
-                'message' => 'If the account exists and is unverified, a verification email was sent',
+                'message' => 'Jeśli konto istnieje i nie jest zweryfikowane, email weryfikacyjny został wysłany',
             ],
         ], JsonResponse::HTTP_OK);
     }
@@ -134,14 +135,14 @@ final class AuthController extends AbstractController
     #[Route('/verify/email', name: 'api_auth_verify_email', methods: ['GET'])]
     public function verifyEmail(Request $request): Response
     {
-        $email = (string) $request->query->get('email', '');
-        $signature = (string) $request->query->get('signature', '');
-        $expires = (string) $request->query->get('expires', '');
+        $email = $request->query->get('email', '');
+        $signature = $request->query->get('signature', '');
+        $expires = $request->query->get('expires', '');
 
         $this->emailVerificationService->handleVerification($email, $signature, $expires);
 
-        // For browser clicks (text/html), redirect to login with a success flash.
-        $accept = (string) $request->headers->get('accept', '');
+        // Fallback for browser clicks on API links (e.g. old emails): redirect to login
+        $accept = $request->headers->get('accept', '');
         if (str_contains($accept, 'text/html')) {
             $this->addFlash('success', 'Adres email został potwierdzony. Zaloguj się.');
 
@@ -150,17 +151,20 @@ final class AuthController extends AbstractController
 
         return new JsonResponse([
             'data' => [
-                'message' => 'Email verified',
+                'message' => 'Email zweryfikowany',
                 'status' => 'verified',
             ],
         ]);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function decodeJson(Request $request): array
     {
         $decoded = json_decode($request->getContent(), true);
 
-        if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
+        if (null === $decoded && \JSON_ERROR_NONE !== json_last_error()) {
             throw new ValidationException(['_request' => ['Invalid JSON payload']]);
         }
 
@@ -170,7 +174,7 @@ final class AuthController extends AbstractController
     private function validate(object $dto): void
     {
         $violations = $this->validator->validate($dto);
-        if ($violations->count() === 0) {
+        if (0 === $violations->count()) {
             return;
         }
 
@@ -184,6 +188,9 @@ final class AuthController extends AbstractController
         throw new ValidationException($errors);
     }
 
+    /**
+     * @return array{uuid: string, email: string, is_verified: bool, roles: list<string>}
+     */
     private function userToArray(UserPublicDTO $user): array
     {
         return [
@@ -194,6 +201,9 @@ final class AuthController extends AbstractController
         ];
     }
 
+    /**
+     * @return array{access_token: string, refresh_token: string, expires_in: int}
+     */
     private function tokensToArray(AuthTokensDTO $tokens): array
     {
         return [

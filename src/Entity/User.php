@@ -11,6 +11,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'users')]
@@ -53,7 +54,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->email = $email;
         $this->passwordHash = $passwordHash;
-        $this->uuid = $uuid ?? self::generateUuidV4();
+        $this->uuid = $uuid ?? Uuid::v4()->toRfc4122();
         $this->isVerified = $isVerified;
         $now = new \DateTimeImmutable();
         $this->createdAt = $now;
@@ -175,14 +176,5 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeNote(Note $note): void
     {
         $this->notes->removeElement($note);
-    }
-
-    private static function generateUuidV4(): string
-    {
-        $data = random_bytes(16);
-        $data[6] = chr((ord($data[6]) & 0x0f) | 0x40);
-        $data[8] = chr((ord($data[8]) & 0x3f) | 0x80);
-
-        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
     }
 }

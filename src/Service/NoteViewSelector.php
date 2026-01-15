@@ -20,7 +20,7 @@ namespace App\Service;
 final class NoteViewSelector
 {
     /**
-     * Mapowanie: Słowo kluczowe w labelu => Identyfikator motywu
+     * Mapowanie: Słowo kluczowe w labelu => Identyfikator motywu.
      */
     private const THEME_MAPPING = [
         'recipe' => 'recipe', // Aktywuje assets/styles/recipe_view.css
@@ -34,6 +34,7 @@ final class NoteViewSelector
      * Priorytet ma pierwsze dopasowanie znalezione w tablicy THEME_MAPPING.
      *
      * @param string[] $labels Tablica etykiet notatki (np. ['przepis', 'obiad'])
+     *
      * @return string Identyfikator motywu ('default', 'recipe', 'todo')
      */
     public function getTheme(array $labels): string
@@ -42,7 +43,7 @@ final class NoteViewSelector
         $normalizedLabels = array_map('strtolower', $labels);
 
         foreach (self::THEME_MAPPING as $keyword => $theme) {
-            if (in_array($keyword, $normalizedLabels, true)) {
+            if (\in_array($keyword, $normalizedLabels, true)) {
                 return $theme;
             }
         }

@@ -2,13 +2,22 @@ import { expect, test } from '@playwright/test';
 import { LoginPage } from '../page-objects/LoginPage';
 import { DashboardPage } from '../page-objects/DashboardPage';
 import { LandingPage } from '../page-objects/LandingPage';
+import { UserFactory } from '../helpers/UserFactory';
 
-test.describe('Authentication - Login and Logout flow (manual only)', () => {
+test.describe('Authentication - Login and Logout flow', () => {
+    let userEmail: string;
+    const userPass = 'K7pL9mW3xR8vT2q';
+
+    test.beforeAll(async () => {
+        userEmail = UserFactory.generateEmail('loginlogout');
+        await UserFactory.create(userEmail, userPass);
+    });
+
+    test.afterAll(async () => {
+        await UserFactory.delete(userEmail);
+    });
+
     test('successful login with test account and logout returns to landing page', async ({ page }) => {
-        if (process.env.CI === 'true') {
-            test.skip();
-        }
-
         const loginPage = new LoginPage(page);
         const dashboardPage = new DashboardPage(page);
         const landingPage = new LandingPage(page);
@@ -18,13 +27,11 @@ test.describe('Authentication - Login and Logout flow (manual only)', () => {
         await loginPage.expectPageLoaded();
 
         // Step 2: Login with test credentials
-        // Note: This test assumes a verified test account exists with email 'test@test.test' and password 'testtest'
-        // In a real CI/CD setup, you would create this account programmatically before running tests
-        await loginPage.login('test@test.test', 'testtest');
+        await loginPage.login(userEmail, userPass);
 
         // Step 3: Verify successful login - redirected to dashboard
         await dashboardPage.expectPageLoaded();
-        await dashboardPage.expectUserLoggedIn('test@test.test');
+        await dashboardPage.expectUserLoggedIn(userEmail);
 
         // Step 4: Logout from dashboard
         await dashboardPage.clickLogout();
@@ -35,10 +42,6 @@ test.describe('Authentication - Login and Logout flow (manual only)', () => {
     });
 
     test('login form validation shows errors for invalid credentials', async ({ page }) => {
-        if (process.env.CI === 'true') {
-            test.skip();
-        }
-
         const loginPage = new LoginPage(page);
 
         // Navigate to login page
@@ -57,9 +60,6 @@ test.describe('Authentication - Login and Logout flow (manual only)', () => {
     });
 
     test('login form elements are properly rendered', async ({ page }) => {
-        if (process.env.CI === 'true') {
-            test.skip();
-        }
 
         const loginPage = new LoginPage(page);
 

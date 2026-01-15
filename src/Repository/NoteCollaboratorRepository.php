@@ -13,10 +13,10 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<NoteCollaborator>
  *
- * @method NoteCollaborator|null find($id, $lockMode = null, $lockVersion = null)
- * @method NoteCollaborator|null findOneBy(array $criteria, array $orderBy = null)
+ * @method NoteCollaborator|null        find($id, $lockMode = null, $lockVersion = null)
+ * @method NoteCollaborator|null        findOneBy(array<string, mixed> $criteria, array<string, string>|null $orderBy = null)
  * @method array<int, NoteCollaborator> findAll()
- * @method array<int, NoteCollaborator> findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method array<int, NoteCollaborator> findBy(array<string, mixed> $criteria, array<string, string>|null $orderBy = null, $limit = null, $offset = null)
  */
 class NoteCollaboratorRepository extends ServiceEntityRepository
 {
@@ -42,7 +42,7 @@ class NoteCollaboratorRepository extends ServiceEntityRepository
             ->andWhere('IDENTITY(c.note) = :noteId')
             ->andWhere('LOWER(c.email) = LOWER(:email)')
             ->setParameter('noteId', $noteId)
-            ->setParameter('email', trim($email))
+            ->setParameter('email', mb_trim($email))
             ->getQuery()
             ->getOneOrNullResult();
     }
@@ -67,7 +67,7 @@ class NoteCollaboratorRepository extends ServiceEntityRepository
             ->andWhere('IDENTITY(c.note) = :noteId')
             ->andWhere('LOWER(c.email) = LOWER(:email)')
             ->setParameter('noteId', $noteId)
-            ->setParameter('email', trim($email))
+            ->setParameter('email', mb_trim($email))
             ->getQuery()
             ->getOneOrNullResult();
     }

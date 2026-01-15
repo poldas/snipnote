@@ -10,9 +10,9 @@
 
 {% set emailError = (errors|filter(e => (e.field ?? null) == 'email')|first).message ?? null %}
 {% set passwordError = (errors|filter(e => (e.field ?? null) == 'password')|first).message ?? null %}
-{% set globalErrors = errors|filter(e => e.field is not defined or e.field is null)|map(e => e.message) %}
+{% set globalErrors = errors|filter(e => e.field is not defined or e.field is null)|map(e => e.message|trans(e.messageData ?? {}, 'security')) %}
 
-<form action="{{ action }}" method="post" class="space-y-4" hx-boost="false" data-turbo="false">
+<form action="{{ action }}" method="post" class="space-y-4" data-turbo="false">
     <input type="hidden" name="_csrf_token" value="{{ csrfToken }}">
     {% if targetPath %}
         <input type="hidden" name="_target_path" value="{{ targetPath }}">

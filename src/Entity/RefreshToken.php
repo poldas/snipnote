@@ -69,7 +69,7 @@ class RefreshToken
 
     public function isRevoked(): bool
     {
-        return $this->revokedAt !== null;
+        return null !== $this->revokedAt;
     }
 
     public function isExpired(\DateTimeImmutable $moment = new \DateTimeImmutable()): bool

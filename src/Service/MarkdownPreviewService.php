@@ -14,7 +14,8 @@ final class MarkdownPreviewService
     public function __construct(
         private readonly ConverterInterface $markdownConverter,
         private readonly HtmlSanitizerInterface $sanitizer,
-    ) {}
+    ) {
+    }
 
     public function renderPreview(GenerateMarkdownPreviewCommand $command): NotesMarkdownPreviewResponseDto
     {

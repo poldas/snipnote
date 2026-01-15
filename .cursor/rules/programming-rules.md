@@ -6,42 +6,57 @@
 - Generuj unified diff (nie pełne pliki, jeśli możliwe).
 - Jeżeli zmienia się DB: dołącz Doctrine migration, surowe SQL, oraz krótki rollback plan.
 - Załącz kontekst plików: entity, repo, service, controller, twig (jeśli dotyczy).
-- DB change → dołącz migration + surowe SQL + rollback note.
-- Testy: dołącz minimalny test dla zmian domenowych/auth. Drobne view-only changes mogą pójść bez testu.
-- Lint & static checks: generuj kod zgodny z PSR-12; uruchom PHP-CS-Fixer i PHPStan (lvl 5).
-- Jeśli brakuje danych wymaganych do poprawnego kodu — odpowiedz „nie wiem” i podaj 2 alternatywy realizacji.
-- Docker-readiness: wygenerowany kod powinien działać w standardowym obrazie PHP-FPM 8.2 + nginx + postgres; dołącz modyfikację docker-compose tylko gdy konieczne.
-- Max LOC per patch: 500 LOC; jeśli potrzeba więcej, rozbij na spójne patchy.
-- Implement → Test → Feedback never 50 features then test.
+- Testy: Obowiązkowo dołącz testy do każdej zmiany logiki lub refaktoryzacji (Unit, Integration lub E2E). Każda funkcjonalność musi mieć pokrycie testowe przed uznaniem zadania za zakończone.
+- Czerwona Ścieżka (Red Path): Testy muszą obejmować scenariusze negatywne (brak uprawnień, błędne dane, brzegowe przypadki bezpieczeństwa).
+- Lint & static checks: generuj kod zgodny z PSR-12; uruchom PHP-CS-Fixer i PHPStan (lvl 6).
+- Docker-readiness: wygenerowany kod powinien działać w standardowym obrazie PHP-FPM 8.4 + apache + postgres.
+- Implement → Test → Feedback: nigdy nie implementuj 50 funkcjonalności bez testów po drodze.
+- reużywaj komponenty jeżeli to możliwe, nie duplikuj kodu, zawsze najpierw sprawdzaj czy dana funkcjonalność już istnieje
 
 ### Symfony & Doctrine
-- aplikacja działa w dockerz, ZAWSZE uruchamiaj poprzez 'docker compose <command>'
-- testy uruchamiaj poprzez `docker compose exec app bash -c "./bin/phpunit --display-phpunit-notice"`
-- na koniec pracy zawsze zamykaj aplikację `docker compose down`
-- Architektura: prosty podział — Entity → Repository → Service (logika domenowa) → Controller (thin). Nie pełne DDD, tylko jawne granice.
-- Target: Symfony 7.3. Preferuj attributes (routing, DI, Doctrine mapping).
-- Kontrolery: thin — logika w serwisach.
-- DI: wstrzykiwanie zależności, unikaj statycznych helperów.
-- Formularze: Symfony Forms + Validator (server authoritative).
-- Używaj QueryBuilder/DTO, unikaj nadmiernej hydracji, profiluj zapytania i dodaj indeksy tam, gdzie wyszukiwanie (title/description/labels) jest krytyczne
-- Standard: Kod: PSR-12; typowanie parametrów/metod; PHPStan poziom 5 (MVP), phpVersion: 8.2.
-- Typowanie: wymagane dla parametrów i zwracanych wartości; używaj union types, promoted properties, readonly tam gdzie sensowne.
-- Używaj maker:bundle do scaffoldingu, ale ręcznie dopracowuj wygenerowany kod.
-- Mapowania: PHP attributes preferowane dla Symfony i Doctrine
-- Stosuj gotowe i sprawdzone już rozwiązania i pakiety np. stosujesz gotowe pakiety (Supabase Auth + Storage, Symfony + API Platform/lexik/jwt lub prosty JWT verification),
+- Aplikacja działa w Dockerze, ZAWSZE uruchamiaj poprzez `docker compose exec app <command>`.
+- Testy uruchamiaj poprzez `./localbin/test.sh`.
+- Testy E2E uruchamiaj poprzez `./localbin/test_e2e.sh`.
+- Na koniec pracy zawsze zamykaj aplikację `docker compose down`.
+- Architektura: Entity → Repository → Service (logika domenowa) → Controller (thin). Nie pełne DDD, tylko jawne granice.
+- Target: Symfony 8.0. Używaj atrybutów (routing, DI, Doctrine mapping).
+- Chudy `services.yaml`: używaj Fabryk i konfiguracji w `config/packages/`. Unikaj trzymania tam parametrów.
+- DI: wstrzykiwanie przez konstruktor; używaj atrybutu `#[Autowire('%param%')]`. Unikaj statycznych helperów.
+- CLI & SQL: Używaj `doctrine:dbal:run-sql` zamiast przestarzałego `doctrine:query:sql`.
+- Limity danych: aktualizuj limity we wszystkich warstwach: DB -> Walidacja (Entity/DTO) -> Frontend -> Serwisy (np. HtmlSanitizer).
+- Typowanie: wymagane dla parametrów i zwracanych wartości (union types, promoted properties, readonly).
+- Zero-warning policy: testy muszą przechodzić bez 'Notice' i 'Warning'.
+- Używaj QueryBuilder/DTO, unikaj nadmiernej hydracji, profiluj zapytania i dodaj indeksy tam, gdzie wyszukiwanie jest krytyczne.
+- Używaj `maker-bundle` do scaffoldingu, ale ręcznie dopracowuj wygenerowany kod.
+- Stosuj sprawdzone pakiety (np. LexikJWT, Gesdinet RefreshToken, Symfony Security).
 
-### Frontend (UI) — reguły (Twig + HTMX 2+ + Tailwind + Fluent 2 UI)
-- Komponenty: małe, pojedyncze partiale Twig (max ~200 LOC).
-- Każdy partial ma jasno zdefiniowane wejście (parametry) i nie trzyma logiki domenowej.
-- Interakcje: HTMX tylko dla prostych fragmentów (formularze, listy, podgląd).
-- Dla złożonych interakcji wyodrębnij osobny endpoint lub rozważ mały komponent JS.
-- Styling: Tailwind utility-first; nie generuj nadmiarowych klas — preferuj zwięzłe klasy i tokeny w tailwind.config.
-- Markdown: renderowanie po stronie serwera; zawsze sanitizuj HTML przed wysłaniem do klienta.
-- Formularze: używaj Symfony Forms → prosty rendering Twig; walidacja zarówno klient + server (server authoritative).
-- Accessibility: pola formularzy powinny mieć label, błędy przy polach, keyboard focus dla modali.
-- Size limit: pliki JS/CSS minimalne; brak bundlera-heavy konfiguracji w MVP — opcjonalny build step dla Tailwind.
-- Używaj komponentów Fluent 2 UI
+### API & Walidacja (Rygor)
+- **Brak ręcznego rzutowania**: W kontrolerach nie rzutuj typów z payloadu (np. UNIKAJ `(string)$payload['title']`).
+- **Strongly Typed DTOs**: Pozwól konstruktorom DTO/Command na wyrzucenie `\TypeError` przy błędnych danych z JSON.
+- **Exception Mapping**: `ExceptionListener` musi mapować:
+    - `\TypeError` oraz `ValidationException` -> **400 Bad Request**.
+    - `AccessDeniedException` oraz `AccessDeniedHttpException` -> **403 Forbidden**.
+    - `NotFoundHttpException` -> **404 Not Found**.
+- **JSON Decoding**: Zawsze używaj `decodeJson` z obsługą błędów składni (Invalid JSON payload).
 
-### Autoryzacja
-- użyj Supabase Auth dla logowania, Symfony tylko weryfikuje JWT przy żądaniach (biblioteka jwt, middleware), dla operacji serwerowych użyj service key tylko na backendzie, nie pisz auth od zera.
-- używaj istniejących Symfony bundles.
+### Testowanie (PHPUnit 12 & Security)
+- **PHPUnit 12**: Używaj atrybutu `#[DataProvider]`, metody providerów muszą być `static`.
+- **Asercje**: Używaj `self::assert...` zamiast `$this->assert...`.
+- **Czerwona Ścieżka**: Każdy endpoint API musi mieć testy dla kodów 400 (bad data), 401 (no auth), 403 (wrong user), 404 (not found).
+- **Test Infrastructure**: Przy mockowaniu repozytoriów w `WebTestCase`, używaj refleksji, aby ustawić ID dla encji stworzonych w pamięci (zapobieganie `ORMInvalidArgumentException`).
+- **PHPStan (Level 6)**: Zawsze specyfikuj typy zawartości tablic (np. `array<int, Note>`).
+
+### Frontend (UI) — Twig + HTMX 2+ + Tailwind + Fluent 2 UI
+- Komponenty: małe partiale Twig (max ~200 LOC).
+- Interakcje: HTMX dla prostych fragmentów. Złożone interakcje -> Stimulus controller.
+- Styling: Tailwind utility-first; jednostki `rem`. Unikaj `!important`.
+- Nie generuj nadmiarowych klas Tailwind — preferuj zwięzłe klasy i tokeny w `tailwind.config`.
+- Markdown: renderowanie po stronie serwera + rygorystyczna sanitizacja (HtmlSanitizer).
+- Formularze: Symfony Forms + Validator (server authoritative). Walidacja klient + serwer.
+- Accessibility: label dla każdego pola, błędy widoczne, keyboard focus.
+- UI: Stosuj komponenty i zasady Fluent 2 UI.
+
+### Autoryzacja i Bezpieczeństwo
+- Używaj Symfony Security (Voters, Passport, Authenticator).
+- JWT: Rygorystyczna weryfikacja (algorytmy, exp, sub).
+- XSS: Zawsze sanitizuj HTML generowany z Markdown przed wysłaniem do klienta.

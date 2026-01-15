@@ -1,17 +1,9 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout_public.html.twig' %}
 
 {% block title %}{{ note.title ?? '(Bez tytułu)' }}{% endblock %}
 
-{#
-    SEKCJA: Dynamiczne Style (Theme Switching)
-    ------------------------------------------
-    Logika ta pozwala na zmianę wyglądu całej strony bez zmiany struktury HTML.
-    1. ZAWSZE ładujemy `public.css` - zawiera on style bazowe, reset, Tailwind utilities oraz style dla Logo.
-    2. WARUNKOWO ładujemy style tematyczne (recipe/todo) - nadpisują one zmienne CSS (kolory) i
-       dostosowują wygląd komponentów (.pn-card, typography) do specyfiki danej treści.
-#}
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('styles/dist/public.css') }}">
+    {{ parent() }}
     {% if theme is defined and theme == 'recipe' %}
         <link rel="stylesheet" href="{{ asset('styles/recipe_view.css') }}">
     {% elseif theme is defined and theme == 'todo' %}
@@ -22,23 +14,19 @@
 {% block body %}
 <main class="public-note">
     <section class="public-note__container">
-        <div class="max-w-6xl mx-auto px-4 pt-4 sm:pt-6 pb-4">
-            <header class="pn-auth-header">
-                {# Komponent Logo: Stylizowany przez Tailwind w public.css #}
-                {% include 'components/logo.html.twig' with {size: 'small'} %}
-                <div>
-                    {% block auth_nav %}{% endblock %}
-                </div>
-            </header>
-        </div>
+        <header class="pn-auth-header">
+            {% include 'components/logo.html.twig' with {size: 'small'} %}
+            <div>
+                {% block auth_nav %}{% endblock %}
+            </div>
+        </header>
         
         {% if errorCode is not null %}
             {% include 'components/public_note_error.html.twig' with { errorCode: errorCode } %}
         {% elseif note is defined and note %}
-            {# GŁÓWNY KONTENER NOTATKI #}
             <div id="public-note-shell" class="pn-shell" 
+                 data-controller="public-nav {{ theme == 'todo' ? 'public-todo' : '' }}"
                  {% if theme == 'todo' %}
-                    data-controller="public-todo" 
                     data-public-todo-note-id-value="{{ note.urlToken }}"
                  {% endif %}>
                 
@@ -55,8 +43,4 @@
         {% endif %}
     </section>
 </main>
-{% endblock %}
-
-{% block javascripts %}
-    {{ parent() }}
 {% endblock %}

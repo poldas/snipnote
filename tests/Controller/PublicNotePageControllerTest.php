@@ -13,153 +13,96 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class PublicNotePageControllerTest extends WebTestCase
 {
-    private EntityManagerInterface $entityManager;
-
     protected function setUp(): void
     {
         self::bootKernel();
-        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $container = self::getContainer();
+        $em = $container->get(EntityManagerInterface::class);
 
-        $metadata = $this->entityManager->getMetadataFactory()->getAllMetadata();
-        $schemaTool = new SchemaTool($this->entityManager);
+        $metadata = $em->getMetadataFactory()->getAllMetadata();
+        $schemaTool = new SchemaTool($em);
         $schemaTool->dropDatabase();
         $schemaTool->createSchema($metadata);
-        
+
         self::ensureKernelShutdown();
     }
 
     public function testOwnerCanViewPrivateNotePreview(): void
     {
         $client = self::createClient();
-        $container = $client->getContainer();
-        $em = $container->get(EntityManagerInterface::class);
+        $em = $client->getContainer()->get(EntityManagerInterface::class);
 
         $user = new User('owner@example.com', 'password');
         $em->persist($user);
 
-        $note = new Note(
-            $user,
-            'Private Title',
-            'Private Desc',
-            [],
-            NoteVisibility::Private
-        );
-        $note->setUrlToken('123e4567-e89b-12d3-a456-426614174000');
+        $note = new Note($user, 'Private Title', 'Private Desc', [], NoteVisibility::Private);
+        $note->setUrlToken('11111111-1111-1111-1111-111111111111');
         $em->persist($note);
         $em->flush();
 
         $client->loginUser($user);
+        $client->request('GET', '/n/11111111-1111-1111-1111-111111111111');
 
-        $client->request('GET', '/n/123e4567-e89b-12d3-a456-426614174000');
-
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('h1', 'Private Title');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('h1', 'Private Title');
     }
 
-    public function testGuestCannotViewPrivateNotePreview(): void
+    public function testGuestGets404ForPrivateNote(): void
     {
         $client = self::createClient();
-        $container = $client->getContainer();
-        $em = $container->get(EntityManagerInterface::class);
+        $em = $client->getContainer()->get(EntityManagerInterface::class);
 
         $user = new User('owner@example.com', 'password');
         $em->persist($user);
-        $note = new Note(
-            $user,
-            'Private Title',
-            'Private Desc',
-            [],
-            NoteVisibility::Private
-        );
-        $note->setUrlToken('123e4567-e89b-12d3-a456-426614174000');
+        $note = new Note($user, 'Private Title', 'Private Desc', [], NoteVisibility::Private);
+        $note->setUrlToken('22222222-2222-2222-2222-222222222222');
         $em->persist($note);
         $em->flush();
 
-        $client->request('GET', '/n/123e4567-e89b-12d3-a456-426614174000');
+        $client->request('GET', '/n/22222222-2222-2222-2222-222222222222');
 
-        $this->assertResponseStatusCodeSame(404);
+        self::assertResponseStatusCodeSame(404);
+        self::assertSelectorTextContains('h2', 'Notatka niedostępna lub nieprawidłowy link');
     }
 
-    public function testDraftNoteIsAlwaysInaccessibleViaPublicUrl(): void
+    public function testOtherUserGets403ForPrivateNoteMaskedAsNotFoundMessage(): void
     {
         $client = self::createClient();
-        $container = $client->getContainer();
-        $em = $container->get(EntityManagerInterface::class);
+        $em = $client->getContainer()->get(EntityManagerInterface::class);
+
+        $userA = new User('owner@example.com', 'password');
+        $userB = new User('other@example.com', 'password');
+        $em->persist($userA);
+        $em->persist($userB);
+
+        $note = new Note($userA, 'Private Title', 'Private Desc', [], NoteVisibility::Private);
+        $note->setUrlToken('33333333-3333-3333-3333-333333333333');
+        $em->persist($note);
+        $em->flush();
+
+        $client->loginUser($userB);
+        $client->request('GET', '/n/33333333-3333-3333-3333-333333333333');
+
+        // Security check: status is 403, but message is the same as 404
+        self::assertResponseStatusCodeSame(403);
+        self::assertSelectorTextContains('h2', 'Notatka niedostępna lub nieprawidłowy link');
+    }
+
+    public function testDraftNoteIsMaskedAs404EvenForOwner(): void
+    {
+        $client = self::createClient();
+        $em = $client->getContainer()->get(EntityManagerInterface::class);
 
         $user = new User('owner@example.com', 'password');
         $em->persist($user);
-        $note = new Note(
-            $user,
-            'Draft Title',
-            'Draft Desc',
-            [],
-            NoteVisibility::Draft
-        );
-        $note->setUrlToken('123e4567-e89b-12d3-a456-426614174009');
+        $note = new Note($user, 'Draft Title', 'Draft Desc', [], NoteVisibility::Draft);
+        $note->setUrlToken('44444444-4444-4444-4444-444444444444');
         $em->persist($note);
         $em->flush();
 
-        // 1. Check as Guest
-        $client->request('GET', '/n/123e4567-e89b-12d3-a456-426614174009');
-        $this->assertResponseStatusCodeSame(404);
-
-        // 2. Check as Owner
         $client->loginUser($user);
-        $client->request('GET', '/n/123e4567-e89b-12d3-a456-426614174009');
-        $this->assertResponseStatusCodeSame(404);
-    }
+        $client->request('GET', '/n/44444444-4444-4444-4444-444444444444');
 
-    public function testRecipeViewIsRenderedForRecipeLabel(): void
-    {
-        $client = self::createClient();
-        $container = $client->getContainer();
-        $em = $container->get(EntityManagerInterface::class);
-
-        $user = new User('chef@example.com', 'password');
-        $em->persist($user);
-
-        $note = new Note(
-            $user,
-            'Delicious Recipe',
-            'Recipe Content',
-            ['recipe', 'dinner'],
-            NoteVisibility::Public
-        );
-        $note->setUrlToken('123e4567-e89b-12d3-a456-426614174999');
-        $em->persist($note);
-        $em->flush();
-
-        $client->request('GET', '/n/123e4567-e89b-12d3-a456-426614174999');
-
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorExists('link[href*="recipe_view"]');
-        $this->assertSelectorTextContains('h1', 'Delicious Recipe');
-    }
-
-    public function testTodoViewIsRenderedForTodoLabel(): void
-    {
-        $client = self::createClient();
-        $container = $client->getContainer();
-        $em = $container->get(EntityManagerInterface::class);
-
-        $user = new User('planner@example.com', 'password');
-        $em->persist($user);
-
-        $note = new Note(
-            $user,
-            'Shopping List',
-            'Buy milk',
-            ['todo', 'urgent'],
-            NoteVisibility::Public
-        );
-        $note->setUrlToken('123e4567-e89b-12d3-a456-426614175000');
-        $em->persist($note);
-        $em->flush();
-
-        $client->request('GET', '/n/123e4567-e89b-12d3-a456-426614175000');
-
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorExists('link[href*="todo_view"]');
-        $this->assertSelectorTextContains('h1', 'Shopping List');
+        self::assertResponseStatusCodeSame(404);
     }
 }

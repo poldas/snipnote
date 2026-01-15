@@ -183,7 +183,7 @@ export class LandingPage {
     async expectLoginFormVisible() {
         await this.page.goto('/login');
         await expect(this.page.getByRole('heading', { name: 'Wróć do swoich notatek' })).toBeVisible();
-        await expect(this.page.getByLabel('Email')).toBeVisible();
+        await expect(this.page.getByLabel('Adres email')).toBeVisible();
         await expect(this.page.getByLabel('Hasło')).toBeVisible();
         await expect(this.page.getByRole('button', { name: 'Zaloguj się' })).toBeVisible();
     }

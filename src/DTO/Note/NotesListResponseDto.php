@@ -12,6 +12,6 @@ final readonly class NotesListResponseDto
     public function __construct(
         public array $data,
         public PaginationMetaDto $meta,
-    ) {}
+    ) {
+    }
 }
-

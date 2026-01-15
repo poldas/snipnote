@@ -45,22 +45,14 @@ body::before {
 
 main.public-note {
     min-height: 100vh;
-    padding: 64px 16px;
     position: relative;
     z-index: 1;
-}
-
-@media (min-width: 640px) {
-    main.public-note {
-        padding: 96px 24px;
-    }
 }
 
 .public-note__container {
     position: relative;
     max-width: 800px;
     margin: 0 auto;
-    padding: 0 8px;
 }
 
 .pn-shell {
@@ -79,6 +71,12 @@ main.public-note {
     backdrop-filter: blur(12px);
     position: relative;
     overflow: hidden;
+}
+
+@media (max-width: 640px) {
+    .pn-card {
+        padding: 28px;
+    }
 }
 
 .pn-card::before {
@@ -289,18 +287,109 @@ main.public-note {
     font-size: 14px;
     font-weight: 700;
     cursor: pointer;
-    opacity: 0;
     transition: all 200ms ease;
-}
-
-.todo-item:hover .btn-delete {
-    opacity: 1;
 }
 
 .btn-delete:hover {
     background: linear-gradient(135deg, var(--todo-danger), #dc2626);
     color: white;
     border-color: var(--todo-danger);
+}
+
+/* --- Nagłówki Grup --- */
+.todo-group-title {
+    margin: 32px 0 16px;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.todo-group-title::after {
+    content: '';
+    flex: 1;
+    height: 2px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 2px;
+}
+
+.todo-group-title.completed {
+    color: var(--todo-success);
+}
+
+.todo-group-title.deleted {
+    color: var(--todo-danger);
+}
+
+/* --- Zadanie (rozszerzenie) --- */
+.todo-item.deleted {
+    opacity: 0.6;
+    background: rgba(248, 250, 252, 0.8);
+    border-style: dashed;
+}
+
+.todo-item.deleted .todo-text {
+    color: #64748b;
+    font-style: italic;
+}
+
+.todo-actions {
+    display: flex;
+    gap: 8px;
+    opacity: 0;
+    transition: all 200ms ease;
+}
+
+.todo-item:hover .todo-actions {
+    opacity: 1;
+}
+
+/* --- Przyciski --- */
+.btn-restore {
+    padding: 10px 18px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.15));
+    color: var(--todo-primary);
+    border: 2px solid rgba(99, 102, 241, 0.2);
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-restore:hover {
+    background: linear-gradient(135deg, var(--todo-primary), var(--todo-secondary));
+    color: white;
+    border-color: var(--todo-primary);
+}
+
+.btn-delete-perm {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--todo-danger);
+    border: 2px solid rgba(239, 68, 68, 0.2);
+    border-radius: 14px;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-delete-perm:hover {
+    background: var(--todo-danger);
+    color: white;
+}
+
+@media (max-width: 640px) {
+    .todo-actions {
+        opacity: 1;
+    }
 }
 
 /* --- Stan Pusty --- */

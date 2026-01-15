@@ -11,6 +11,9 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
+/**
+ * @extends Voter<string, Note>
+ */
 final class NoteVoter extends Voter
 {
     public const VIEW = 'NOTE_VIEW';
@@ -19,7 +22,8 @@ final class NoteVoter extends Voter
 
     public function __construct(
         private readonly NoteCollaboratorRepository $collaboratorRepository,
-    ) {}
+    ) {
+    }
 
     protected function supports(string $attribute, mixed $subject): bool
     {

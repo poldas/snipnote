@@ -13,12 +13,11 @@ final readonly class RegisterRequestDTO
         #[Assert\Email(mode: Assert\Email::VALIDATION_MODE_STRICT)]
         #[Assert\Length(max: 255)]
         public string $email,
-
         #[Assert\NotBlank]
         #[Assert\Length(min: 8, max: 255)]
         public string $password,
-
         #[Assert\Type('bool')]
         public bool $acceptTerms = false,
-    ) {}
+    ) {
+    }
 }

@@ -17,13 +17,13 @@ final class UserChecker implements UserCheckerInterface
 {
     public function checkPreAuth(UserInterface $user, ?TokenInterface $token = null): void
     {
-        if ($user instanceof User && !$user->isVerified()) {
-            throw new CustomUserMessageAccountStatusException('Musisz najpierw potwierdzić adres email.');
-        }
+        // no-op
     }
 
     public function checkPostAuth(UserInterface $user, ?TokenInterface $token = null): void
     {
-        // no-op
+        if ($user instanceof User && !$user->isVerified()) {
+            throw new CustomUserMessageAccountStatusException('Email not verified.');
+        }
     }
 }

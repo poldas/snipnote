@@ -18,6 +18,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
+use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 
 class AuthService
 {
@@ -30,20 +31,21 @@ class AuthService
         private readonly RefreshTokenService $refreshTokenService,
         #[Autowire('%env(JWT_SECRET)%')]
         private readonly string $jwtSecret,
-    ) {}
+    ) {
+    }
 
     /**
      * @return array{user: UserPublicDTO, tokens: AuthTokensDTO}
      */
     public function register(RegisterRequestDTO $request): array
     {
-        $email = mb_strtolower(trim($request->email));
-        if ($email === '') {
-            throw new ValidationException(['email' => ['Email cannot be empty']]);
+        $email = mb_strtolower(mb_trim($request->email));
+        if ('' === $email) {
+            throw new ValidationException(['email' => ['Email nie może być pusty']]);
         }
 
-        if ($this->userRepository->findOneByEmailCaseInsensitive($email) !== null) {
-            throw new ValidationException(['email' => ['Email already in use']]);
+        if (null !== $this->userRepository->findOneByEmailCaseInsensitive($email)) {
+            throw new ValidationException(['email' => ['Email jest już w użyciu']]);
         }
 
         $passwordHash = $this->hashPassword($request->password);
@@ -53,7 +55,7 @@ class AuthService
             $this->entityManager->persist($user);
             $this->entityManager->flush();
         } catch (UniqueConstraintViolationException) {
-            throw new ValidationException(['email' => ['Email already in use']]);
+            throw new ValidationException(['email' => ['Email jest już w użyciu']]);
         }
 
         $tokens = $this->issueTokens($user);
@@ -69,22 +71,25 @@ class AuthService
      */
     public function login(LoginRequestDTO $request): array
     {
-        $email = mb_strtolower(trim($request->email));
-        if ($email === '') {
-            throw new AuthenticationException('Invalid credentials');
+        $email = mb_strtolower(mb_trim($request->email));
+        if ('' === $email) {
+            throw new CustomUserMessageAuthenticationException('Invalid credentials.');
         }
 
         $user = $this->userRepository->findOneByEmailCaseInsensitive($email);
-        if ($user === null) {
-            throw new AuthenticationException('Invalid credentials');
-        }
+        if (null === $user) {
+            // Perform a dummy hash operation to prevent timing attacks
+            $this->passwordHasherFactory->getPasswordHasher(User::class)->hash($request->password);
 
-        if (!$user->isVerified()) {
-            throw new AuthenticationException('Email not verified');
+            throw new CustomUserMessageAuthenticationException('Invalid credentials.');
         }
 
         if (!$this->verifyPassword($user, $request->password)) {
-            throw new AuthenticationException('Invalid credentials');
+            throw new CustomUserMessageAuthenticationException('Invalid credentials.');
+        }
+
+        if (!$user->isVerified()) {
+            throw new CustomUserMessageAuthenticationException('Email not verified.');
         }
 
         $tokens = $this->issueTokens($user);
@@ -164,18 +169,18 @@ class AuthService
     {
         $header = ['alg' => 'HS256', 'typ' => 'JWT'];
 
-        $headerB64 = $this->base64UrlEncode(json_encode($header, JSON_THROW_ON_ERROR));
-        $payloadB64 = $this->base64UrlEncode(json_encode($payload, JSON_THROW_ON_ERROR));
+        $headerB64 = $this->base64UrlEncode(json_encode($header, \JSON_THROW_ON_ERROR));
+        $payloadB64 = $this->base64UrlEncode(json_encode($payload, \JSON_THROW_ON_ERROR));
 
-        $signature = hash_hmac('sha256', $headerB64 . '.' . $payloadB64, $this->jwtSecret, true);
+        $signature = hash_hmac('sha256', $headerB64.'.'.$payloadB64, $this->jwtSecret, true);
         $signatureB64 = $this->base64UrlEncode($signature);
 
-        return sprintf('%s.%s.%s', $headerB64, $payloadB64, $signatureB64);
+        return \sprintf('%s.%s.%s', $headerB64, $payloadB64, $signatureB64);
     }
 
     private function base64UrlEncode(string $data): string
     {
-        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+        return mb_rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
 
     private function toPublicUserDto(User $user): UserPublicDTO

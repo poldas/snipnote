@@ -26,10 +26,10 @@ final class NotesQueryServiceTest extends TestCase
             ->expects(self::once())
             ->method('findPaginatedForOwnerWithFilters')
             ->with(self::callback(static function (ListNotesQuery $query): bool {
-                return $query->ownerId === 1
-                    && $query->page === 2
-                    && $query->perPage === 5
-                    && $query->q === 'search'
+                return 1 === $query->ownerId
+                    && 2 === $query->page
+                    && 5 === $query->perPage
+                    && 'search' === $query->q
                     && $query->labels === ['work']
                     && $query->visibility === NoteVisibility::Private->value;
             }))
@@ -72,12 +72,12 @@ final class NotesQueryServiceTest extends TestCase
             ->expects(self::once())
             ->method('findPaginatedForOwnerWithFilters')
             ->with(self::callback(static function (ListNotesQuery $query): bool {
-                return $query->ownerId === 5
-                    && $query->page === 1
-                    && $query->perPage === 10
-                    && $query->q === null
-                    && $query->labels === []
-                    && $query->visibility === 'shared';
+                return 5 === $query->ownerId
+                    && 1 === $query->page
+                    && 10 === $query->perPage
+                    && null === $query->q
+                    && [] === $query->labels
+                    && 'shared' === $query->visibility;
             }))
             ->willReturn(new PaginatedResult([$note], 1));
 

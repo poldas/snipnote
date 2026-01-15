@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{% block title %}Snipnote{% endblock %}</title>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+        
+        {% block stylesheets %}
+            <link rel="stylesheet" href="{{ asset('styles/dist/common.css') }}">
+            <link rel="stylesheet" href="{{ asset('styles/dist/public.css') }}">
+        {% endblock %}
+
+        {% block javascripts %}
+            {{ importmap_safe('public_note', [
+                'app', 
+                'htmx', 
+                'turbo', 
+                'note_form', 
+                'edit_note', 
+                'notes_dashboard'
+            ]) }}
+        {% endblock %}
+    </head>
+    <body class="overflow-x-hidden">
+        <div id="toast-stack" aria-live="polite"></div>
+        {% block body %}{% endblock %}
+    </body>
+</html>

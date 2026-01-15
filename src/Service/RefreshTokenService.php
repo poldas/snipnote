@@ -18,12 +18,13 @@ class RefreshTokenService
         private readonly EntityManagerInterface $entityManager,
         #[Autowire('%env(int:REFRESH_TOKEN_TTL_SECONDS)%')]
         private readonly int $refreshTokenTtlSeconds,
-    ) {}
+    ) {
+    }
 
     public function issue(User $user): string
     {
         $token = $this->generateToken();
-        $expiresAt = (new \DateTimeImmutable())->modify(sprintf('+%d seconds', $this->refreshTokenTtlSeconds));
+        $expiresAt = (new \DateTimeImmutable())->modify(\sprintf('+%d seconds', $this->refreshTokenTtlSeconds));
 
         $refreshToken = new RefreshToken($user, $token, $expiresAt);
 
@@ -39,7 +40,7 @@ class RefreshTokenService
     public function rotate(string $refreshToken): array
     {
         $existing = $this->refreshTokenRepository->findActiveByToken($refreshToken);
-        if ($existing === null) {
+        if (null === $existing) {
             throw new AuthenticationException('Invalid refresh token');
         }
 
@@ -58,7 +59,7 @@ class RefreshTokenService
     public function revoke(string $refreshToken): void
     {
         $existing = $this->refreshTokenRepository->findOneBy(['token' => $refreshToken]);
-        if ($existing === null || $existing->isRevoked()) {
+        if (null === $existing || $existing->isRevoked()) {
             return;
         }
 
@@ -68,6 +69,6 @@ class RefreshTokenService
 
     private function generateToken(): string
     {
-        return rtrim(strtr(base64_encode(random_bytes(64)), '+/', '-_'), '=');
+        return mb_rtrim(strtr(base64_encode(random_bytes(64)), '+/', '-_'), '=');
     }
 }

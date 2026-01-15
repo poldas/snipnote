@@ -29,41 +29,42 @@ Istniejące narzędzia często:
 2. Edycja notatek (tytuł, opis, labele) dostępna dla właściciela i współedytorów.
 3. Zapis zmian wyłącznie po kliknięciu przycisku „Zapisz” (brak auto-save).
 4. Generowanie unikalnego, losowego URL notatki przy pierwszym zapisie.
-5. Możliwość ręcznej regeneracji URL notatki, z natychmiastowym unieważnieniem poprzedniego.
-6. Widoczność notatki:
+5. Widoczność notatki:
    - prywatna (dostęp: właściciel + współedytorzy),
    - publiczna (dostęp do odczytu dla każdego znającego URL; edycja tylko dla właściciela i współedytorów).
-7. Udostępnianie notatek innym użytkownikom:
+6. Udostępnianie notatek innym użytkownikom:
    - poprzez dodanie ich adresu email do listy współedytorów,
    - dostęp przyznawany po zalogowaniu na konto z tym adresem email.
-8. Współedytorzy mają takie same uprawnienia jak właściciel, z wyjątkiem usuwania notatki.
-9. Możliwość usunięcia własnego dostępu przez współedytora (samousunięcie z listy współedytorów).
-10. Wyszukiwanie notatek w dashboardzie zalogowanego użytkownika po:
+7. Współedytorzy mają takie same uprawnienia jak właściciel, z wyjątkiem usuwania notatki.
+8. Możliwość usunięcia własnego dostępu przez współedytora (samousunięcie z listy współedytorów).
+9. Wyszukiwanie notatek w dashboardzie zalogowanego użytkownika po:
     - tytule,
     - opisie,
     - labelach (za pomocą prefiksu "label:" i listy labeli rozdzielonych przecinkami, logika OR).
-11. Publiczny katalog użytkownika:
+    - Paginacja: domyślnie 50 notatek na stronę.
+10. Publiczny katalog użytkownika:
     - dostępny przez losowy UUID użytkownika,
-    - zawiera wyłącznie publiczne notatki tego użytkownika,
-    - paginacja (domyślnie 10 notatek na stronę).
-12. Widoki „brak danych”:
+    - zawiera publiczne notatki tego użytkownika,
+    - **WIDOK WŁAŚCICIELA**: Jeśli zalogowany właściciel przegląda własny katalog, widzi wszystkie swoje notatki (publiczne, prywatne, udostępnione mu),
+    - paginacja (domyślnie 50 notatek na stronę).
+11. Widoki „brak danych”:
     - gdy użytkownik nie ma żadnych notatek: przyjazny komunikat i link do dodania notatki,
     - gdy katalog użytkownika nie istnieje lub brak publicznych notatek: komunikat „Nie ma takiego użytkownika”.
-13. Podgląd markdown:
+12. Podgląd markdown:
     - prosty przycisk „Podgląd” w edycji notatki (bez live preview).
-14. Możliwość skopiowania treści publicznej notatki (np. kod, przepis) bez ograniczeń.
-15. Usunięcie notatki przez właściciela usuwa wszystkie powiązania:
+13. Możliwość skopiowania treści publicznej notatki (np. kod, przepis) bez ograniczeń.
+14. Usunięcie notatki przez właściciela usuwa wszystkie powiązania:
     - labele, współedytorów, URL, wpis w katalogu publicznym.
-16. Logowanie i rejestracja:
+15. Logowanie i rejestracja:
     - rejestracja przez email i hasło,
     - weryfikacja email w MVP,
     - logowanie przez email i hasło,
     - możliwość wylogowania.
-17. Odświeżenie tokenu dostępu przy użyciu refresh tokenu:
+16. Odświeżenie tokenu dostępu przy użyciu refresh tokenu:
     - krótkotrwały access token, dłużej ważny refresh token,
     - endpoint do wymiany refresh tokenu na nowy access token (bez ponownego logowania),
     - rotacja refresh tokenów i unieważnianie przy wylogowaniu / podejrzeniu wycieku.
-18. Przypomnienie i reset hasła:
+17. Przypomnienie i reset hasła:
     - formularz „Nie pamiętasz hasła?” przyjmuje email i zwraca informację o wysłaniu instrukcji,
     - email resetujący zawiera jednorazowy token ważny przez ograniczony czas (np. 30–60 min),
     - formularz resetu pozwala ustawić nowe hasło po poprawnym tokenie,
@@ -72,8 +73,7 @@ Istniejące narzędzia często:
 ## 4. Zasady biznesowe (reguły domenowe)
 1. Logika biznesowa powinna być realizowana w warstwie domenowej, niezależnej od szczegółów frameworka i infrastruktury (DDD-friendly).
 2. Spójność danych związanych z notatką (treść, widoczność, współdzielenie, URL, labele) powinna być utrzymywana w ramach jasno zdefiniowanego modelu domenowego (agregat lub zestaw agregatów).
-3. Ponowne wygenerowanie URL notatki unieważnia poprzedni URL natychmiast; dostęp przez stary URL powinien przestać działać.
-4. Współedytor może:
+3. Współedytor może:
    - edytować treść notatki,
    - edytować labele,
    - zmieniać widoczność notatki,
@@ -189,7 +189,7 @@ Kryteria akceptacji:
 - Użycie prefiksu "label:" pozwala podać jedną lub więcej nazw labeli rozdzielonych przecinkami.
 - Wyszukiwanie po wielu labelach działa w logice OR (notatka pasuje, jeśli ma co najmniej jedną z podanych etykiet).
 - Wyszukiwanie jest ograniczone do notatek, do których użytkownik ma dostęp (tylko własne).
-- Wyniki wyszukiwania są paginowane (domyślnie 10 na stronę).
+- Wyniki wyszukiwania są paginowane (domyślnie 50 na stronę).
 - W przypadku braku wyników wyświetlany jest przyjazny komunikat informujący o braku pasujących notatek.
 - Sortownie zawsze jest od najnowszej notatki, nie ma potrzeby zmiany sortowania.
 - Kliknięcie w notatkę z listy powoduje przejście na stronę edycji.
@@ -251,7 +251,7 @@ Aby móc przeglądać udostępnione treści
 
 Kryteria akceptacji:
 - Wejście na URL katalogu użytkownika (zawierający jego UUID) wyświetla listę jego publicznych notatek.
-- Lista jest paginowana (domyślnie 10 notatek na stronę).
+- Lista jest paginowana (domyślnie 50 notatek na stronę).
 - Dla każdej notatki w katalogu wyświetlane są co najmniej: tytuł, skrócony opis (do 255 znaków), labele, data utworzenia.
 - Kliknięcie w tytuł notatki przenosi do widoku pojedynczej notatki.
 - Jeśli użytkownik nie istnieje lub nie ma żadnych publicznych notatek, wyświetlany jest przyjazny komunikat „Nie ma takiego użytkownika”.
@@ -304,22 +304,7 @@ Kryteria akceptacji:
 - Próba wejścia po wylogowaniu na strony wymagające logowania (np. dashboard, edycja notatki) skutkuje przekierowaniem na ekran logowania.
 - Opcja „Wyloguj” nie jest widoczna dla użytkowników niezalogowanych.
 
-### US-013: Regeneracja URL notatki
-Tytuł: Regeneracja unikalnego URL notatki
-
-Opis:
-Jako właściciel lub współedytor notatki
-Chcę móc wygenerować nowy URL dla notatki
-Aby unieważnić poprzedni link, jeśli wyciekł lub jest niepożądany
-
-Kryteria akceptacji:
-- Właściciel i współedytor widzą przycisk „Generuj nowy URL” w edycji notatki.
-- Po kliknięciu przycisku generowany jest nowy, losowy URL notatki, strona jest przeładowana i pojawia się nowy url, poprzedni jest już nieaktualny.
-- Poprzedni URL staje się natychmiast nieważny i nie zapewnia dostępu do notatki (zarówno publicznie, jak i dla osób bez uprawnień).
-- Próba wejścia na stary URL po regeneracji skutkuje komunikatem o braku dostępu lub błędnym linku.
-- Jeśli regeneracja URL zakończy się błędem technicznym, użytkownik otrzymuje czytelny komunikat i dotychczasowy URL pozostaje ważny.
-
-### US-014: Usunięcie własnego dostępu współedytora
+### US-013: Usunięcie własnego dostępu współedytora
 Tytuł: Współedytor usuwa siebie z notatki
 
 Opis:
@@ -334,7 +319,7 @@ Kryteria akceptacji:
 - Przy ponownej próbie wejścia na URL edycji notatki użytkownik widzi komunikat o braku dostępu.
 - Właściciel nadal widzi notatkę i może ponownie dodać tego współedytora w przyszłości.
 
-### US-015: Odświeżenie tokenu dostępu
+### US-014: Odświeżenie tokenu dostępu
 Tytuł: Pozyskanie nowego access tokenu z refresh tokenu
 
 Opis:
@@ -349,7 +334,7 @@ Kryteria akceptacji:
 - Wylogowanie unieważnia refresh token, co uniemożliwia dalsze odświeżanie bez ponownego logowania.
 - Odświeżanie jest ograniczone mechanizmem rate limiting, aby zapobiegać nadużyciom.
 
-### US-016: Przypomnienie hasła
+### US-015: Przypomnienie hasła
 Tytuł: Wysłanie linku resetu hasła
 
 Opis:
@@ -364,7 +349,7 @@ Kryteria akceptacji:
 - Wysłany email zawiera jednorazowy token resetu ważny ograniczony czas (np. 30–60 min).
 - Wielokrotne żądania resetu mogą być ograniczane mechanizmem rate limiting.
 
-### US-017: Reset hasła po tokenie
+### US-016: Reset hasła po tokenie
 Tytuł: Ustawienie nowego hasła po otrzymanym linku
 
 Opis:
@@ -378,6 +363,20 @@ Kryteria akceptacji:
 - Nowe hasło musi spełniać minimalne wymagania (np. min. 8 znaków); błędy walidacji są wyświetlane.
 - Po pomyślnym resecie użytkownik jest automatycznie logowany lub przekierowany do logowania z informacją o sukcesie (decyzja techniczna).
 - Po użyciu token staje się nieważny.
+
+### US-017: Ochrona przed nadużyciami (Rate Limiting)
+Tytuł: Limity żądań dla wrażliwych akcji
+
+Opis:
+Jako system
+Chcę ograniczać liczbę wysyłanych wiadomości email (weryfikacja, reset hasła)
+Aby zapobiec nadużyciom, spamowi i kosztom infrastruktury
+
+Kryteria akceptacji:
+- Akcja ponownego wysłania linku weryfikacyjnego jest ograniczona (np. 3 próby na 15 min).
+- Akcja żądania resetu hasła jest ograniczona (np. 5 próby na 15 min na IP).
+- Po przekroczeniu limitu użytkownik otrzymuje jasny komunikat o blokadzie czasowej.
+- Limity są niezależne dla różnych typów akcji.
 
 ## 7. Metryki sukcesu
 W ramach MVP nie definiuje się szczegółowych metryk biznesowych ani rozbudowanej analityki. Sukces MVP jest rozumiany jako:

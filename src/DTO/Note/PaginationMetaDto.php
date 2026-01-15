@@ -10,6 +10,6 @@ final readonly class PaginationMetaDto
         public int $page,
         public int $perPage,
         public int $total,
-    ) {}
+    ) {
+    }
 }
-

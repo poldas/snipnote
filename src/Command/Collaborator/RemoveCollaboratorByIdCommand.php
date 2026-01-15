@@ -11,10 +11,8 @@ final readonly class RemoveCollaboratorByIdCommand
     public function __construct(
         #[Assert\Positive]
         public int $noteId,
-
         #[Assert\Positive]
         public int $collaboratorId,
-    ) {}
+    ) {
+    }
 }
-
-

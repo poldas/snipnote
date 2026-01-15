@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\DBAL\Type;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
-use Doctrine\DBAL\Types\ConversionException;
+use Doctrine\DBAL\Types\Exception\InvalidType;
 use Doctrine\DBAL\Types\Type;
 
 /**
@@ -15,46 +15,35 @@ final class TextArrayType extends Type
 {
     public const NAME = 'text_array';
 
-    public function getName(): string
-    {
-        return self::NAME;
-    }
-
     public function getSQLDeclaration(array $column, AbstractPlatform $platform): string
     {
         return 'TEXT[]';
     }
 
-    public function requiresSQLCommentHint(AbstractPlatform $platform): bool
-    {
-        return true;
-    }
-
     public function convertToDatabaseValue($value, AbstractPlatform $platform): ?string
     {
-        if ($value === null) {
+        if (null === $value) {
             return null;
         }
 
-        if (!is_array($value)) {
-            throw ConversionException::conversionFailedInvalidType($value, self::NAME, ['array', 'null']);
+        if (!\is_array($value)) {
+            throw InvalidType::new($value, self::NAME, ['array', 'null']);
         }
 
         return $this->encodeArray($value);
     }
 
+    /**
+     * @return list<string>
+     */
     public function convertToPHPValue($value, AbstractPlatform $platform): array
     {
-        if ($value === null || $value === '') {
+        if (null === $value || '' === $value) {
             return [];
         }
 
-        if (is_array($value)) {
+        if (\is_array($value)) {
             return array_values($value);
-        }
-
-        if (!is_string($value)) {
-            throw ConversionException::conversionFailed($value, self::NAME);
         }
 
         return $this->decodeArray($value);
@@ -66,19 +55,15 @@ final class TextArrayType extends Type
     private function encodeArray(array $values): string
     {
         $escaped = array_map(
-            static function ($item): string {
-                if (!is_string($item)) {
-                    throw ConversionException::conversionFailedInvalidType($item, self::NAME, ['string']);
-                }
-
+            static function (string $item): string {
                 $item = str_replace(['\\', '"'], ['\\\\', '\\"'], $item);
 
-                return '"' . $item . '"';
+                return '"'.$item.'"';
             },
             $values
         );
 
-        return '{' . implode(',', $escaped) . '}';
+        return '{'.implode(',', $escaped).'}';
     }
 
     /**
@@ -86,8 +71,8 @@ final class TextArrayType extends Type
      */
     private function decodeArray(string $value): array
     {
-        $trimmed = trim($value, '{}');
-        if ($trimmed === '') {
+        $trimmed = mb_trim($value, '{}');
+        if ('' === $trimmed) {
             return [];
         }
 
@@ -99,4 +84,3 @@ final class TextArrayType extends Type
         );
     }
 }
-

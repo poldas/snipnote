@@ -1,5 +1,6 @@
-{% set errorTitle = errorCode == 403 ? 'Notatka niedostępna (prywatna)' : (errorCode == 404 ? 'Notatka niedostępna lub nieprawidłowy link' : 'Problem z połączeniem') %}
-{% set errorDesc = errorCode == 403 ? 'Właściciel ograniczył dostęp do tej notatki.' : (errorCode == 404 ? 'Sprawdź, czy adres URL jest poprawny lub zapytaj właściciela o nowy link.' : 'Nie udało się pobrać danych. Spróbuj ponownie za chwilę.') %}
+{% set isNotFound = errorCode == 403 or errorCode == 404 %}
+{% set errorTitle = isNotFound ? 'Notatka niedostępna lub nieprawidłowy link' : 'Wystąpił nieoczekiwany błąd' %}
+{% set errorDesc = isNotFound ? 'Sprawdź, czy adres URL jest poprawny lub zapytaj właściciela o nowy link.' : 'Nie udało się przetworzyć treści notatki. Spróbuj ponownie za chwilę.' %}
 
 <div id="public-note-shell" class="pn-error">
     <div class="flex flex-col items-center justify-center text-center min-h-[240px] p-4 sm:p-8">
@@ -16,12 +17,10 @@
             <h2 class="text-xl sm:text-2xl font-bold text-indigo-950">{{ errorTitle }}</h2>
             <p class="text-sm sm:text-base text-slate-600 max-w-sm mx-auto">{{ errorDesc }}</p>
             <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
-                {% if errorCode == 0 %}
+                {% if errorCode == 500 %}
                     <button
                         type="button"
-                        hx-get="{{ app.request.pathinfo }}"
-                        hx-target="#public-note-shell"
-                        hx-swap="outerHTML"
+                        onclick="window.location.reload()"
                         class="btn-auth-primary px-6 py-2.5 rounded-xl font-semibold shadow-lg transition-all">
                         Spróbuj ponownie
                     </button>
