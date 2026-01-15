@@ -38,7 +38,7 @@ final class NoteCollaboratorController extends AbstractController
 
         $command = new AddCollaboratorCommand(
             noteId: $noteId,
-            email: (string) ($payload['email'] ?? ''),
+            email: $payload['email'] ?? '',
         );
 
         $this->validate($command);

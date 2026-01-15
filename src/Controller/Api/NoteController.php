@@ -77,10 +77,10 @@ final class NoteController extends AbstractController
         $payload = $this->decodeJson($request);
 
         $command = new CreateNoteCommand(
-            title: (string) ($payload['title'] ?? ''),
-            description: (string) ($payload['description'] ?? ''),
-            labels: \is_array($payload['labels'] ?? null) ? $payload['labels'] : [],
-            visibility: (string) ($payload['visibility'] ?? 'private'),
+            title: $payload['title'] ?? '',
+            description: $payload['description'] ?? '',
+            labels: $payload['labels'] ?? [],
+            visibility: $payload['visibility'] ?? 'private',
         );
 
         $this->validate($command);
@@ -106,10 +106,10 @@ final class NoteController extends AbstractController
         $payload = $this->decodeJson($request);
 
         $command = new UpdateNoteCommand(
-            title: \array_key_exists('title', $payload) ? (string) $payload['title'] : null,
-            description: \array_key_exists('description', $payload) ? (string) $payload['description'] : null,
-            labels: \array_key_exists('labels', $payload) && \is_array($payload['labels']) ? $payload['labels'] : null,
-            visibility: \array_key_exists('visibility', $payload) ? (string) $payload['visibility'] : null,
+            title: $payload['title'] ?? null,
+            description: $payload['description'] ?? null,
+            labels: $payload['labels'] ?? null,
+            visibility: $payload['visibility'] ?? null,
         );
 
         $this->validate($command);

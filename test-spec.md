@@ -77,14 +77,16 @@ Dokument opisuje strategię testowania aplikacji Snipnote, łącząc testy End-t
     2. Weryfikacja sanitizacji na poziomie backendu (PHPUnit).
     3. Weryfikacja braku wykonania kodu w przeglądarce (Playwright) w widoku publicznym.
 
-### Scenariusz: Walidacja API (Robustness)
-**Plik:** `ApiValidationTest.php`
-- **Cel:** Weryfikacja odporności API na błędne lub złośliwe dane wejściowe JSON.
+### Scenariusz: Walidacja API (Robustness & Red Path)
+**Pliki:** `ApiValidationTest.php`, `ApiRedPathTest.php`
+- **Cel:** Weryfikacja odporności API na błędne dane, próby nieautoryzowanego dostępu oraz stabilność formatu JSON.
 - **Kroki:**
     1. Przesłanie uszkodzonego JSON (Malformed).
     2. Przesłanie żądań z brakującymi polami obowiązkowymi.
-    3. Testowanie limitów długości (np. tytuł > 255 znaków) oraz niepoprawnych wartości Enum.
-    4. Weryfikacja czy API zawsze zwraca kod `400 Bad Request` z jasnymi detalami błędów.
+    3. Testowanie limitów długości oraz niepoprawnych wartości Enum.
+    4. **Bezpieczeństwo:** Próby dostępu do cudzych notatek (ID Manipulation).
+    5. **Stabilność:** Przesyłanie błędnych typów danych (np. string zamiast array).
+- **Wyniki:** API poprawnie odrzuca błędny JSON (400) i brak tokena (401). Wykryto braki w mapowaniu błędów typu oraz uprawnień (zwracane 500 zamiast 400/403).
 
 ---
 
@@ -100,10 +102,13 @@ Dokument opisuje strategię testowania aplikacji Snipnote, łącząc testy End-t
 | US-16 - US-17 | ✅ Pokryte | Flow resetu hasła z Mailpit |
 | US-18 (Rate Limit) | ✅ Pokryte | **Kluczowe pokrycie Unit Testami** |
 | Security (XSS) | ✅ Pokryte | Testy Backend + E2E |
-| Walidacja API | ✅ Pokryte | Testy integracyjne (400 Bad Request) |
+| Walidacja API | ✅ Pokryte | Pełne mapowanie błędów 400/403/404 |
 
 ---
 
 ## 5. Rekomendacje (Next Steps)
+1. **Automatyzacja US-13:** Dodanie testu E2E weryfikującego przycisk regeneracji linku i unieważnienie starego URL.
+2. **Weryfikacja US-09:** Dodanie testów dla publicznego katalogu użytkownika.
+3. **CI/CD Alignment:** Upewnienie się, że skrypty CI używają `doctrine:dbal:run-sql` zamiast przestarzałego `doctrine:query:sql`.
 1. **Automatyzacja US-13:** Dodanie testu E2E weryfikującego przycisk regeneracji linku i unieważnienie starego URL.
 2. **Weryfikacja US-09:** Dodanie testów dla publicznego katalogu użytkownika.

@@ -28,13 +28,16 @@ class MarkdownXssTest extends KernelTestCase
         $result = $this->markdownService->renderPreview($command);
         $html = $result->html;
 
-        $this->assertDoesNotMatchRegularExpression(
+        self::assertDoesNotMatchRegularExpression(
             $forbiddenPattern, 
             $html, 
             sprintf("XSS vulnerability found! Payload: %s. Description: %s. Resulting HTML: %s", $payload, $description, $html)
         );
     }
 
+    /**
+     * @return array<string, array{0: string, 1: string, 2: string}>
+     */
     public static function xssPayloadProvider(): array
     {
         return [
@@ -82,6 +85,41 @@ class MarkdownXssTest extends KernelTestCase
                 '<input type="text" onfocus="alert(1)">',
                 '/onfocus/i',
                 'Input tags are allowed for TODOs but must not have events'
+            ],
+            'Iframe with srcdoc' => [
+                '<iframe srcdoc="<script>alert(1)</script>"></iframe>',
+                '/srcdoc/i',
+                'Iframe srcdoc is highly dangerous and should be stripped'
+            ],
+            'Button with formaction' => [
+                '<button formaction="javascript:alert(1)">Click</button>',
+                '/formaction/i',
+                'Formaction can execute javascript'
+            ],
+            'Style with expression' => [
+                '<div style="width: expression(alert(1));"></div>',
+                '/expression/i',
+                'CSS expressions should be removed'
+            ],
+            'Style with background url' => [
+                '<div style="background-image: url(javascript:alert(1))"></div>',
+                '/javascript/i',
+                'Javascript in CSS urls should be blocked'
+            ],
+            'Data protocol in link' => [
+                '[Click](data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==)',
+                '/data:/i',
+                'Data protocol can hide malicious scripts'
+            ],
+            'Double encoded entities' => [
+                '<a href="&#38;#106;&#38;#97;&#38;#118;&#38;#97;&#38;#115;&#38;#99;&#38;#114;&#38;#105;&#38;#112;&#38;#116;&#38;#58;alert(1)">Click</a>',
+                '/href/i',
+                'Double encoded entities should not bypass protocol filters'
+            ],
+            'Tabindex focus XSS' => [
+                '<div tabindex="1" onfocus="alert(1)">Focus me</div>',
+                '/onfocus/i',
+                'Focus events on focusable elements'
             ]
         ];
     }

@@ -38,9 +38,9 @@ final class AuthController extends AbstractController
         $payload = $this->decodeJson($request);
 
         $dto = new RegisterRequestDTO(
-            email: (string) ($payload['email'] ?? ''),
-            password: (string) ($payload['password'] ?? ''),
-            acceptTerms: (bool) ($payload['accept_terms'] ?? false),
+            email: $payload['email'] ?? '',
+            password: $payload['password'] ?? '',
+            acceptTerms: $payload['accept_terms'] ?? false,
         );
 
         $this->validate($dto);
@@ -63,8 +63,8 @@ final class AuthController extends AbstractController
         $payload = $this->decodeJson($request);
 
         $dto = new LoginRequestDTO(
-            email: (string) ($payload['email'] ?? ''),
-            password: (string) ($payload['password'] ?? ''),
+            email: $payload['email'] ?? '',
+            password: $payload['password'] ?? '',
         );
 
         $this->validate($dto);
@@ -84,7 +84,7 @@ final class AuthController extends AbstractController
     {
         $payload = $this->decodeJson($request);
         $dto = new RefreshTokenRequestDTO(
-            refreshToken: (string) ($payload['refresh_token'] ?? ''),
+            refreshToken: $payload['refresh_token'] ?? '',
         );
 
         $this->validate($dto);
@@ -103,7 +103,7 @@ final class AuthController extends AbstractController
     {
         $payload = $this->decodeJson($request);
         $dto = new LogoutRequestDTO(
-            refreshToken: (string) ($payload['refresh_token'] ?? ''),
+            refreshToken: $payload['refresh_token'] ?? '',
         );
 
         $this->validate($dto);
@@ -118,7 +118,7 @@ final class AuthController extends AbstractController
     {
         $payload = $this->decodeJson($request);
         $dto = new ResendVerifyRequestDTO(
-            email: (string) ($payload['email'] ?? ''),
+            email: $payload['email'] ?? '',
         );
 
         $this->validate($dto);
