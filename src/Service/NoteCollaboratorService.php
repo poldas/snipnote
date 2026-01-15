@@ -124,35 +124,36 @@ final class NoteCollaboratorService
     private function assertCanRemove(Note $note, NoteCollaborator $collaborator, User $currentUser): void
     {
         $owner = $note->getOwner();
+        $collabUser = $collaborator->getUser();
 
-        // 1. Protection for the owner
-        $isOwnerManaged = null !== $collaborator->getUser() && (
-            $collaborator->getUser() === $owner
-            || (null !== $collaborator->getUser()->getId() && $collaborator->getUser()->getId() === $owner->getId())
-        );
-        $isOwnerEmail = mb_strtolower($collaborator->getEmail()) === mb_strtolower($owner->getUserIdentifier());
-
-        if ($isOwnerManaged || $isOwnerEmail) {
+        // 1. Protection for the owner: cannot be removed as collaborator
+        if (($collabUser !== null && $this->isSameUser($collabUser, $owner)) || mb_strtolower($collaborator->getEmail()) === mb_strtolower($owner->getUserIdentifier())) {
             throw new AccessDeniedException('Owner cannot be removed as collaborator');
         }
 
         // 2. Owner can remove anyone
-        if ($currentUser === $owner || (null !== $owner->getId() && $currentUser->getId() === $owner->getId())) {
+        if ($this->isSameUser($currentUser, $owner)) {
             return;
         }
 
         // 3. Collaborator can remove themselves
-        $isSelfManaged = null !== $collaborator->getUser() && (
-            $collaborator->getUser() === $currentUser
-            || (null !== $collaborator->getUser()->getId() && $collaborator->getUser()->getId() === $currentUser->getId())
-        );
-        $isSelfEmail = mb_strtolower($collaborator->getEmail()) === mb_strtolower($currentUser->getUserIdentifier());
-
-        if ($isSelfManaged || $isSelfEmail) {
+        if (($collabUser !== null && $this->isSameUser($collabUser, $currentUser)) || mb_strtolower($collaborator->getEmail()) === mb_strtolower($currentUser->getUserIdentifier())) {
             return;
         }
 
         throw new AccessDeniedException('You cannot remove this collaborator');
+    }
+
+    private function isSameUser(User $u1, User $u2): bool
+    {
+        if ($u1 === $u2) {
+            return true;
+        }
+
+        $id1 = $u1->getId();
+        $id2 = $u2->getId();
+
+        return null !== $id1 && $id1 === $id2;
     }
 
     private function toDto(NoteCollaborator $collaborator): NoteCollaboratorDto

@@ -155,7 +155,7 @@ class NoteService
             throw new NotFoundHttpException('Note not found');
         }
 
-        if ($note->getOwner()->getId() !== $requester->getId()) {
+        if (!$this->isOwner($note, $requester)) {
             throw new AccessDeniedException('Only the owner can delete this note');
         }
 
@@ -163,9 +163,21 @@ class NoteService
         $this->entityManager->flush();
     }
 
+    private function isOwner(Note $note, User $user): bool
+    {
+        if ($note->getOwner() === $user) {
+            return true;
+        }
+
+        $ownerId = $note->getOwner()->getId();
+        $userId = $user->getId();
+
+        return null !== $ownerId && $ownerId === $userId;
+    }
+
     private function isOwnerOrCollaborator(Note $note, User $user): bool
     {
-        if ($note->getOwner() === $user || (null !== $note->getOwner()->getId() && $note->getOwner()->getId() === $user->getId())) {
+        if ($this->isOwner($note, $user)) {
             return true;
         }
 

@@ -23,9 +23,9 @@ Dokument opisuje strategię testowania aplikacji Snipnote, łącząc testy End-t
 | **US-10** | Rejestracja konta | `auth.register.spec.ts` | `AuthServiceTest.php` |
 | **US-11** | Logowanie | `auth.login-logout.spec.ts` | `AuthServiceTest.php` |
 | **US-12** | Wylogowanie | `auth.login-logout.spec.ts` | - |
-| **US-16** | Przypomnienie hasła | `auth.password-reset.spec.ts` | `PasswordResetServiceTest.php` |
-| **US-17** | Reset hasła | `auth.password-reset.spec.ts` | `PasswordResetServiceTest.php` |
-| **US-18** | **Rate Limiting** | *Manualnie zweryfikowane* | `AuthPageControllerRateLimiterUnitTest.php` |
+| **US-15** | Przypomnienie hasła | `auth.password-reset.spec.ts` | `PasswordResetServiceTest.php` |
+| **US-16** | Reset hasła | `auth.password-reset.spec.ts` | `PasswordResetServiceTest.php` |
+| **US-17** | **Rate Limiting** | *Manualnie zweryfikowane* | `AuthPageControllerRateLimiterUnitTest.php` |
 
 ### Moduł Notatek (Notes)
 
@@ -39,7 +39,7 @@ Dokument opisuje strategię testowania aplikacji Snipnote, łącząc testy End-t
 | **US-06** | Usuwanie notatki | `notes.interactions.spec.ts` | `NoteServiceTest.php` |
 | **US-07** | Dashboard (pusty) | `notes.interactions.spec.ts` | - |
 | **US-08** | Współedytorzy | `notes.collaboration.spec.ts` | `NoteCollaboratorServiceIntegrationTest.php` |
-| **US-14** | **Samousunięcie** | `notes.collaboration-advanced.spec.ts` | `NoteCollaboratorServiceTest.php` |
+| **US-13** | **Samousunięcie** | `notes.collaboration-advanced.spec.ts` | `NoteCollaboratorServiceTest.php` |
 
 ---
 
@@ -97,18 +97,14 @@ Dokument opisuje strategię testowania aplikacji Snipnote, łącząc testy End-t
 | US-01 - US-08 | ✅ Pokryte | Pełne testy E2E i Backend |
 | US-09 (Katalog) | ❌ Brak | Funkcjonalność nieprzetestowana |
 | US-10 - US-12 | ✅ Pokryte | Pełne flow rejestracji i logowania |
-| US-13 (Regeneracja URL)| ❌ Brak | Brak testu zmiany tokena URL |
-| US-14 (Samousunięcie)| ✅ Pokryte | Testy E2E i Unit (Service) |
-| US-16 - US-17 | ✅ Pokryte | Flow resetu hasła z Mailpit |
-| US-18 (Rate Limit) | ✅ Pokryte | **Kluczowe pokrycie Unit Testami** |
+| US-13 (Samousunięcie)| ✅ Pokryte | Testy E2E i Unit (Service) |
+| US-15 - US-16 | ✅ Pokryte | Flow resetu hasła z Mailpit |
+| US-17 (Rate Limit) | ✅ Pokryte | **Kluczowe pokrycie Unit Testami** |
 | Security (XSS) | ✅ Pokryte | Testy Backend + E2E |
 | Walidacja API | ✅ Pokryte | Pełne mapowanie błędów 400/403/404 |
 
 ---
 
 ## 5. Rekomendacje (Next Steps)
-1. **Automatyzacja US-13:** Dodanie testu E2E weryfikującego przycisk regeneracji linku i unieważnienie starego URL.
-2. **Weryfikacja US-09:** Dodanie testów dla publicznego katalogu użytkownika.
-3. **CI/CD Alignment:** Upewnienie się, że skrypty CI używają `doctrine:dbal:run-sql` zamiast przestarzałego `doctrine:query:sql`.
-1. **Automatyzacja US-13:** Dodanie testu E2E weryfikującego przycisk regeneracji linku i unieważnienie starego URL.
-2. **Weryfikacja US-09:** Dodanie testów dla publicznego katalogu użytkownika.
+1. **Weryfikacja US-09:** Dodanie testów dla publicznego katalogu użytkownika.
+2. **CI/CD Alignment:** Upewnienie się, że skrypty CI używają `doctrine:dbal:run-sql` zamiast przestarzałego `doctrine:query:sql`.

@@ -249,6 +249,24 @@ final class NoteServiceTest extends TestCase
         $service->deleteNote(1, $other);
     }
 
+    public function testIsOwnerRejectsDifferentUsersWithNullIds(): void
+    {
+        $owner = new User('owner@example.com', 'hash');
+        $other = new User('other@example.com', 'hash');
+        $note = new Note($owner, 't', 'd');
+
+        $this->noteRepository->method('find')->willReturn($note);
+
+        $service = new NoteService(
+            $this->entityManager,
+            $this->noteRepository,
+            $this->collaboratorRepository,
+        );
+
+        self::expectException(AccessDeniedException::class);
+        $service->deleteNote(1, $other);
+    }
+
     private function setId(object $entity, int $id): void
     {
         $reflection = new \ReflectionClass($entity);

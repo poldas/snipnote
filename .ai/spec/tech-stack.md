@@ -1,39 +1,38 @@
 ### Tech stack / środowisko
+
 #### Backend
-PHP 8.4+
-Symfony 8.0 (attributes dla routingu, DI, Doctrine)
-Doctrine ORM 3.5 (+ doctrine/migrations)
-Doctrine DBAL 4.x
-maker-bundle do scaffoldingu
-PostgreSQL (dev/test/prod)
+- **PHP 8.4+** (Typowanie ścisłe, Promoted Properties, Readonly Classes).
+- **Symfony 8.0** (Attributes dla routingu, DI, Doctrine mapping, Security).
+- **Doctrine ORM 3.5** (Doctrine DBAL 4.x, doctrine/migrations).
+- **Komponenty**: Asset Mapper, Stimulus, HTML Sanitizer, Rate Limiter.
+- **Scaﬀolding**: symfony/maker-bundle.
 
 #### Frontend
-Twig jako główny templating
-HTMX 2+ do partial refresh / formularzy / list
-Tailwind CSS jako jedyny system styli (opcjonalny prosty build) + Fluent2
-Minimalny vanilla JS tylko tam, gdzie HTMX nie wystarcza
+- **Twig** (Silnik szablonów).
+- **Symfony UX Turbo & HTMX 2+** (Interaktywność bez pełnego przeładowania).
+- **Tailwind CSS 3.4** (Styling utility-first, build przez tailwindcss CLI).
+- **esbuild** (Minifikacja JS).
+- **Asset Management**: Symfony Asset Mapper (brak Webpack/Vite w ścieżce renderowania).
 
-#### Autoryzacja (PostgreSQL + Symfony)
-Wbudowany Symfony Security (authenticator-based)
-Użytkownicy i sesje trzymane w PostgreSQL (encje User, tabele auth)
-Password hashing: native password hasher (argon2id / bcrypt)
-JWT: lexik/jwt-authentication-bundle do wystawiania i weryfikacji tokenów
-Refresh tokens: gesdinet/jwt-refresh-token-bundle
-Role i uprawnienia przez role hierarchy + Voter dla reguł domenowych
+#### Autoryzacja & Bezpieczeństwo
+- **Symfony Security**: Passport/Authenticator system.
+- **Baza Danych**: PostgreSQL (Encje User, sesje).
+- **Hashing**: Argon2id (native password hasher).
+- **API Security**: JWT (LexikJWT) + Refresh Tokens (Gesdinet).
+- **Kontrola dostępu**: Role Hierarchy + Voters (reguły domenowe).
 
-#### API / komunikacja
-Standard: klasyczne kontrolery Symfony (HTML + JSON)
+#### API / Komunikacja
+- **Standard**: Klasyczne kontrolery Symfony zwracające HTML (HTMX) lub JSON (API).
+- **Walidacja**: Strongly typed DTOs + Symfony Validator.
 
-#### Docker / infra
-Docker Compose: php-fpm 8.2, nginx, postgres (+ ewentualnie mailhog)
-Konfiguracja kompatybilna z uruchomieniem CLI: `php bin/console`, `phpunit`, `phpstan`
+#### Docker / Infrastruktura
+- **App**: `thecodingmachine/php:8.4.3-v4-apache` (PHP 8.4 + Apache).
+- **DB**: `postgres:16-alpine`.
+- **Narzędzia**: Mailpit (SMTP/Webmail do testów), CLI ready (`bin/console`, `phpunit`).
 
-#### Testy / jakość
-PHPUnit + Symfony Test Pack
-DoctrineFixturesBundle / własne seedy do danych testowych
-PHP-CS-Fixer (PSR-12)
-PHPStan na poziomie 5
-E2E Playwright
-Symfony Profiler + Monolog dla debugowania/obserwowalności
-Testy integracyjne na osobnej bazie postgres
-Uruchamiane przez github actionw / workflow
+#### Testy / Jakość
+- **PHPUnit 12+** (Unit & Integration tests).
+- **PHPStan Level 6** (Analiza statyczna ze ścisłym typowaniem tablic).
+- **E2E Playwright** (Testy przeglądarkowe, TypeScript).
+- **Linting**: PHP-CS-Fixer (PSR-12).
+- **CI/CD**: GitHub Actions.

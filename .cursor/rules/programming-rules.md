@@ -6,10 +6,12 @@
 - Generuj unified diff (nie pełne pliki, jeśli możliwe).
 - Jeżeli zmienia się DB: dołącz Doctrine migration, surowe SQL, oraz krótki rollback plan.
 - Załącz kontekst plików: entity, repo, service, controller, twig (jeśli dotyczy).
-- Testy: dołącz minimalny test dla zmian domenowych/auth.
+- Testy: Obowiązkowo dołącz testy do każdej zmiany logiki lub refaktoryzacji (Unit, Integration lub E2E). Każda funkcjonalność musi mieć pokrycie testowe przed uznaniem zadania za zakończone.
+- Czerwona Ścieżka (Red Path): Testy muszą obejmować scenariusze negatywne (brak uprawnień, błędne dane, brzegowe przypadki bezpieczeństwa).
 - Lint & static checks: generuj kod zgodny z PSR-12; uruchom PHP-CS-Fixer i PHPStan (lvl 6).
 - Docker-readiness: wygenerowany kod powinien działać w standardowym obrazie PHP-FPM 8.4 + apache + postgres.
 - Implement → Test → Feedback: nigdy nie implementuj 50 funkcjonalności bez testów po drodze.
+- reużywaj komponenty jeżeli to możliwe, nie duplikuj kodu, zawsze najpierw sprawdzaj czy dana funkcjonalność już istnieje
 
 ### Symfony & Doctrine
 - Aplikacja działa w Dockerze, ZAWSZE uruchamiaj poprzez `docker compose exec app <command>`.
