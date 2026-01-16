@@ -50,6 +50,10 @@ jobs:
           key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
           restore-keys: composer-${{ runner.os }}-
 
+      - name: Create .env file
+        # Symfony post-install scripts require .env to exist
+        run: cp env.example .env
+
       - name: Install Dependencies
         run: composer install --prefer-dist
 
@@ -57,15 +61,21 @@ jobs:
         run: composer validate --strict
 
       - name: PHP Syntax Lint
-        run: find src tests -name '*.php' -print0 | xargs -0 -n1 php -l
+        env:
+          USE_DOCKER: false
+        run: ./localbin/lint-syntax.sh
 
       - name: PHP CS Fixer (Dry Run)
+        env:
+          USE_DOCKER: false
         # Uses cs2pr to annotate PR with coding standard violations
-        run: vendor/bin/php-cs-fixer fix --dry-run --format=checkstyle | cs2pr
+        run: ./localbin/lint-style.sh --format=checkstyle | cs2pr
 
       - name: PHPStan
+        env:
+          USE_DOCKER: false
         # Uses github error format to annotate PR directly
-        run: vendor/bin/phpstan analyse --error-format=github --memory-limit=1G
+        run: ./localbin/phpstan.sh --error-format=github
 
   # -----------------------------------------------------------------------------
   # Job 2: Backend Tests & Coverage
@@ -118,14 +128,15 @@ jobs:
           key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
           restore-keys: composer-${{ runner.os }}-
 
-      - name: Install Dependencies
-        run: composer install --prefer-dist
-
       - name: Prepare env files
+        # Moved BEFORE composer install to fix post-install-cmd crash
         run: |
           cp env.example .env
           cp env.test.example .env.test
           sed -i "s|DATABASE_URL=.*|DATABASE_URL=${DATABASE_URL}|g" .env .env.test
+
+      - name: Install Dependencies
+        run: composer install --prefer-dist
 
       - name: Prepare database
         run: |
@@ -146,8 +157,12 @@ jobs:
           echo "| Type | Status |" >> $GITHUB_STEP_SUMMARY
           echo "| :--- | :--- |" >> $GITHUB_STEP_SUMMARY
           # Simple extraction of Line coverage from Clover XML
-          COVERAGE=$(grep -o 'elements="[0-9]*" coveredelements="[0-9]*"' var/coverage/clover.xml | head -n 1 | awk -F'"' '{ printf "%.2f%%", ($4 / $2) * 100 }')
-          echo "| **Line Coverage** | $COVERAGE |" >> $GITHUB_STEP_SUMMARY
+          if [ -f var/coverage/clover.xml ]; then
+            COVERAGE=$(grep -o 'elements="[0-9]*" coveredelements="[0-9]*"' var/coverage/clover.xml | head -n 1 | awk -F'"' '{ printf "%.2f%%", ($4 / $2) * 100 }')
+            echo "| **Line Coverage** | $COVERAGE |" >> $GITHUB_STEP_SUMMARY
+          else
+             echo "| **Line Coverage** | N/A (Failed) |" >> $GITHUB_STEP_SUMMARY
+          fi
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "✅ Full HTML report is available in Artifacts." >> $GITHUB_STEP_SUMMARY
 
@@ -245,4 +260,3 @@ jobs:
       - name: Stop Services
         if: always()
         run: docker compose down
-
