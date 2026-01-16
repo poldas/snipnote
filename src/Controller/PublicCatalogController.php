@@ -42,8 +42,8 @@ final class PublicCatalogController extends AbstractController
         }
 
         // 2. Security: Bot Protection (POST + CSRF for search)
-        $isAjax = $request->headers->get('X-Requested-With') === 'XMLHttpRequest';
-        
+        $isAjax = 'XMLHttpRequest' === $request->headers->get('X-Requested-With');
+
         $q = '';
         if ($request->isMethod('POST')) {
             if (!$isAjax) {
@@ -56,11 +56,11 @@ final class PublicCatalogController extends AbstractController
             }
 
             $q = (string) $request->request->get('q', '');
-        } 
-        
+        }
+
         // Always check query params for 'q' to support deep linking and initial load
         if ('' === $q) {
-            $q = (string) $request->query->get('q', '');
+            $q = $request->query->get('q', '');
         }
 
         $page = max(1, (int) $request->query->get('page', '1'));
@@ -97,12 +97,12 @@ final class PublicCatalogController extends AbstractController
 
         if ($isAjax) {
             return $this->render('public/catalog/_list.html.twig', [
-                'view' => $viewData
+                'view' => $viewData,
             ]);
         }
 
         return $this->render('public/catalog/index.html.twig', [
-            'view' => $viewData
+            'view' => $viewData,
         ]);
     }
 

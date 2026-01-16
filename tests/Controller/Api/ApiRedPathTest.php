@@ -38,7 +38,7 @@ final class ApiRedPathTest extends WebTestCase
     }
 
     /**
-     * @param array<int, \App\Entity\Note>|null $mockedNotes
+     * @param array<int, Note>|null $mockedNotes
      */
     private function createClientWithUser(User $user, ?array $mockedNotes = null): \Symfony\Bundle\FrameworkBundle\KernelBrowser
     {
@@ -52,7 +52,7 @@ final class ApiRedPathTest extends WebTestCase
 
         if (null !== $mockedNotes) {
             $noteRepository = self::createStub(NoteRepository::class);
-            $noteRepository->method('find')->willReturnCallback(function($id) use ($mockedNotes) {
+            $noteRepository->method('find')->willReturnCallback(function ($id) use ($mockedNotes) {
                 return $mockedNotes[$id] ?? null;
             });
             $container->set(NoteRepository::class, $noteRepository);
@@ -67,7 +67,7 @@ final class ApiRedPathTest extends WebTestCase
     {
         $client = static::createClient();
         $client->request('GET', '/api/notes');
-        self::assertSame(401, $client->getResponse()->getStatusCode(), "Should require token");
+        self::assertSame(401, $client->getResponse()->getStatusCode(), 'Should require token');
     }
 
     // --- 403 FORBIDDEN ---
@@ -77,15 +77,15 @@ final class ApiRedPathTest extends WebTestCase
         // Owner ID = 1
         $owner = new User('owner@example.com', 'hash');
         $this->setEntityId($owner, 1);
-        
+
         // Attacker ID = 2
         $attacker = new User('attacker@example.com', 'hash');
         $this->setEntityId($attacker, 2);
-        
+
         $privateNote = new Note($owner, 'Private', 'Secret', [], NoteVisibility::Private);
         // CRITICAL: Set ID for the note so Voter/Doctrine doesn't crash
         $this->setEntityId($privateNote, 123);
-        
+
         $client = $this->createClientWithUser($attacker, [123 => $privateNote]);
 
         $client->request('GET', '/api/notes/123', server: [
@@ -104,15 +104,17 @@ final class ApiRedPathTest extends WebTestCase
         $this->setEntityId($user, 1); // Ensure user has ID
         $client = $this->createClientWithUser($user);
 
-        $client->request('POST', '/api/notes', 
+        $client->request(
+            'POST',
+            '/api/notes',
             server: [
                 'HTTP_Authorization' => 'Bearer '.$this->createJwtForUser($user),
-                'CONTENT_TYPE' => 'application/json'
+                'CONTENT_TYPE' => 'application/json',
             ],
             content: json_encode([
                 'title' => 'Test',
                 'description' => 'Content',
-                'labels' => 'INVALID_STRING_INSTEAD_OF_ARRAY'
+                'labels' => 'INVALID_STRING_INSTEAD_OF_ARRAY',
             ])
         );
 
@@ -125,10 +127,12 @@ final class ApiRedPathTest extends WebTestCase
         $user = new User('user@example.com', 'hash');
         $client = $this->createClientWithUser($user);
 
-        $client->request('POST', '/api/notes', 
+        $client->request(
+            'POST',
+            '/api/notes',
             server: [
                 'HTTP_Authorization' => 'Bearer '.$this->createJwtForUser($user),
-                'CONTENT_TYPE' => 'application/json'
+                'CONTENT_TYPE' => 'application/json',
             ],
             content: '{"broken": json'
         );

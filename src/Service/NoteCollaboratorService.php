@@ -127,7 +127,7 @@ final class NoteCollaboratorService
         $collabUser = $collaborator->getUser();
 
         // 1. Protection for the owner: cannot be removed as collaborator
-        if (($collabUser !== null && $this->isSameUser($collabUser, $owner)) || mb_strtolower($collaborator->getEmail()) === mb_strtolower($owner->getUserIdentifier())) {
+        if ((null !== $collabUser && $this->isSameUser($collabUser, $owner)) || mb_strtolower($collaborator->getEmail()) === mb_strtolower($owner->getUserIdentifier())) {
             throw new AccessDeniedException('Owner cannot be removed as collaborator');
         }
 
@@ -137,7 +137,7 @@ final class NoteCollaboratorService
         }
 
         // 3. Collaborator can remove themselves
-        if (($collabUser !== null && $this->isSameUser($collabUser, $currentUser)) || mb_strtolower($collaborator->getEmail()) === mb_strtolower($currentUser->getUserIdentifier())) {
+        if ((null !== $collabUser && $this->isSameUser($collabUser, $currentUser)) || mb_strtolower($collaborator->getEmail()) === mb_strtolower($currentUser->getUserIdentifier())) {
             return;
         }
 

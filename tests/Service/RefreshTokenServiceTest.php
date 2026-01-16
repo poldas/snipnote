@@ -9,7 +9,6 @@ use App\Entity\User;
 use App\Repository\RefreshTokenRepository;
 use App\Service\RefreshTokenService;
 use Doctrine\ORM\EntityManagerInterface;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;

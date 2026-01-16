@@ -48,13 +48,13 @@ final class ApiValidationTest extends WebTestCase
         $client = $this->createAuthenticatedClient($user);
 
         $client->request(
-            'POST', 
-            '/api/notes', 
-            [], 
-            [], 
+            'POST',
+            '/api/notes',
+            [],
+            [],
             [
                 'HTTP_Authorization' => 'Bearer '.$this->createJwtForUser($user),
-                'CONTENT_TYPE' => 'application/json'
+                'CONTENT_TYPE' => 'application/json',
             ],
             '{"title": "Test", "broken": ' // Missing brace and value
         );
@@ -72,13 +72,13 @@ final class ApiValidationTest extends WebTestCase
         $client = $this->createAuthenticatedClient($user);
 
         $client->request(
-            'POST', 
-            '/api/notes', 
-            [], 
-            [], 
+            'POST',
+            '/api/notes',
+            [],
+            [],
             [
                 'HTTP_Authorization' => 'Bearer '.$this->createJwtForUser($user),
-                'CONTENT_TYPE' => 'application/json'
+                'CONTENT_TYPE' => 'application/json',
             ],
             json_encode(['description' => 'Content only'])
         );
@@ -95,17 +95,17 @@ final class ApiValidationTest extends WebTestCase
         $client = $this->createAuthenticatedClient($user);
 
         $client->request(
-            'POST', 
-            '/api/notes', 
-            [], 
-            [], 
+            'POST',
+            '/api/notes',
+            [],
+            [],
             [
                 'HTTP_Authorization' => 'Bearer '.$this->createJwtForUser($user),
-                'CONTENT_TYPE' => 'application/json'
+                'CONTENT_TYPE' => 'application/json',
             ],
             json_encode([
                 'title' => str_repeat('A', 256), // Max is 255
-                'description' => 'Content'
+                'description' => 'Content',
             ])
         );
 
@@ -121,13 +121,13 @@ final class ApiValidationTest extends WebTestCase
         $client = $this->createAuthenticatedClient($user);
 
         $client->request(
-            'PATCH', 
-            '/api/notes/1', 
-            [], 
-            [], 
+            'PATCH',
+            '/api/notes/1',
+            [],
+            [],
             [
                 'HTTP_Authorization' => 'Bearer '.$this->createJwtForUser($user),
-                'CONTENT_TYPE' => 'application/json'
+                'CONTENT_TYPE' => 'application/json',
             ],
             json_encode(['visibility' => 'invalid_enum_value'])
         );
@@ -141,14 +141,14 @@ final class ApiValidationTest extends WebTestCase
         $client = static::createClient();
 
         $client->request(
-            'POST', 
-            '/api/auth/register', 
-            [], 
-            [], 
+            'POST',
+            '/api/auth/register',
+            [],
+            [],
             ['CONTENT_TYPE' => 'application/json'],
             json_encode([
                 'email' => 'not-an-email',
-                'password' => 'password123'
+                'password' => 'password123',
             ])
         );
 

@@ -20,7 +20,6 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Psr\Cache\CacheItemPoolInterface;
 
 final class AuthPageController extends AbstractController
 {

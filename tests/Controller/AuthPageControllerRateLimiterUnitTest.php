@@ -42,7 +42,7 @@ class AuthPageControllerRateLimiterUnitTest extends TestCase
 
         $urlGenerator = self::createStub(UrlGeneratorInterface::class);
         $urlGenerator->method('generate')->willReturnCallback(
-            fn(string $name, array $parameters = []) => '/'.$name.'?'.http_build_query($parameters)
+            fn (string $name, array $parameters = []) => '/'.$name.'?'.http_build_query($parameters)
         );
 
         $twig = self::createStub(Environment::class);
@@ -68,7 +68,6 @@ class AuthPageControllerRateLimiterUnitTest extends TestCase
         /** @var UserRepository $userRepository */
         /** @var RateLimiterFactoryInterface $emailResendLimiter */
         /** @var RateLimiterFactoryInterface $forgotPasswordLimiter */
-
         $controller = new AuthPageController(
             $authService,
             $emailVerificationService,
@@ -91,7 +90,7 @@ class AuthPageControllerRateLimiterUnitTest extends TestCase
         // Mock RateLimiter
         $limiter = self::createStub(LimiterInterface::class);
         $limiter->method('consume')->willReturn($this->createRateLimitMock(true, 2));
-        
+
         $limiterFactory = self::createStub(RateLimiterFactoryInterface::class);
         $limiterFactory->method('create')->willReturn($limiter);
 
@@ -139,7 +138,7 @@ class AuthPageControllerRateLimiterUnitTest extends TestCase
 
         $response = $controller->resendVerification($request);
         self::assertTrue($response->isRedirect('/app_verify_notice_page?state=pending&email=test%40example.com'));
-        
+
         $flashMessages = $this->container->get('session')->getFlashBag()->get('error');
         self::assertCount(1, $flashMessages);
         self::assertEquals('Zbyt wiele prób wysłania linku. Spróbuj ponownie później.', $flashMessages[0]);
@@ -201,7 +200,7 @@ class AuthPageControllerRateLimiterUnitTest extends TestCase
 
         $response = $controller->forgotPassword($request);
         self::assertEquals(200, $response->getStatusCode());
-        
+
         $flashMessages = $this->container->get('session')->getFlashBag()->get('error');
         self::assertCount(1, $flashMessages);
         self::assertEquals('Zbyt wiele prób. Spróbuj ponownie później.', $flashMessages[0]);

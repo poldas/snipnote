@@ -23,7 +23,7 @@ class NoteRepositoryCatalogTest extends KernelTestCase
         self::bootKernel();
         $this->em = self::getContainer()->get(EntityManagerInterface::class);
         $this->repository = self::getContainer()->get(NoteRepository::class);
-        
+
         // Clear database
         $this->em->createQuery('DELETE FROM App\Entity\NoteCollaborator')->execute();
         $this->em->createQuery('DELETE FROM App\Entity\Note')->execute();
@@ -68,8 +68,8 @@ class NoteRepositoryCatalogTest extends KernelTestCase
         $result = $this->repository->findForCatalog($owner, $owner, $query);
 
         self::assertCount(1, $result->items, 'Catalog should contain exactly 1 note (Owned Public only). Private notes are hidden even for owner.');
-        
-        $ids = array_map(fn(Note $n) => $n->getTitle(), $result->items);
+
+        $ids = array_map(fn (Note $n) => $n->getTitle(), $result->items);
         self::assertContains('Owner Public', $ids);
         self::assertNotContains('Owner Private', $ids, 'Private notes should not appear in Catalog view.');
         self::assertNotContains('Other Shared', $ids, 'Shared notes should not appear in Catalog view.');
@@ -83,7 +83,7 @@ class NoteRepositoryCatalogTest extends KernelTestCase
 
         $notePrivate = new Note($owner, 'Secret Plans', 'Top Secret content', [], NoteVisibility::Private);
         $this->em->persist($notePrivate);
-        
+
         $notePublic = new Note($owner, 'Public Info', 'Hello World', [], NoteVisibility::Public);
         $this->em->persist($notePublic);
 
@@ -97,7 +97,7 @@ class NoteRepositoryCatalogTest extends KernelTestCase
             search: 'Secret',
             labels: []
         );
-        
+
         $result = $this->repository->findForCatalog($owner, null, $query); // Viewer is null (Guest)
 
         self::assertCount(0, $result->items, 'Guest should find 0 results when searching for private content.');
@@ -110,7 +110,7 @@ class NoteRepositoryCatalogTest extends KernelTestCase
 
         $notePrivate = new Note($owner, 'Private', 'Desc', [], NoteVisibility::Private);
         $this->em->persist($notePrivate);
-        
+
         $notePublic = new Note($owner, 'Public', 'Desc', [], NoteVisibility::Public);
         $this->em->persist($notePublic);
 

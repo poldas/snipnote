@@ -42,13 +42,13 @@ final class JwtSecurityTest extends WebTestCase
             'sub' => $user->getUuid(),
             'exp' => time() + 3600,
         ]));
-        
+
         // Token without signature (two dots, empty third part)
         $token = "$header.$payload.";
 
         $client->request('GET', '/api/notes', server: ['HTTP_Authorization' => "Bearer $token"]);
-        
-        self::assertSame(Response::HTTP_UNAUTHORIZED, $client->getResponse()->getStatusCode(), "JWT alg:none attack should fail");
+
+        self::assertSame(Response::HTTP_UNAUTHORIZED, $client->getResponse()->getStatusCode(), 'JWT alg:none attack should fail');
     }
 
     /**
@@ -70,8 +70,8 @@ final class JwtSecurityTest extends WebTestCase
         $token = "$header.$payload.$signature";
 
         $client->request('GET', '/api/notes', server: ['HTTP_Authorization' => "Bearer $token"]);
-        
-        self::assertSame(Response::HTTP_UNAUTHORIZED, $client->getResponse()->getStatusCode(), "Expired JWT should be rejected");
+
+        self::assertSame(Response::HTTP_UNAUTHORIZED, $client->getResponse()->getStatusCode(), 'Expired JWT should be rejected');
     }
 
     /**
@@ -90,14 +90,14 @@ final class JwtSecurityTest extends WebTestCase
             'exp' => time() + 3600,
         ]));
         $signature = $this->base64UrlEncode(hash_hmac('sha256', "$header.$payload", $secret, true));
-        
+
         // Tamper with the signature (change last character)
-        $tamperedSignature = $signature . 'Z'; 
+        $tamperedSignature = $signature.'Z';
         $token = "$header.$payload.$tamperedSignature";
 
         $client->request('GET', '/api/notes', server: ['HTTP_Authorization' => "Bearer $token"]);
-        
-        self::assertSame(Response::HTTP_UNAUTHORIZED, $client->getResponse()->getStatusCode(), "Tampered JWT signature should fail");
+
+        self::assertSame(Response::HTTP_UNAUTHORIZED, $client->getResponse()->getStatusCode(), 'Tampered JWT signature should fail');
     }
 
     /**
@@ -118,7 +118,7 @@ final class JwtSecurityTest extends WebTestCase
         $token = "$header.$payload.$signature";
 
         $client->request('GET', '/api/notes', server: ['HTTP_Authorization' => "Bearer $token"]);
-        
+
         self::assertSame(Response::HTTP_UNAUTHORIZED, $client->getResponse()->getStatusCode(), "JWT without 'sub' claim should fail");
     }
 }

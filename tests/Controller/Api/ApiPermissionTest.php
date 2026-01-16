@@ -48,7 +48,7 @@ final class ApiPermissionTest extends WebTestCase
 
         if (null !== $mockedNotes) {
             $noteRepository = self::createStub(NoteRepository::class);
-            $noteRepository->method('find')->willReturnCallback(fn($id) => $mockedNotes[$id] ?? null);
+            $noteRepository->method('find')->willReturnCallback(fn ($id) => $mockedNotes[$id] ?? null);
             $container->set(NoteRepository::class, $noteRepository);
         }
 
@@ -67,10 +67,10 @@ final class ApiPermissionTest extends WebTestCase
     {
         $owner = new User('owner@example.com', 'hash');
         $this->setEntityId($owner, 1);
-        
+
         $collaborator = new User('collab@example.com', 'hash');
         $this->setEntityId($collaborator, 2);
-        
+
         $note = new Note($owner, 'Shared Note', 'Content', [], NoteVisibility::Private);
         $this->setEntityId($note, 123);
 
@@ -81,7 +81,7 @@ final class ApiPermissionTest extends WebTestCase
             'HTTP_Authorization' => 'Bearer '.$this->createJwtForUser($collaborator),
         ]);
 
-        self::assertSame(Response::HTTP_FORBIDDEN, $client->getResponse()->getStatusCode(), "Collaborator should not be able to delete");
+        self::assertSame(Response::HTTP_FORBIDDEN, $client->getResponse()->getStatusCode(), 'Collaborator should not be able to delete');
     }
 
     /**
@@ -91,10 +91,10 @@ final class ApiPermissionTest extends WebTestCase
     {
         $owner = new User('owner@example.com', 'hash');
         $this->setEntityId($owner, 1);
-        
+
         $stranger = new User('stranger@example.com', 'hash');
         $this->setEntityId($stranger, 3);
-        
+
         $note = new Note($owner, 'Private Note', 'Content', [], NoteVisibility::Private);
         $this->setEntityId($note, 123);
 
@@ -115,19 +115,21 @@ final class ApiPermissionTest extends WebTestCase
     {
         $owner = new User('owner@example.com', 'hash');
         $this->setEntityId($owner, 1);
-        
+
         $collaborator = new User('collab@example.com', 'hash');
         $this->setEntityId($collaborator, 2);
-        
+
         $note = new Note($owner, 'Shared Note', 'Content', [], NoteVisibility::Private);
         $this->setEntityId($note, 123);
 
         $client = $this->createClientWithUser($collaborator, [123 => $note], true);
 
-        $client->request('POST', '/api/notes/123/collaborators', 
+        $client->request(
+            'POST',
+            '/api/notes/123/collaborators',
             server: [
                 'HTTP_Authorization' => 'Bearer '.$this->createJwtForUser($collaborator),
-                'CONTENT_TYPE' => 'application/json'
+                'CONTENT_TYPE' => 'application/json',
             ],
             content: json_encode(['email' => 'new-friend@example.com'])
         );

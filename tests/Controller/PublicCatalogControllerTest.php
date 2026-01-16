@@ -7,11 +7,9 @@ namespace App\Tests\Controller;
 use App\Entity\Note;
 use App\Entity\NoteVisibility;
 use App\Entity\User;
-use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-
 use Symfony\Component\Uid\Uuid;
 
 class PublicCatalogControllerTest extends WebTestCase
@@ -37,9 +35,9 @@ class PublicCatalogControllerTest extends WebTestCase
 
     public function testIndexPageLoads(): void
     {
-        $this->client->request('GET', '/u/' . $this->owner->getUuid());
+        $this->client->request('GET', '/u/'.$this->owner->getUuid());
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('title', 'Katalog: owner'); 
+        self::assertSelectorTextContains('title', 'Katalog: owner');
         // Guest view - banner should NOT be present
         self::assertSelectorNotExists('.bg-indigo-600.text-white');
     }
@@ -47,8 +45,8 @@ class PublicCatalogControllerTest extends WebTestCase
     public function testOwnerViewShowsBanner(): void
     {
         $this->client->loginUser($this->owner);
-        $this->client->request('GET', '/u/' . $this->owner->getUuid());
-        
+        $this->client->request('GET', '/u/'.$this->owner->getUuid());
+
         self::assertResponseIsSuccessful();
         // Owner view - banner SHOULD be present
         self::assertSelectorExists('.bg-indigo-600.text-white');
@@ -65,7 +63,7 @@ class PublicCatalogControllerTest extends WebTestCase
     public function testNonExistentUserReturnsErrorView(): void
     {
         $randomUuid = Uuid::v4()->toRfc4122();
-        $this->client->request('GET', '/u/' . $randomUuid);
+        $this->client->request('GET', '/u/'.$randomUuid);
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('.pn-error', 'Notatki niedostępne lub nieprawidłowy link');
     }
@@ -79,8 +77,8 @@ class PublicCatalogControllerTest extends WebTestCase
         $this->em->flush();
 
         // 2. Request with GET ?q=Deep
-        $crawler = $this->client->request('GET', '/u/' . $this->owner->getUuid(), ['q' => 'Deep']);
-        
+        $crawler = $this->client->request('GET', '/u/'.$this->owner->getUuid(), ['q' => 'Deep']);
+
         self::assertResponseIsSuccessful();
         $inputValue = $crawler->filter('input[name="q"]')->attr('value');
         self::assertEquals('Deep', $inputValue);
@@ -91,8 +89,8 @@ class PublicCatalogControllerTest extends WebTestCase
     {
         // Attempt common SQLi pattern
         $payload = "' OR 1=1 --";
-        $this->client->request('GET', '/u/' . $this->owner->getUuid(), ['q' => $payload]);
-        
+        $this->client->request('GET', '/u/'.$this->owner->getUuid(), ['q' => $payload]);
+
         self::assertResponseIsSuccessful();
         // Should show "No results" empty state, NOT all notes
         self::assertStringContainsString('Brak wyników wyszukiwania', $this->client->getResponse()->getContent());
@@ -103,11 +101,11 @@ class PublicCatalogControllerTest extends WebTestCase
     {
         // Attempt XSS
         $payload = '<script>alert("xss")</script>';
-        $crawler = $this->client->request('GET', '/u/' . $this->owner->getUuid(), ['q' => $payload]);
-        
+        $crawler = $this->client->request('GET', '/u/'.$this->owner->getUuid(), ['q' => $payload]);
+
         self::assertResponseIsSuccessful();
         $content = $this->client->getResponse()->getContent();
-        
+
         // The payload should be present in the source but ESCAPED
         // Twig escapes < to &lt;
         self::assertStringContainsString('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;', $content);
@@ -117,13 +115,13 @@ class PublicCatalogControllerTest extends WebTestCase
 
     public function testAjaxRequestReturnsOnlyListFragment(): void
     {
-        $this->client->request('GET', '/u/' . $this->owner->getUuid(), [], [], [
-            'HTTP_X-Requested-With' => 'XMLHttpRequest'
+        $this->client->request('GET', '/u/'.$this->owner->getUuid(), [], [], [
+            'HTTP_X-Requested-With' => 'XMLHttpRequest',
         ]);
 
         self::assertResponseIsSuccessful();
         $content = $this->client->getResponse()->getContent();
-        
+
         // Should contain the grid but NOT the layout/footer/nav
         self::assertStringContainsString('id="catalog-grid"', $content);
         self::assertStringNotContainsString('<nav', $content);
@@ -132,7 +130,7 @@ class PublicCatalogControllerTest extends WebTestCase
 
     public function testPostWithoutAjaxHeaderIsForbidden(): void
     {
-        $this->client->request('POST', '/u/' . $this->owner->getUuid(), ['q' => 'test']);
+        $this->client->request('POST', '/u/'.$this->owner->getUuid(), ['q' => 'test']);
         self::assertResponseStatusCodeSame(400);
     }
 
@@ -140,7 +138,7 @@ class PublicCatalogControllerTest extends WebTestCase
     {
         $this->client->request(
             'POST',
-            '/u/' . $this->owner->getUuid(),
+            '/u/'.$this->owner->getUuid(),
             ['q' => 'test'],
             [],
             ['HTTP_X-Requested-With' => 'XMLHttpRequest']
