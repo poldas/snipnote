@@ -29,11 +29,11 @@
     <p class="mt-3 text-sm text-gray-600 font-medium">
         <span data-visibility-description>
             {% if currentValue == 'public' %}
-                Notatka będzie widoczna publicznie pod unikalnym linkiem
+                {{ 'note.visibility.public_desc'|trans }}
             {% elseif currentValue == 'draft' %}
-                Szkic - notatka widoczna tylko dla Ciebie
+                {{ 'note.visibility.draft_desc'|trans }}
             {% else %}
-                Notatka widoczna dla Ciebie i współpracowników
+                {{ 'note.visibility.private_desc'|trans }}
             {% endif %}
         </span>
     </p>

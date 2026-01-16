@@ -1,0 +1,131 @@
+{% extends 'layout_public.html.twig' %}
+
+{% block title %}Katalog: {{ view.owner.name }} | Snipnote{% endblock %}
+
+{% block javascripts %}
+    {{ importmap('public_catalog') }}
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .animated-bg {
+            background: linear-gradient(-45deg, #eef2ff, #f5f3ff, #ecfeff, #fdf4ff);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .input-modern {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .input-modern:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(102, 126, 234, 0.1), 0 10px 10px -5px rgba(102, 126, 234, 0.04);
+        }
+        .htmx-indicator {
+            display: none;
+        }
+        .htmx-request .htmx-indicator {
+            display: block;
+        }
+        .htmx-request.htmx-indicator {
+            display: block;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="animated-bg min-h-screen text-slate-700 font-sans">
+    <!-- Top Navigation -->
+    <nav class="sticky top-0 z-50 glass border-b border-indigo-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                {% include 'components/logo.html.twig' %}
+                <div class="flex items-center gap-4">
+                    {% if app.user %}
+                        <a href="{{ path('notes_dashboard') }}" class="text-indigo-700 hover:text-indigo-900 font-medium">Dashboard</a>
+                    {% else %}
+                        <a href="{{ path('app_login_page') }}" class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-5 py-2 rounded-full font-medium shadow-md hover:shadow-xl hover:-translate-y-1 transition-all">Zaloguj się</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    {% if view.isOwnerView %}
+        <div class="bg-indigo-600 text-white py-3 px-4 text-center text-sm font-medium shadow-lg">
+            <svg class="w-4 h-4 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            {{ 'note.catalog.owner_banner'|trans }}
+        </div>
+    {% endif %}
+
+    {% if view.notes is empty and view.q is empty %}
+        {# Full Screen Empty State for Empty Catalog #}
+        <div class="max-w-4xl mx-auto px-4 py-20">
+            <div class="pn-error glass">
+                {% include 'components/empty_state.html.twig' with {
+                    title: 'note.catalog.empty_title'|trans,
+                    description: 'note.catalog.empty_description'|trans
+                } %}
+            </div>
+        </div>
+    {% else %}
+        <header class="py-12 px-4">
+            <div class="max-w-4xl mx-auto text-center">
+
+                <!-- Modern Search Bar with HTMX -->
+                <form class="relative max-w-2xl mx-auto"
+                      hx-get="{{ path('public_catalog_index', {'uuid': view.owner.uuid}) }}"
+                      hx-trigger="submit, keyup changed delay:500ms from:input"
+                      hx-target="#catalog-results"
+                      hx-push-url="true"
+                      hx-indicator=".search-indicator"
+                      onsubmit="return false;">
+                    
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    <input type="text" 
+                           name="q"
+                           value="{{ view.q }}"
+                           placeholder="{{ 'note.catalog.search_placeholder'|trans }}" 
+                           class="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 glass shadow-md input-modern focus:outline-none focus:ring-2 focus:ring-indigo-200 text-lg"
+                           autocomplete="off">
+                    <div class="search-indicator htmx-indicator absolute right-4 top-1/2 -translate-y-1/2">
+                        <svg class="animate-spin h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </div>
+                </form>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 pb-20">
+            <div id="catalog-results">
+                {{ include('public/catalog/_list.html.twig') }}
+            </div>
+        </main>
+    {% endif %}
+
+    <footer class="py-10 border-t border-indigo-100 glass">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-slate-500 text-sm">Powered by <span class="font-bold text-indigo-600">Snipnote</span> &copy; 2026</p>
+        </div>
+    </footer>
+</div>
+{% endblock %}

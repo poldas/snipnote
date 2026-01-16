@@ -1,4 +1,7 @@
 {% set note = note ?? {} %}
+{% set readonly = readonly|default(false) %}
+{% set hideDelete = hideDelete|default(false) %}
+{% set hidePublicBadge = hidePublicBadge|default(false) %}
 {% set editUrl = note.editUrl ?? '#' %}
 {% set publicUrl = note.publicUrl ?? null %}
 {% set publicHref = publicUrl ? ((publicUrl|slice(0, 4) == 'http') ? publicUrl : app.request.schemeAndHttpHost ~ publicUrl) : null %}
@@ -9,7 +12,7 @@
 {% set copyUrl = isDraft ? (app.request.schemeAndHttpHost ~ editUrl) : publicHref %}
 
 <!-- Note Card -->
-<div class="group bg-white rounded-2xl border border-slate-200 hover:border-indigo-300 hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 overflow-hidden">
+<div class="group bg-white rounded-2xl border border-slate-200 hover:border-indigo-300 hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 overflow-hidden" data-testid="note-card">
     <div class="p-4 sm:p-5">
         <div class="flex items-start justify-between mb-3 gap-2">
             <div class="flex items-center gap-1 flex-shrink-0">
@@ -20,7 +23,7 @@
                         </svg>
                         For Me
                     </span>
-                {% elseif isPublic %}
+                {% elseif isPublic and not hidePublicBadge %}
                     <span class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-medium">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -35,7 +38,7 @@
                         </svg>
                         Draft
                     </span>
-                {% else %}
+                {% elseif not isPublic %}
                     <span class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 bg-red-50 text-red-700 rounded-lg text-xs font-medium">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -63,31 +66,35 @@
                     </svg>
                 </button>
             </div>
-            <div class="flex items-center gap-1 flex-shrink-0">
-                <a href="{{ editUrl }}" 
-                   class="p-3 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all min-w-[44px] min-h-[44px] flex items-center justify-center"
-                   data-testid="note-edit-btn"
-                   title="Edytuj">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                    </svg>
-                </a>
-                <button type="button"
-                        data-delete-note
-                        data-testid="note-delete-btn"
-                        data-note-id="{{ note.id }}"
-                        data-note-title="{{ note.title|default('(Bez tytułu)') }}"
-                        data-delete-url="{{ note.deleteUrl }}"
-                        class="p-3 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all min-w-[44px] min-h-[44px] flex items-center justify-center"
-                        title="Usuń">
-                    <svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                </button>
-            </div>
+            {% if not readonly %}
+                <div class="flex items-center gap-1 flex-shrink-0">
+                    <a href="{{ editUrl }}" 
+                       class="p-3 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all min-w-[44px] min-h-[44px] flex items-center justify-center"
+                       data-testid="note-edit-btn"
+                       title="Edytuj">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                    </a>
+                    {% if not hideDelete %}
+                        <button type="button"
+                                data-delete-note
+                                data-testid="note-delete-btn"
+                                data-note-id="{{ note.id }}"
+                                data-note-title="{{ note.title|default('(Bez tytułu)') }}"
+                                data-delete-url="{{ note.deleteUrl }}"
+                                class="p-3 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all min-w-[44px] min-h-[44px] flex items-center justify-center"
+                                title="Usuń">
+                            <svg class="w-4 h-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    {% endif %}
+                </div>
+            {% endif %}
         </div>
-        <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-3 line-clamp-2">{{ note.title is not empty ? note.title : '(Bez tytułu)' }}</h3>
-        <p class="text-sm text-slate-600 leading-relaxed mb-4 line-clamp-5">{{ note.excerpt }}</p>
+        <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-3 line-clamp-2" data-testid="note-card-title">{{ note.title is not empty ? note.title : '(Bez tytułu)' }}</h3>
+        <p class="text-sm text-slate-600 leading-relaxed mb-4 line-clamp-5" data-testid="note-card-excerpt">{{ note.excerpt }}</p>
         {% if note.labels is defined and note.labels is not empty %}
             <div class="flex flex-wrap items-center gap-1.5 mb-4">
                 {% for label in note.labels %}
@@ -97,7 +104,7 @@
         {% endif %}
         <div class="pt-3 border-t border-slate-100">
             <div class="flex items-center justify-between text-xs text-slate-500">
-                <span>{{ note.createdAt|date('d.m.Y') }}</span>
+                <span data-testid="note-card-date">{{ note.createdAt|date('d.m.Y') }}</span>
             </div>
         </div>
     </div>

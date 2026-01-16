@@ -9,3 +9,8 @@ framework:
             policy: 'fixed_window'
             limit: 10
             interval: '15 minutes'
+
+        public_search:
+            policy: 'fixed_window'
+            limit: 60
+            interval: '1 minute'

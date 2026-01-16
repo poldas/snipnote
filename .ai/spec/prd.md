@@ -43,13 +43,13 @@ Istniejące narzędzia często:
     - labelach (za pomocą prefiksu "label:" i listy labeli rozdzielonych przecinkami, logika OR).
     - Paginacja: domyślnie 50 notatek na stronę.
 10. Publiczny katalog użytkownika:
-    - dostępny przez losowy UUID użytkownika,
-    - zawiera publiczne notatki tego użytkownika,
-    - **WIDOK WŁAŚCICIELA**: Jeśli zalogowany właściciel przegląda własny katalog, widzi wszystkie swoje notatki (publiczne, prywatne, udostępnione mu),
+    - dostępny przez losowy UUID użytkownika (np. `/u/{uuid}`),
+    - zawiera **wyłącznie** publiczne notatki tego użytkownika (nawet dla zalogowanego właściciela),
+    - bezpieczne wyszukiwanie HTMX (POST + CSRF),
     - paginacja (domyślnie 50 notatek na stronę).
 11. Widoki „brak danych”:
-    - gdy użytkownik nie ma żadnych notatek: przyjazny komunikat i link do dodania notatki,
-    - gdy katalog użytkownika nie istnieje lub brak publicznych notatek: komunikat „Nie ma takiego użytkownika”.
+    - gdy użytkownik nie ma żadnych notatek w dashboardzie: przyjazny komunikat i link do dodania notatki,
+    - gdy katalog użytkownika jest pusty (brak publicznych treści): pełnoekranowy komunikat o niedostępności, wizualnie identyczny z błędem 404 notatki.
 12. Podgląd markdown:
     - prosty przycisk „Podgląd” w edycji notatki (bez live preview).
 13. Możliwość skopiowania treści publicznej notatki (np. kod, przepis) bez ograniczeń.
@@ -242,20 +242,20 @@ Kryteria akceptacji:
 - Jeśli współedytor zostanie usunięty z listy i później dodany ponownie, ponownie uzyskuje dostęp.
 
 ### US-09: Przegląd publicznego katalogu użytkownika
-Tytuł: Przegląd publicznych notatek użytkownika
+Tytuł: Publiczny profil i wyszukiwarka treści
 
 Opis:
 Jako osoba niezalogowana lub zalogowana
-Chcę móc zobaczyć publiczne notatki danego użytkownika po jego URL katalogu
-Aby móc przeglądać udostępnione treści
+Chcę móc zobaczyć publiczne notatki danego użytkownika oraz przeszukiwać je
+Aby móc korzystać z udostępnionej bazy wiedzy danej osoby
 
 Kryteria akceptacji:
-- Wejście na URL katalogu użytkownika (zawierający jego UUID) wyświetla listę jego publicznych notatek.
-- Lista jest paginowana (domyślnie 50 notatek na stronę).
-- Dla każdej notatki w katalogu wyświetlane są co najmniej: tytuł, skrócony opis (do 255 znaków), labele, data utworzenia.
-- Kliknięcie w tytuł notatki przenosi do widoku pojedynczej notatki.
-- Jeśli użytkownik nie istnieje lub nie ma żadnych publicznych notatek, wyświetlany jest przyjazny komunikat „Nie ma takiego użytkownika”.
-- Wyszukiwanie w katalogu odbywa się tym samym mechanizmem co dla dashboardu (pole wyszukiwania, wsparcie dla "label:").
+- Wejście na URL `/u/{uuid}` wyświetla listę publicznych notatek właściciela.
+- **Zasada Widoczności**: Katalog ZAWSZE pokazuje tylko notatki o statusie `public`. Zalogowany właściciel widzi w tym miejscu swój podgląd publiczny (bez notatek prywatnych/szkiców).
+- **Bezpieczeństwo**: Wyszukiwanie w katalogu odbywa się asynchronicznie (HTMX) metodą POST z wymaganym tokenem CSRF i nagłówkiem AJAX, co utrudnia automatyczne pobieranie danych (scraping).
+- **Deep Linking**: Parametry wyszukiwania (`q`) nie są widoczne w URL, aby zachować czystość linków publicznych i prywatność zapytań.
+- **Empty State**: Jeśli użytkownik nie ma publicznych notatek, wyświetlany jest wyśrodkowany kontener `pn-error` z komunikatem "Notatki niedostępne lub nieprawidłowy link".
+- Lista jest paginowana (50/strona), a nawigacja między stronami zachowuje filtry wyszukiwania bez zmiany adresu URL.
 
 ### US-010: Rejestracja konta
 Tytuł: Rejestracja użytkownika przez email

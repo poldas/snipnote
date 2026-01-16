@@ -418,12 +418,26 @@ export default class extends Controller {
 
     updateVisibilityDescription(value) {
         if (!this.elements.visibilityDescription) return;
-        const descriptions = {
-            private: 'Notatka widoczna dla Ciebie i współpracowników',
-            public: 'Notatka będzie widoczna publicznie pod unikalnym linkiem',
-            draft: 'Szkic - notatka niewidoczna dla nikogo poza Tobą',
+        
+        // Default structure (keys only), content must be provided via data attribute
+        let descriptions = {
+            private: '',
+            public: '',
+            draft: '',
         };
-        this.elements.visibilityDescription.textContent = descriptions[value] || descriptions.private;
+
+        try {
+            const raw = this.element.getAttribute('data-note-form-visibility-descriptions-value');
+            if (raw) {
+                descriptions = JSON.parse(raw);
+            } else {
+                console.warn('Missing data-note-form-visibility-descriptions-value attribute. Visibility descriptions will be empty.');
+            }
+        } catch (e) {
+            console.warn('Cannot parse visibility descriptions', e);
+        }
+
+        this.elements.visibilityDescription.textContent = descriptions[value] || descriptions.private || '';
     }
 
     updateVisibilityLabels() {

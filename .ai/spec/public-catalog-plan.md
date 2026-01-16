@@ -38,11 +38,18 @@ Stworzenie publicznej wizytówki (profilu) użytkownika, która pozwala na przeg
     - `page`: int (default 1).
 - **DTO**: `App\DTO\Note\NoteSearchCriteria` – reużywalny obiekt do mapowania parametrów wyszukiwania z Request.
 
-### 3.3. Widoki (Twig & Tailwind)
-- **Główny Szablon**: `templates/public/catalog/index.html.twig`.
-- **Partial Listy**: `templates/public/catalog/_list.html.twig` (wykorzystywany przez HTMX).
-- **Modyfikacja Komponentu**: `templates/notes/components/_note_card.html.twig`.
-    - Dodanie zmiennej `readonly` (default: false). Jeśli `readonly == true`, ukrywamy menu "Danger Zone" i edycję.
+### 3.3. Frontend (Twig + Tailwind + HTMX)
+- **Layout**: Użycie `layout_public.html.twig`.
+- **Stylistyka (Zgodnie z ui-colors.md)**:
+    - **Tło**: Subtelny, animowany gradient `from-indigo-50 via-purple-50 to-cyan-50` (podobnie jak na stronie głównej).
+    - **Karty Notatek**: Efekt szkła (`bg-white/90 backdrop-blur-lg`) z delikatnym cieniem.
+    - **Wyszukiwarka**: Styl `input-modern` (shadow-md, transition-all, fokus z poświatą indygo).
+    - **Przyciski**: `Primary Gradient` dla głównych akcji, `Secondary/Glass` dla filtrowania.
+- **Widok**: `templates/public/catalog.html.twig`.
+- **Komponenty**:
+    - Reużycie `templates/notes/components/_note_card.html.twig`.
+    - WAŻNE: `NoteCard` musi ukrywać przyciski edycji/usuwania dla gości, ale wyświetlać je dla właściciela.
+- **Wyszukiwarka**: Uproszczone pole wyszukiwania w katalogu, wyśrodkowane, zintegrowane z nagłówkiem profilu.
 
 ## 4. Analiza Bezpieczeństwa (Security Check)
 - **IDOR**: Porównanie `$requestedUuid` z `$this->getUser()->getUuid()` musi odbywać się wyłącznie w kontrolerze.

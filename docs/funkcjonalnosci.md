@@ -33,12 +33,24 @@ Snipnote to aplikacja MVP do tworzenia, organizowania i bezpiecznego udostępnia
     *   Dla **Szkiców (Draft)**: kopiuje link bezpośrednio do edytora (`/notes/{id}/edit`).
 *   **Paginacja**: Obsługa **50 elementów** na stronę z nawigacją "Poprzednia/Następna".
 
+### Publiczny Katalog Użytkownika - Anonimowy i Zalogowany
+*   **Profil Twórcy**: Dostępny pod adresem `/u/{uuid}`. Prezentuje wyłącznie notatki oznaczone jako **Publiczne**.
+*   **Bezpieczne Wyszukiwanie**: 
+    *   Wyszukiwarka działa w oparciu o **HTMX + GET**, co umożliwia **Deep Linking** i synchronizację adresu URL.
+    *   Ochrona przed botami realizowana przez pole typu **Honeypot**.
+    *   Wymagany nagłówek `X-Requested-With: XMLHttpRequest` dla ochrony przed prostymi botami przy żądaniach AJAX.
+*   **Pusta Galeria (Empty State)**: Gdy użytkownik nie posiada publicznych notatek, wyświetlany jest pełnoekranowy komunikat błędu (wizualnie spójny z brakiem notatki), informujący o niedostępności treści lub błędnym linku.
+*   **Paginacja AJAX**: Przechodzenie między stronami wyników (50 na stronę) odbywa się bez przeładowania całej strony i synchronizuje adres URL.
+
 ### Edycja i Dodawanie Notatki
 *   **Tworzenie**: Formularz nowej notatki (tytuł, edytor Markdown, tagi).
 *   **Edycja**: Aktualizacja treści notatek posiadanych lub udostępnionych.
+*   **Skróty Klawiszowe**:
+    *   `Ctrl+S` (lub `Cmd+S` na Mac): Szybki zapis notatki i powrót do Dashboardu.
+*   **Dynamiczne Tłumaczenia**: Opisy widoczności oraz pola formularza są zarządzane przez system tłumaczeń Symfony, co pozwala na łatwą lokalizację aplikacji.
 *   **Wzbogacony Markdown**: Wsparcie dla tabel, obrazków z zewnętrznych serwisów, list zadań oraz automatycznych linków do nagłówków (permalinki).
 *   **Zarządzanie Współedytorami**: Sekcja do dodawania/usuwania osób po adresie email.
-*   **Strefa Zagrożenia**: Sekcja dla operacji nieodwracalnych (obecnie usuwanie notatki).
+*   **Strefa Zagrożenia**: Sekcja dla operacji nieodwracalnych (usuwanie notatki). Zawiera wyraźne ostrzeżenia: "Operacje nieodwracalne. Używaj ostrożnie.".
 
 ### Widok Publiczny Notatki - Anonimowy
 *   **Reader Mode**: Przejrzysty układ do odczytu z wyrenderowanym Markdownem.

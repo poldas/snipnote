@@ -31,4 +31,4 @@ echo "🔄 Applying database migrations..."
 docker compose exec -T app php bin/console doctrine:migrations:migrate --no-interaction
 
 echo "✅ Environment ready, starting E2E tests..."
-npm run e2e
+npm run e2e -- "$@"

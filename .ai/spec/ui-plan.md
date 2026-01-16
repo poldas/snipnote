@@ -92,10 +92,14 @@
 ### Widok: Publiczny katalog użytkownika
 
   **Ścieżka:** `/u/{uuid}`
-  **Cel:** Przegląd publicznych notatek danego użytkownika.
-  **Kluczowe informacje:** lista publicznych notatek (title, excerpt, labels, created_at), paginacja, wyszukiwarka (q + label:).
-  **Kluczowe komponenty:** list items, paginacja, search box, empty-state message („Nie ma takiego użytkownika”).
-  **UX / dostępność / bezpieczeństwo:** fallback 404 lub message, aria-labelledby listy, paginacja dostępna klawiaturowo.
+  **Cel:** Przegląd publicznych notatek danego użytkownika (podgląd profilu).
+  **Kluczowe informacje:** lista publicznych notatek (title, excerpt, labels, created_at), paginacja AJAX, wyszukiwarka (q + label:).
+  **Kluczowe komponenty:** list items (NoteCard), paginacja AJAX (hx-get), search box (hx-get + hx-push-url), empty-state message („Notatki niedostępne lub nieprawidłowy link”).
+  **UX / dostępność / bezpieczeństwo:** 
+    - Wyszukiwanie i paginacja realizowane przez **GET**, co umożliwia **Deep Linking** i łatwe udostępnianie przefiltrowanych list.
+    - Ochrona przed botami za pomocą pola **Honeypot**.
+    - Zalogowany właściciel widzi baner informacyjny o trybie podglądu profilu publicznego.
+    - Pusta galeria wizualnie spójna ze stroną błędu notatki (kontener `pn-error`).
 
 *Spełniane historyjki:* US-09, US-12 (wylogowanie wpływa na widoki).
 

@@ -28,6 +28,11 @@
     data-controller="note-form"
     data-note-form
     data-note-config="{{ formConfig|json_encode|e('html_attr') }}"
+    data-note-form-visibility-descriptions-value="{{ {
+        'public': 'note.visibility.public_desc'|trans,
+        'private': 'note.visibility.private_desc'|trans,
+        'draft': 'note.visibility.draft_desc'|trans
+    }|json_encode|e('html_attr') }}"
     class="space-y-8"
     novalidate
 >

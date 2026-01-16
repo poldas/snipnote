@@ -1,0 +1,11 @@
+note:
+    visibility:
+        public_desc: "Notatka będzie widoczna publicznie pod unikalnym linkiem"
+        private_desc: "Notatka widoczna dla Ciebie lub udostępnionych osób"
+        draft_desc: "Tylko Ty widzisz tę notatkę (szkic)"
+    catalog:
+        owner_banner: "To jest podgląd Twojego profilu publicznego. Widzisz tylko to, co inni użytkownicy."
+        search_placeholder: "Szukaj w tym katalogu (np. label:kod, tytuł...)"
+        header_title: "Publiczny Katalog"
+        empty_title: "Notatki niedostępne lub nieprawidłowy link"
+        empty_description: "Sprawdź, czy adres URL jest poprawny lub zapytaj właściciela o nowy link"

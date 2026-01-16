@@ -202,6 +202,60 @@ class NoteRepository extends ServiceEntityRepository
         return new PaginatedResult($items, $total);
     }
 
+    public function findForCatalog(User $catalogOwner, ?User $viewer, PublicNotesQuery $query): PaginatedResult
+    {
+        $em = $this->getEntityManager();
+        $conn = $em->getConnection();
+
+        $search = null !== $query->search ? mb_trim($query->search) : null;
+
+        $qb = $conn->createQueryBuilder()
+            ->from('notes', 'n')
+            ->where('n.owner_id = :ownerId')
+            ->andWhere('n.visibility = :visibility')
+            ->setParameter('ownerId', $catalogOwner->getId(), Types::INTEGER)
+            ->setParameter('visibility', NoteVisibility::Public->value, Types::STRING);
+
+        if (null !== $search && '' !== $search) {
+            $qb->andWhere("(n.search_vector_simple @@ plainto_tsquery('simple', :q) OR n.title ILIKE :pattern OR n.description ILIKE :pattern)")
+                ->setParameter('q', $search, Types::STRING)
+                ->setParameter('pattern', '%'.$search.'%', Types::STRING);
+        }
+
+        if ([] !== $query->labels) {
+            $labelsLiteral = $this->toPgTextArrayLiteral($query->labels);
+            $qb->andWhere('n.labels && :labels')
+                ->setParameter('labels', $labelsLiteral, Types::STRING);
+        }
+
+        $total = (int) (clone $qb)
+            ->select('COUNT(DISTINCT n.id)')
+            ->executeQuery()
+            ->fetchOne();
+
+        $ids = (clone $qb)
+            ->select('DISTINCT n.id, n.updated_at')
+            ->orderBy('n.updated_at', 'DESC')
+            ->setMaxResults($query->perPage)
+            ->setFirstResult(($query->page - 1) * $query->perPage)
+            ->executeQuery()
+            ->fetchFirstColumn();
+
+        if ([] === $ids) {
+            return new PaginatedResult([], $total);
+        }
+
+        /** @var list<Note> $items */
+        $items = $this->createQueryBuilder('n')
+            ->andWhere('n.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->orderBy('n.updatedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+
+        return new PaginatedResult($items, $total);
+    }
+
     /**
      * @param list<string> $labels
      */

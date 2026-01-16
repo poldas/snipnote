@@ -22,6 +22,10 @@ return [
         'path' => './assets/public_note.js',
         'entrypoint' => true,
     ],
+    'public_catalog' => [
+        'path' => './assets/public_catalog.js',
+        'entrypoint' => true,
+    ],
     'htmx.org' => [
         'version' => '2.0.3',
     ],

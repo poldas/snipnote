@@ -13,6 +13,11 @@
 - Implement → Test → Feedback: nigdy nie implementuj 50 funkcjonalności bez testów po drodze.
 - reużywaj komponenty jeżeli to możliwe, nie duplikuj kodu, zawsze najpierw sprawdzaj czy dana funkcjonalność już istnieje
 
+### Code Quality & Readability
+- **Nie pisz zawiłego kodu**: Unikaj skomplikowanych warunków inline (np. wielokrotne `if` zagnieżdżone w kontrolerach).
+- **Metody pomocnicze**: Zamiast rozbudowanych instrukcji warunkowych, wydzielaj logikę do małych, nazwanych metod (np. `shouldShowPrivateNotes($user)`), które jasno komunikują intencję.
+- **Odpowiedzialność Repozytorium**: Logika filtrowania danych (szczególnie `public` vs `private`) musi znajdować się wyłącznie w Repozytorium. Kontroler tylko przekazuje kryteria (DTO).
+
 ### Symfony & Doctrine
 - Aplikacja działa w Dockerze, ZAWSZE uruchamiaj poprzez `docker compose exec app <command>`.
 - Testy uruchamiaj poprzez `./localbin/test.sh`.

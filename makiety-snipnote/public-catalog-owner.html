@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twój Katalog Publiczny | Snipnote</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .animated-bg {
+            background: linear-gradient(-45deg, #eef2ff, #f5f3ff, #ecfeff, #fdf4ff);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .owner-border {
+            border: 2px solid rgba(79, 70, 229, 0.3);
+        }
+    </style>
+</head>
+<body class="animated-bg min-h-screen text-slate-700 font-sans">
+
+    <!-- Top Navigation (Full version for logged in) -->
+    <nav class="sticky top-0 z-50 glass border-b border-indigo-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                        <i class="fas fa-note-sticky text-xl"></i>
+                    </div>
+                    <span class="text-2xl font-bold text-indigo-950">Snipnote</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="text-sm font-medium text-slate-500">Zalogowany jako <span class="text-indigo-600 font-bold">dpolonis@example.com</span></span>
+                    <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 border border-indigo-200">
+                        <i class="fas fa-user"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Info Banner for Owner -->
+    <div class="bg-indigo-600 text-white py-3 px-4 text-center text-sm font-medium shadow-lg">
+        <i class="fas fa-eye mr-2"></i> Przeglądasz własny katalog. Widzisz wszystkie swoje notatki (prywatne i publiczne).
+    </div>
+
+    <header class="py-12 px-4">
+        <div class="max-w-4xl mx-auto text-center">
+            <h1 class="text-4xl font-extrabold text-indigo-950 mb-4">Twój Katalog Publiczny</h1>
+            <p class="text-slate-600 mb-10">Zarządzaj tym, co widzą inni pod adresem <code class="bg-indigo-50 px-2 py-1 rounded text-indigo-600">/u/dpolonis-uuid</code></p>
+
+            <div class="relative max-w-2xl mx-auto">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-indigo-400"></i>
+                </div>
+                <input type="text" 
+                       placeholder="Szukaj w swoich notatkach..." 
+                       class="w-full pl-12 pr-4 py-4 rounded-2xl border border-indigo-200 glass shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-200 text-lg">
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 pb-20">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            
+            <!-- Note Card Example (Public) -->
+            <div class="group glass rounded-3xl border border-indigo-50 overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500">
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-full border border-emerald-100">PUBLIC</span>
+                        <div class="flex gap-2">
+                            <button class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all"><i class="fas fa-edit text-xs"></i></button>
+                            <button class="w-8 h-8 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all"><i class="fas fa-trash text-xs"></i></button>
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-bold text-indigo-950 mb-3 group-hover:text-indigo-600 transition-colors">🚀 Optymalizacja SQL</h3>
+                    <p class="text-slate-600 text-sm line-clamp-3 mb-6">Poniżej przedstawiam zestawienie technik optymalizacji dla PostgreSQL 16...</p>
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        <span class="px-2 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-bold rounded-md uppercase tracking-wider">#database</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Note Card Example (Private) -->
+            <div class="group glass rounded-3xl border-2 border-indigo-200 overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 bg-indigo-50/30">
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full border border-indigo-200"><i class="fas fa-lock mr-1"></i> PRIVATE</span>
+                        <div class="flex gap-2">
+                            <button class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all"><i class="fas fa-edit text-xs"></i></button>
+                            <button class="w-8 h-8 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all"><i class="fas fa-trash text-xs"></i></button>
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-bold text-indigo-950 mb-3">🔑 Hasła do serwerów dev</h3>
+                    <p class="text-slate-600 text-sm line-clamp-3 mb-6">Pamiętaj, aby nigdy nie udostępniać tej notatki publicznie. Hasła do bazy stagingowej...</p>
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        <span class="px-2 py-1 bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded-md uppercase tracking-wider">#secrets</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Note Card Example (Shared/Collaborator) -->
+            <div class="group glass rounded-3xl border border-dashed border-purple-300 overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500">
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="px-3 py-1 bg-purple-50 text-purple-700 text-xs font-bold rounded-full border border-purple-200"><i class="fas fa-user-friends mr-1"></i> FOR ME</span>
+                        <div class="flex gap-2">
+                            <button class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all"><i class="fas fa-edit text-xs"></i></button>
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-bold text-indigo-950 mb-3">🤝 Wspólny projekt MVP</h3>
+                    <p class="text-slate-600 text-sm line-clamp-3 mb-6">Notatka udostępniona przez jan.kowalski@example.com. Tu trzymamy plan sprintu...</p>
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        <span class="px-2 py-1 bg-purple-50 text-purple-700 text-[10px] font-bold rounded-md uppercase tracking-wider">#teamwork</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+</body>
+</html>

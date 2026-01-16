@@ -60,6 +60,24 @@ Dokument opisuje strategię testowania aplikacji Snipnote, łącząc testy End-t
     - **Self-Removal:** Współpracownik usuwa swój dostęp i traci możliwość edycji (redirect na dashboard).
     - **Owner Removal:** Właściciel usuwa współpracownika i wiersz znika z listy w czasie rzeczywistym.
 - **notes.themes.spec.ts:** Weryfikacja wizualna specjalnych motywów (np. `todo`, `recipe`) – czy odpowiednie etykiety zmieniają wygląd notatki.
+### Scenariusz: Skróty klawiszowe i Copywriting
+**Pliki:** `notes.shortcuts.spec.ts`, `notes.copy.spec.ts`
+- **Pokrycie PRD:** US-01, US-03, US-04
+- **Kroki:**
+    1. **Ctrl+S / Cmd+S:** Weryfikacja zapisu notatki w trybie tworzenia i edycji za pomocą skrótu klawiszowego (przekierowanie na Dashboard).
+    2. **Dynamiczne Copy:** Weryfikacja, czy zmiana widoczności notatki (Radio buttons) natychmiastowo aktualizuje opisy pomocnicze pod polem.
+    3. **Tłumaczenia:** Sprawdzenie, czy wszystkie komunikaty (Strefa zagrożenia, Etykiety, Linki) są pobierane z systemu tłumaczeń (brak hardcodowanych stringów w JS/Twig).
+
+### Scenariusz: Bezpieczeństwo Katalogu (Bot-proofing)
+**Plik:** `notes.catalog.spec.ts`
+- **Cel:** Weryfikacja ochrony przed scrapowaniem i wsparcie dla UX.
+- **Kroki:**
+    1. **Metoda GET:** Weryfikacja, że wyszukiwanie poprawnie synchronizuje parametr `q=` z adresem URL (Deep Linking).
+    2. **Nagłówki Ochronne:** Sprawdzenie wymogu nagłówka `X-Requested-With: XMLHttpRequest` dla żądań AJAX.
+    3. **Honeypot:** Weryfikacja ochrony przed botami za pomocą ukrytego pola.
+    4. **Empty State:** Weryfikacja, że przy braku wyników lub pustym katalogu wyświetlany jest komunikat wizualnie spójny ze stroną błędu 404 ("Notatki niedostępne lub nieprawidłowy link").
+    5. **Walidacja UUID:** Próba wejścia na błędny format UUID skutkuje wyświetleniem przyjaznego błędu zamiast exception 500.
+
 ### Scenariusz: Interakcje UI i Logika JS
 **Plik:** `ui.interaction.spec.ts`
 - **Pokrycie PRD:** UX Enhancements
@@ -95,7 +113,7 @@ Dokument opisuje strategię testowania aplikacji Snipnote, łącząc testy End-t
 | ID | Status | Uwagi |
 | :--- | :--- | :--- |
 | US-01 - US-08 | ✅ Pokryte | Pełne testy E2E i Backend |
-| US-09 (Katalog) | ❌ Brak | Funkcjonalność nieprzetestowana |
+| US-09 (Katalog) | ✅ Pokryte | Pełne testy E2E (Security/Search) i Backend |
 | US-10 - US-12 | ✅ Pokryte | Pełne flow rejestracji i logowania |
 | US-13 (Samousunięcie)| ✅ Pokryte | Testy E2E i Unit (Service) |
 | US-15 - US-16 | ✅ Pokryte | Flow resetu hasła z Mailpit |
