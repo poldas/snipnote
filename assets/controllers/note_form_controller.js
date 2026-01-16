@@ -180,7 +180,7 @@ export default class extends Controller {
             }
             if ((event.ctrlKey || event.metaKey) && event.key === 's') {
                 event.preventDefault();
-                this.submitNote();
+                this.submitNote({ stay: this.config.mode === 'edit' });
             }
         });
     }
@@ -452,7 +452,7 @@ export default class extends Controller {
         });
     }
 
-    async submitNote() {
+    async submitNote(options = { stay: false }) {
         const validation = this.validateForm();
         if (!validation.valid) {
             this.state.errors = validation.errors;
@@ -494,9 +494,12 @@ export default class extends Controller {
             if (response.ok) {
                 announce(this.config.mode === 'edit' ? 'Notatka została zaktualizowana' : 'Notatka została utworzona pomyślnie');
                 showToast(this.config.mode === 'edit' ? 'Zapisano zmiany' : 'Notatka utworzona', 'success');
-                setTimeout(() => {
-                    window.location.href = this.config.redirectUrl || '/notes';
-                }, 500);
+                
+                if (!options.stay) {
+                    setTimeout(() => {
+                        window.location.href = this.config.redirectUrl || '/notes';
+                    }, 500);
+                }
                 return;
             }
 

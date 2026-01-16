@@ -57,7 +57,7 @@ test.describe('Note Editor Shortcuts', () => {
         // Should show success toast
         await expect(page.getByText('Zapisano zmiany')).toBeVisible();
         
-        // Should redirect
-        await expect(page).toHaveURL(/\/notes/);
+        // Should NOT redirect (remain on edit page)
+        await expect(page).toHaveURL(/\/edit/);
     });
 });
