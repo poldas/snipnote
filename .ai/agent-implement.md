@@ -21,7 +21,7 @@ Na koniec zawsze uruchamiaj testy: unit, e2e, phpstan, cs-fixer.
 @.ai/spec/ui-colors.md
 
 ### architecture:
-@.ai/ARCHITEKTURA.md
+@APACHE-CONFIG-FINAL.md
 @.ai/spec/ui-plan.md
 @.ai/spec/api-plan.md
 @README.md
@@ -43,3 +43,7 @@ Jeżeli czegoś nie wiesz, albo nie jesteś pewien, zawsze pytaj.
 Analizując patrz na kontekst i architekturę aplikacji i zawsze podawaj co najmniej dwa rozwiązania i zalecenie do implementacji.
 
 Zawsze uzupełniaj pliki kontekstowe jeżeli zmiani się logika, albo powstanie nowa funkcjonalność, ale nie usuwaj poprzednich wpisów (jedynie modyfikuj, jeżeli jest zmiana funkcjonalności, albo logiki).
+
+Nigdy nie commituj sam zmian do repozytorium.
+
+Po każdej skończonej pracy pytaj o dalsze instrukcje.

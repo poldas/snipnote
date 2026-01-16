@@ -52,6 +52,26 @@ Snipnote to aplikacja MVP do tworzenia, organizowania i bezpiecznego udostępnia
 *   **Zarządzanie Współedytorami**: Sekcja do dodawania/usuwania osób po adresie email.
 *   **Strefa Zagrożenia**: Sekcja dla operacji nieodwracalnych (usuwanie notatki). Zawiera wyraźne ostrzeżenia: "Operacje nieodwracalne. Używaj ostrożnie.".
 
+### Dostępność (Accessibility)
+*   **Automatyczny Fokus**: Po wejściu na stronę edycji/tworzenia notatki, kursor automatycznie ustawia się w polu **Tytuł**.
+*   **Logiczna Kolejność Tabulacji**:
+    1.  Tytuł (Start)
+    2.  Opis (Treść Markdown)
+    3.  Etykiety (Dodawanie tagów)
+    4.  Współpracownicy (Email input)
+    5.  Przycisk "Usuń notatkę" (tylko właściciel)
+    6.  Logo (Powrót do strony głównej)
+    7.  Dashboard (Powrót do listy)
+    8.  Mój Katalog
+    9.  Wyloguj
+*   **Skróty Klawiszowe**:
+    *   **Tab**: Nawigacja między polami.
+    *   **Ctrl+S / Cmd+S**: Zapis notatki.
+    *   **Enter** (w polu tagów): Dodanie etykiety.
+    *   **Ctrl+B / Ctrl+I**: Formatowanie tekstu (Pogrubienie/Kursywa).
+    *   **n** (Dashboard): Przejście do dodawania nowej notatki.
+    *   **/** (Dashboard): Aktywacja wyszukiwarki.
+
 ### Widok Publiczny Notatki - Anonimowy
 *   **Reader Mode**: Przejrzysty układ do odczytu z wyrenderowanym Markdownem.
 *   **Interaktywne Listy zadań**: Publiczne notatki z tagiem `todo` pozwalają użytkownikom na lokalną interakcję (zapis w `localStorage`).

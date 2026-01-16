@@ -11,10 +11,53 @@ export default class extends Controller {
         this.bindMobileMenu();
         this.bindCopyLinks();
         this.setupDeleteModal();
+        this.bindKeyboardShortcuts();
     }
 
     disconnect() {
         this.abort?.abort();
+        document.removeEventListener('keydown', this.handleGlobalShortcuts);
+    }
+
+    bindKeyboardShortcuts() {
+        this.handleGlobalShortcuts = this.handleGlobalShortcuts.bind(this);
+        document.addEventListener('keydown', this.handleGlobalShortcuts);
+    }
+
+    handleGlobalShortcuts(event) {
+        // Ignore if user is typing in an input field
+        if (this.shouldIgnoreShortcuts(event)) return;
+
+        if (event.key === 'n') {
+            event.preventDefault(); // Prevent accidental typing if focus shifts slowly
+            window.location.href = '/notes/new';
+        }
+
+        if (event.key === '/') {
+            event.preventDefault(); // Prevent typing '/' in the search input
+            this.focusSearch();
+        }
+    }
+
+    shouldIgnoreShortcuts(event) {
+        const target = event.target;
+        const tagName = target.tagName;
+        const isInput = tagName === 'INPUT' || tagName === 'TEXTAREA' || tagName === 'SELECT';
+        const isContentEditable = target.isContentEditable;
+        
+        return isInput || isContentEditable;
+    }
+
+    focusSearch() {
+        const form = this.element.querySelector('[data-notes-search-form]');
+        const input = form?.querySelector('input[name="q"]');
+        if (input) {
+            // Use requestAnimationFrame to ensure smooth focus handling
+            requestAnimationFrame(() => {
+                input.focus();
+                input.select(); // Optional: select existing text for quick replacement
+            });
+        }
     }
 
     setupDeleteModal() {

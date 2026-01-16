@@ -378,6 +378,33 @@ Kryteria akceptacji:
 - Po przekroczeniu limitu użytkownik otrzymuje jasny komunikat o blokadzie czasowej.
 - Limity są niezależne dla różnych typów akcji.
 
+### US-018: Dostępność i nawigacja klawiaturą
+Tytuł: Wsparcie klawiatury w formularzu edycji
+
+Opis:
+Jako użytkownik preferujący nawigację klawiaturą
+Chcę, aby kursor automatycznie ustawiał się w tytule nowej notatki, a klawisz Tab przechodził logicznie przez pola edycji
+Aby móc szybko tworzyć i edytować notatki bez użycia myszy
+
+Kryteria akceptacji:
+- Po wejściu na stronę tworzenia/edycji notatki, kursor automatycznie ustawia się w polu Tytuł.
+- Kolejność tabulacji (Tab Order) jest ściśle zdefiniowana: Tytuł -> Opis -> Etykiety -> Współpracownicy -> Usuwanie -> Nawigacja.
+- Skrót klawiszowy Ctrl+S (lub Cmd+S) zapisuje notatkę.
+- W trybie edycji po zapisaniu skrótem użytkownik pozostaje na stronie, w trybie tworzenia jest przekierowany.
+
+### US-019: Skróty klawiszowe Dashboardu
+Tytuł: Szybka nawigacja i wyszukiwanie z klawiatury
+
+Opis:
+Jako zaawansowany użytkownik (power user)
+Chcę używać skrótów klawiszowych na liście notatek
+Aby przyspieszyć pracę bez odrywania rąk od klawiatury
+
+Kryteria akceptacji:
+- Naciśnięcie klawisza `n` na dashboardzie przekierowuje do formularza nowej notatki.
+- Naciśnięcie klawisza `/` na dashboardzie ustawia fokus (skupienie) na polu wyszukiwania.
+- Skróty nie działają, gdy użytkownik pisze w polu tekstowym (input, textarea).
+
 ## 7. Metryki sukcesu
 W ramach MVP nie definiuje się szczegółowych metryk biznesowych ani rozbudowanej analityki. Sukces MVP jest rozumiany jako:
 

@@ -42,8 +42,11 @@ export default class extends Controller {
             this.updateVisibilityLabels();
         }, 0);
 
-        announce('Formularz notatki gotowy do wypełnienia');
         this.element.setAttribute('data-note-form-ready', 'true');
+
+        if (this.elements.titleInput) {
+            requestAnimationFrame(() => this.elements.titleInput.focus());
+        }
     }
 
     disconnect() {
@@ -495,7 +498,11 @@ export default class extends Controller {
                 announce(this.config.mode === 'edit' ? 'Notatka została zaktualizowana' : 'Notatka została utworzona pomyślnie');
                 showToast(this.config.mode === 'edit' ? 'Zapisano zmiany' : 'Notatka utworzona', 'success');
                 
-                if (!options.stay) {
+                if (options.stay) {
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 500);
+                } else {
                     setTimeout(() => {
                         window.location.href = this.config.redirectUrl || '/notes';
                     }, 500);
