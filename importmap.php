@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Returns the importmap for this application.
  *
@@ -16,19 +18,27 @@ return [
         'path' => './assets/app.js',
         'entrypoint' => true,
     ],
+    'public_note' => [
+        'path' => './assets/public_note.js',
+        'entrypoint' => true,
+    ],
+    'public_catalog' => [
+        'path' => './assets/public_catalog.js',
+        'entrypoint' => true,
+    ],
     'htmx.org' => [
         'version' => '2.0.3',
     ],
     '@hotwired/stimulus' => [
         'version' => '3.2.2',
     ],
-    '@symfony/stimulus-bundle' => [
-        'path' => './vendor/symfony/stimulus-bundle/assets/dist/loader.js',
-    ],
     '@hotwired/turbo' => [
         'version' => '7.3.0',
     ],
     'ui_utils' => [
         'path' => './assets/ui_utils.js',
+    ],
+    '@symfony/stimulus-bundle' => [
+        'path' => './vendor/symfony/stimulus-bundle/assets/dist/loader.js',
     ],
 ];

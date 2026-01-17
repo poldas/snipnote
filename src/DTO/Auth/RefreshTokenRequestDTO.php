@@ -12,5 +12,6 @@ final readonly class RefreshTokenRequestDTO
         #[Assert\NotBlank]
         #[Assert\Length(max: 512)]
         public string $refreshToken,
-    ) {}
+    ) {
+    }
 }

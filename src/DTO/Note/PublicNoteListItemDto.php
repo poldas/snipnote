@@ -15,6 +15,6 @@ final readonly class PublicNoteListItemDto
         public array $labels,
         public \DateTimeImmutable $createdAt,
         public string $urlToken,
-    ) {}
+    ) {
+    }
 }
-

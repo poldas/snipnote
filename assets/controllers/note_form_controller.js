@@ -42,7 +42,11 @@ export default class extends Controller {
             this.updateVisibilityLabels();
         }, 0);
 
-        announce('Formularz notatki gotowy do wypełnienia');
+        this.element.setAttribute('data-note-form-ready', 'true');
+
+        if (this.elements.titleInput) {
+            requestAnimationFrame(() => this.elements.titleInput.focus());
+        }
     }
 
     disconnect() {
@@ -131,7 +135,8 @@ export default class extends Controller {
         }
 
         if (this.elements.addTagBtn) {
-            this.on(this.elements.addTagBtn, 'click', () => {
+            this.on(this.elements.addTagBtn, 'click', (event) => {
+                event.preventDefault();
                 if (this.elements.tagInput?.value.trim()) {
                     this.addLabel(this.elements.tagInput.value);
                 }
@@ -179,7 +184,7 @@ export default class extends Controller {
             }
             if ((event.ctrlKey || event.metaKey) && event.key === 's') {
                 event.preventDefault();
-                this.submitNote();
+                this.submitNote({ stay: this.config.mode === 'edit' });
             }
         });
     }
@@ -222,7 +227,7 @@ export default class extends Controller {
         }
         if (field === 'description') {
             if (!value.trim()) errors.push('Opis jest wymagany');
-            if (value.length > 10000) errors.push('Opis nie może przekraczać 10000 znaków');
+            if (value.length > 100000) errors.push('Opis nie może przekraczać 100000 znaków');
         }
         if (field === 'visibility' && !['private', 'public', 'draft'].includes(value)) {
             errors.push('Nieprawidłowa widoczność');
@@ -269,10 +274,10 @@ export default class extends Controller {
 
     showGlobalErrors(errors) {
         if (!this.elements.formErrors || !this.elements.errorList) return;
-        
+
         // Clear list safely
         this.elements.errorList.textContent = '';
-        
+
         const allErrors = [];
         Object.values(errors).forEach((messages) => {
             if (Array.isArray(messages)) {
@@ -311,9 +316,9 @@ export default class extends Controller {
     updateDescriptionCounter() {
         if (!this.elements.descriptionCounter) return;
         const length = this.state.description.length;
-        this.elements.descriptionCounter.textContent = `${length} / 10000`;
-        this.elements.descriptionCounter.classList.toggle('text-red-600', length > 10000);
-        this.elements.descriptionCounter.classList.toggle('font-semibold', length > 10000);
+        this.elements.descriptionCounter.textContent = `${length} / 100000`;
+        this.elements.descriptionCounter.classList.toggle('text-red-600', length > 100000);
+        this.elements.descriptionCounter.classList.toggle('font-semibold', length > 100000);
     }
 
     deduplicateLabels(labels) {
@@ -351,7 +356,7 @@ export default class extends Controller {
 
     renderTags() {
         if (!this.elements.tagsContainer) return;
-        
+
         // Clear container safely
         this.elements.tagsContainer.textContent = '';
 
@@ -367,6 +372,7 @@ export default class extends Controller {
             const span = document.createElement('span');
             span.className = 'inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-100 text-indigo-800 rounded-lg text-sm font-medium border border-indigo-200';
             span.setAttribute('role', 'listitem');
+            span.setAttribute('data-testid', 'tag-chip');
 
             const labelText = document.createElement('span');
             labelText.textContent = label;
@@ -374,6 +380,7 @@ export default class extends Controller {
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.setAttribute('data-remove-tag', index.toString());
+            btn.setAttribute('data-testid', 'tag-remove-btn');
             btn.setAttribute('aria-label', `Usuń etykietę ${label}`);
             btn.className = 'text-indigo-600 hover:text-indigo-900 font-bold';
             btn.textContent = '✕';
@@ -415,12 +422,26 @@ export default class extends Controller {
 
     updateVisibilityDescription(value) {
         if (!this.elements.visibilityDescription) return;
-        const descriptions = {
-            private: 'Notatka widoczna dla Ciebie i współpracowników',
-            public: 'Notatka będzie widoczna publicznie pod unikalnym linkiem',
-            draft: 'Szkic - notatka niewidoczna dla nikogo poza Tobą',
+        
+        // Default structure (keys only), content must be provided via data attribute
+        let descriptions = {
+            private: '',
+            public: '',
+            draft: '',
         };
-        this.elements.visibilityDescription.textContent = descriptions[value] || descriptions.private;
+
+        try {
+            const raw = this.element.getAttribute('data-note-form-visibility-descriptions-value');
+            if (raw) {
+                descriptions = JSON.parse(raw);
+            } else {
+                console.warn('Missing data-note-form-visibility-descriptions-value attribute. Visibility descriptions will be empty.');
+            }
+        } catch (e) {
+            console.warn('Cannot parse visibility descriptions', e);
+        }
+
+        this.elements.visibilityDescription.textContent = descriptions[value] || descriptions.private || '';
     }
 
     updateVisibilityLabels() {
@@ -435,14 +456,14 @@ export default class extends Controller {
         });
     }
 
-    async submitNote() {
+    async submitNote(options = { stay: false }) {
         const validation = this.validateForm();
         if (!validation.valid) {
             this.state.errors = validation.errors;
             Object.entries(validation.errors).forEach(([field, messages]) => this.showFieldError(field, messages));
             this.showGlobalErrors(validation.errors);
             announce('Formularz zawiera błędy. Popraw je przed zapisaniem.');
-            
+
             // Smooth scroll to the top of the form where errors are displayed
             this.elements.form.scrollIntoView({ behavior: 'smooth', block: 'start' });
             return;
@@ -477,9 +498,16 @@ export default class extends Controller {
             if (response.ok) {
                 announce(this.config.mode === 'edit' ? 'Notatka została zaktualizowana' : 'Notatka została utworzona pomyślnie');
                 showToast(this.config.mode === 'edit' ? 'Zapisano zmiany' : 'Notatka utworzona', 'success');
-                setTimeout(() => {
-                    window.location.href = this.config.redirectUrl || '/notes';
-                }, 500);
+                
+                if (options.stay) {
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 500);
+                } else {
+                    setTimeout(() => {
+                        window.location.href = this.config.redirectUrl || '/notes';
+                    }, 500);
+                }
                 return;
             }
 

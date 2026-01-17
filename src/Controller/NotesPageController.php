@@ -18,7 +18,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
-use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -41,13 +40,14 @@ final class NotesPageController extends AbstractController
         private readonly NoteService $noteService,
         private readonly NoteCollaboratorService $noteCollaboratorService,
         private readonly CsrfTokenManagerInterface $csrfTokenManager,
-    ) {}
+    ) {
+    }
 
     #[Route('/notes/new', name: 'notes_new', methods: ['GET'])]
     public function new(#[CurrentUser] ?User $user): Response
     {
         if (!$user instanceof User) {
-            return $this->redirect('/login?redirect=' . rawurlencode('/notes/new'));
+            return $this->redirect('/login?redirect='.rawurlencode('/notes/new'));
         }
 
         return $this->render('notes/new.html.twig', [
@@ -61,11 +61,11 @@ final class NotesPageController extends AbstractController
         if (!$user instanceof User) {
             $redirectTo = $request->getPathInfo();
             $query = $request->getQueryString();
-            if ($query) {
-                $redirectTo .= '?' . $query;
+            if (null !== $query && '' !== $query) {
+                $redirectTo .= '?'.$query;
             }
 
-            return $this->redirect('/login?redirect=' . rawurlencode($redirectTo));
+            return $this->redirect('/login?redirect='.rawurlencode($redirectTo));
         }
 
         try {
@@ -99,7 +99,7 @@ final class NotesPageController extends AbstractController
                     'isOwner' => false,
                     'isSelf' => $isSelf,
                     'userId' => $dto->userId,
-                    'removeUrl' => '/api/notes/' . $note->getId() . '/collaborators/' . $dto->id,
+                    'removeUrl' => '/api/notes/'.$note->getId().'/collaborators/'.$dto->id,
                 ];
             },
             $collaborators->collaborators
@@ -125,12 +125,12 @@ final class NotesPageController extends AbstractController
             'urlToken' => $note->getUrlToken(),
             'isOwner' => $isOwner,
             'canEdit' => true,
-            'deleteUrl' => '/api/notes/' . $note->getId(),
-            'patchUrl' => '/api/notes/' . $note->getId(),
+            'deleteUrl' => '/api/notes/'.$note->getId(),
+            'patchUrl' => '/api/notes/'.$note->getId(),
             'regenerateUrl' => null,
             'dashboardUrl' => '/notes',
             // Dodano absolutny URL bazujący na bieżącym żądaniu
-            'publicUrl' => $request->getSchemeAndHttpHost() . '/n/' . $note->getUrlToken(),
+            'publicUrl' => $request->getSchemeAndHttpHost().'/n/'.$note->getUrlToken(),
             'collaborators' => $collaboratorsView,
             'currentUserEmail' => $user->getUserIdentifier(),
         ];
@@ -146,16 +146,16 @@ final class NotesPageController extends AbstractController
         if (!$user instanceof User) {
             $redirectTo = $request->getPathInfo();
             $query = $request->getQueryString();
-            if ($query) {
-                $redirectTo .= '?' . $query;
+            if (null !== $query && '' !== $query) {
+                $redirectTo .= '?'.$query;
             }
 
-            return $this->redirect('/login?redirect=' . rawurlencode($redirectTo));
+            return $this->redirect('/login?redirect='.rawurlencode($redirectTo));
         }
 
-        $rawQ = (string) $request->query->get('q', '');
+        $rawQ = $request->query->get('q', '');
         $q = $this->sanitizeSearch($rawQ);
-        $page = max(1, (int) $request->query->get('page', 1));
+        $page = (int) $request->query->get('page', '1');
         $visibility = $this->normalizeVisibility($request->query->get('visibility'));
 
         $parsed = $this->notesSearchParser->parse($q);
@@ -182,9 +182,9 @@ final class NotesPageController extends AbstractController
                 )
             );
 
-            $isSharedView = $visibility === 'shared';
+            $isSharedView = 'shared' === $visibility;
             $notes = array_map(
-                fn(NoteSummaryDto $note): array => $this->mapNoteSummary($note, $isSharedView),
+                fn (NoteSummaryDto $note): array => $this->mapNoteSummary($note, $isSharedView),
                 $response->data
             );
 
@@ -213,17 +213,18 @@ final class NotesPageController extends AbstractController
 
     private function normalizeVisibility(mixed $raw): string
     {
-        if (!is_string($raw)) {
+        if (!\is_string($raw)) {
             return 'owner';
         }
 
-        $value = strtolower(trim($raw));
-        return in_array($value, self::ALLOWED_VISIBILITIES, true) ? $value : 'owner';
+        $value = mb_strtolower(mb_trim($raw));
+
+        return \in_array($value, self::ALLOWED_VISIBILITIES, true) ? $value : 'owner';
     }
 
     private function sanitizeSearch(string $q): string
     {
-        $trimmed = trim($q);
+        $trimmed = mb_trim($q);
         if (mb_strlen($trimmed) > self::MAX_SEARCH_LENGTH) {
             return mb_substr($trimmed, 0, self::MAX_SEARCH_LENGTH);
         }
@@ -249,7 +250,7 @@ final class NotesPageController extends AbstractController
      */
     private function mapNoteSummary(NoteSummaryDto $note, bool $isSharedView = false): array
     {
-        $labels = array_values(array_filter($note->labels, static fn(string $label): bool => trim($label) !== ''));
+        $labels = array_values(array_filter($note->labels, static fn (string $label): bool => '' !== mb_trim($label)));
         $excerpt = $this->makeExcerpt($note->description);
 
         return [
@@ -262,16 +263,16 @@ final class NotesPageController extends AbstractController
             'isShared' => $isSharedView,
             'createdAt' => $note->createdAt,
             'updatedAt' => $note->updatedAt,
-            'editUrl' => '/notes/' . $note->id . '/edit',
-            'deleteUrl' => '/api/notes/' . $note->id,
-            'publicUrl' => '/n/' . $note->urlToken,
+            'editUrl' => '/notes/'.$note->id.'/edit',
+            'deleteUrl' => '/api/notes/'.$note->id,
+            'publicUrl' => '/n/'.$note->urlToken,
         ];
     }
 
     private function makeExcerpt(string $description): string
     {
-        $normalized = trim(preg_replace('/\s+/', ' ', $description) ?? '');
-        if ($normalized === '') {
+        $normalized = mb_trim(preg_replace('/\s+/', ' ', $description) ?? '');
+        if ('' === $normalized) {
             return '(Brak opisu)';
         }
 
@@ -279,7 +280,7 @@ final class NotesPageController extends AbstractController
             return $normalized;
         }
 
-        return rtrim(mb_substr($normalized, 0, 252)) . '...';
+        return mb_rtrim(mb_substr($normalized, 0, 252)).'...';
     }
 
     private function generateCsrfToken(string $tokenId): string

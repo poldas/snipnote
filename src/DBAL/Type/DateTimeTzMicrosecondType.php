@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\DBAL\Type;
 
-use DateTimeImmutable;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\DateTimeTzImmutableType;
 use Doctrine\DBAL\Types\Exception\InvalidFormat;
@@ -14,21 +13,21 @@ use Doctrine\DBAL\Types\Exception\InvalidFormat;
  */
 final class DateTimeTzMicrosecondType extends DateTimeTzImmutableType
 {
-    public function convertToPHPValue($value, AbstractPlatform $platform): ?DateTimeImmutable
+    public function convertToPHPValue($value, AbstractPlatform $platform): ?\DateTimeImmutable
     {
-        if ($value === null || $value instanceof DateTimeImmutable) {
+        if (null === $value || $value instanceof \DateTimeImmutable) {
             return $value;
         }
 
-        $dateTime = DateTimeImmutable::createFromFormat('Y-m-d H:i:s.uO', (string)$value);
-        if ($dateTime !== false) {
+        $dateTime = \DateTimeImmutable::createFromFormat('Y-m-d H:i:s.uO', (string) $value);
+        if (false !== $dateTime) {
             return $dateTime;
         }
 
         try {
             return parent::convertToPHPValue($value, $platform);
         } catch (InvalidFormat $exception) {
-            throw InvalidFormat::new($value, $this->getName(), 'Y-m-d H:i:s.uO', $exception);
+            throw InvalidFormat::new($value, self::class, 'Y-m-d H:i:s.uO', $exception);
         }
     }
 }

@@ -21,7 +21,7 @@ export function showToast(message, variant = 'info') {
     setTimeout(() => {
         el.classList.add('opacity-0', 'transition-opacity', 'duration-300');
         setTimeout(() => el.remove(), 300);
-    }, 3000);
+    }, 5000); // Increased from 3000 for better E2E stability
 }
 
 /**

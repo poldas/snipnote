@@ -12,5 +12,6 @@ final readonly class UserPublicDTO
         public bool $isVerified,
         /** @var list<string> */
         public array $roles = ['ROLE_USER'],
-    ) {}
+    ) {
+    }
 }

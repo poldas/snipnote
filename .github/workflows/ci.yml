@@ -1,16 +1,37 @@
-name: CI / E2E Tests / Linting
+name: CI / Quality / E2E
 
 on:
   push:
     branches:
+      - 'fix-*'
+      - 'rc-*'
+      - main
+      - rc
+  pull_request:
+    branches:
       - rc
       - main
       - 'fix-*'
-      - 'func-*'
+
+env:
+  COMPOSER_NO_INTERACTION: 1
+  COMPOSER_PROCESS_TIMEOUT: 0
+  CI: true
+  # Global secrets & envs
+  POSTGRES_DB: app
+  POSTGRES_USER: app
+  POSTGRES_PASSWORD: app
+  APP_SECRET: ci-app-secret
+  JWT_SECRET: ci-jwt-secret
 
 jobs:
-  php-lint:
+  # -----------------------------------------------------------------------------
+  # Job 1: Static Analysis (Fastest Feedback)
+  # Includes: Syntax Lint, Coding Standards (CS-Fixer), Static Analysis (PHPStan)
+  # -----------------------------------------------------------------------------
+  static-analysis:
     runs-on: ubuntu-latest
+    if: ${{ ! (github.event_name == 'pull_request' && startsWith(github.head_ref, 'fix-')) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,15 +40,46 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
+          coverage: none # Disable coverage for speed in this job
+          tools: cs2pr
+
+      - name: Cache Composer deps
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Create .env file
+        # Symfony post-install scripts require .env to exist
+        run: cp env.example .env
+
+      - name: Install Dependencies
+        run: composer install --prefer-dist
 
       - name: Validate composer.json
         run: composer validate --strict
 
-      - name: PHP syntax lint
+      - name: PHP Syntax Lint
         run: find src tests -name '*.php' -print0 | xargs -0 -n1 php -l
 
-  phpunit:
+      - name: PHP CS Fixer (Dry Run)
+        # Uses cs2pr to annotate PR with coding standard violations
+        # Direct execution to avoid output pollution from shell scripts
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff --format=checkstyle | cs2pr
+
+      - name: PHPStan
+        # Uses github error format to annotate PR directly
+        run: vendor/bin/phpstan analyse --error-format=github --memory-limit=1G
+
+  # -----------------------------------------------------------------------------
+  # Job 2: Backend Tests & Coverage
+  # Includes: Unit/Integration Tests, Coverage Enforcement
+  # -----------------------------------------------------------------------------
+  tests-backend:
+    name: Backend Tests (PHPUnit)
     runs-on: ubuntu-latest
+    if: ${{ ! (github.event_name == 'pull_request' && startsWith(github.head_ref, 'fix-')) }}
     services:
       postgres:
         image: postgres:16-alpine
@@ -42,38 +94,27 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+      mailpit:
+        image: axllent/mailpit
+        ports:
+          - 1025:1025
 
     env:
       APP_ENV: test
       APP_DEBUG: 0
-      APP_SECRET: ci-app-secret
-      JWT_SECRET: ci-jwt-secret
       DATABASE_URL: "postgresql://app:app@localhost:5432/app?serverVersion=16&charset=utf8"
-      MAILER_DSN: null://null
+      MAILER_DSN: "smtp://localhost:1025"
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Prepare env files
-        run: |
-          cp env.example .env
-          cp env.test.example .env.test
-          # Ensure host DB hostname (localhost) for CI services
-          sed -i 's@database:5432@localhost:5432@g' .env .env.test
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
           extensions: pdo_pgsql, intl, zip
-          coverage: xdebug
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
+          coverage: pcov # PCOV is much faster than Xdebug for CI
 
       - name: Cache Composer deps
         uses: actions/cache@v4
@@ -82,90 +123,74 @@ jobs:
           key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
           restore-keys: composer-${{ runner.os }}-
 
-      - name: Composer install
-        run: composer install --no-interaction --prefer-dist
-
-      - name: Lint PHP (syntax + composer)
+      - name: Prepare env files
+        # Moved BEFORE composer install to fix post-install-cmd crash
         run: |
-          composer validate --strict
-          find src tests -name '*.php' -print0 | xargs -0 -n1 php -l
+          cp env.example .env
+          cp env.test.example .env.test
+          sed -i "s|DATABASE_URL=.*|DATABASE_URL=${DATABASE_URL}|g" .env .env.test
 
-      - name: Prepare database (test)
+      - name: Install Dependencies
+        run: composer install --prefer-dist
+
+      - name: Prepare database
         run: |
           php bin/console doctrine:database:create --if-not-exists --env=test
           php bin/console doctrine:migrations:migrate --no-interaction --env=test
 
-      - name: PHPUnit with coverage
-        run: ./bin/phpunit --coverage-clover var/coverage/clover.xml
-
-      - name: Setup Playwright deps
+      - name: Run PHPUnit (Coverage)
         run: |
-          npm ci
-          npx playwright install --with-deps chromium
+          ./bin/phpunit --coverage-clover var/coverage/clover.xml --coverage-html var/coverage/html --colors=always
 
-      - name: Start PHP dev server
+      - name: Enforce Coverage Threshold
+        run: php bin/check-coverage.php var/coverage/clover.xml 55
+
+      - name: Generate Coverage Summary
+        if: always()
         run: |
-          APP_ENV=test APP_DEBUG=0 php -S 0.0.0.0:8080 -t public > /tmp/php-server.log 2>&1 &
-          sleep 5
+          echo "## 📊 Code Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Type | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "| :--- | :--- |" >> $GITHUB_STEP_SUMMARY
+          # Simple extraction of Line coverage from Clover XML
+          if [ -f var/coverage/clover.xml ]; then
+            COVERAGE=$(grep -o 'elements="[0-9]*" coveredelements="[0-9]*"' var/coverage/clover.xml | head -n 1 | awk -F'"' '{ printf "%.2f%%", ($4 / $2) * 100 }')
+            echo "| **Line Coverage** | $COVERAGE |" >> $GITHUB_STEP_SUMMARY
+          else
+             echo "| **Line Coverage** | N/A (Failed) |" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Full HTML report is available in Artifacts." >> $GITHUB_STEP_SUMMARY
 
-      - name: Run Playwright E2E
-        env:
-          E2E_BASE_URL: http://localhost:8080
-        run: npm run e2e
-
-      - name: Print PHP server log on failure
-        if: failure()
-        run: |
-          echo "===== /tmp/php-server.log ====="
-          cat /tmp/php-server.log || true
-
-      - name: Upload coverage artifact
+      - name: Upload Coverage Artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: phpunit-coverage-${{ github.run_attempt }}
-          path: var/coverage/clover.xml
+          name: coverage-report
+          path: var/coverage/html
+          retention-days: 7
 
+  # -----------------------------------------------------------------------------
+  # Job 3: E2E Tests (Playwright)
+  # Runs only if Static Analysis & Backend Tests pass (Fail Fast)
+  # -----------------------------------------------------------------------------
   e2e:
+    name: E2E Tests (Playwright)
+    needs: [static-analysis, tests-backend]
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16-alpine
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_DB: app
-          POSTGRES_USER: app
-          POSTGRES_PASSWORD: app
-        options: >-
-          --health-cmd="pg_isready -U app -d app"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
+    if: ${{ ! (github.event_name == 'pull_request' && startsWith(github.head_ref, 'fix-')) }}
+    
     env:
       APP_ENV: test
       APP_DEBUG: 0
-      APP_SECRET: ci-app-secret
-      JWT_SECRET: ci-jwt-secret
-      DATABASE_URL: "postgresql://app:app@localhost:5432/app?serverVersion=16&charset=utf8"
-      MAILER_DSN: null://null
+      DATABASE_URL: "postgresql://app:app@database:5432/app?serverVersion=16&charset=utf8"
+      MAILER_DSN: "smtp://mailer:1025"
+      MAILER_FROM: "no-reply@snipnote.pl"
+      E2E_BASE_URL: http://localhost:8080
+      E2E_DOCKER_DISABLED: 0
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Prepare env files
-        run: |
-          cp env.example .env
-          cp env.test.example .env.test
-          sed -i 's@database:5432@localhost:5432@g' .env .env.test
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          extensions: pdo_pgsql, intl, zip
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -173,46 +198,60 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
-      - name: Cache Composer deps
-        uses: actions/cache@v4
-        with:
-          path: vendor
-          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
-          restore-keys: composer-${{ runner.os }}-
-
-      - name: Composer install
-        run: composer install --no-interaction --prefer-dist
-
-      - name: Prepare database (test)
+      - name: Prepare env files
         run: |
-          php bin/console doctrine:database:create --if-not-exists --env=test
-          php bin/console doctrine:migrations:migrate --no-interaction --env=test
+          cp env.example .env
+          sed -i 's/APP_ENV=dev/APP_ENV=test/g' .env
+          {
+            echo "JWT_SECRET=${JWT_SECRET}"
+            echo "APP_SECRET=${APP_SECRET}"
+            echo "POSTGRES_DB=${POSTGRES_DB}"
+            echo "POSTGRES_USER=${POSTGRES_USER}"
+            echo "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}"
+            echo "DATABASE_URL=${DATABASE_URL}"
+          } >> .env
 
-      - name: Setup Playwright deps
-        run: |
-          npm ci
-          npx playwright install --with-deps chromium
+      - name: Start Services (Docker Compose)
+        run: docker compose up -d --wait
 
-      - name: Start PHP dev server
+      - name: Install Backend Deps
+        run: docker compose exec -T app composer install --no-interaction --prefer-dist
+
+      - name: Setup Database
         run: |
-          APP_ENV=dev APP_DEBUG=0 php -S 0.0.0.0:8080 -t public > /tmp/php-server.log 2>&1 &
-          sleep 5
+          docker compose exec -T app php bin/console doctrine:database:create --if-not-exists --env=test
+          docker compose exec -T app php bin/console doctrine:migrations:migrate --no-interaction --env=test
+          # Smoke check
+          docker compose exec -T app php bin/console dbal:run-sql "SELECT 1" --env=test
+
+      - name: Install Frontend Deps
+        run: npm ci
+
+      - name: Build Assets
+        run: |
+          npm run tailwind:build
+          docker compose exec -T app php bin/console importmap:install --env=test
+          docker compose exec -T app php bin/console asset-map:compile --env=test
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
 
       - name: Run Playwright E2E
         env:
-          E2E_BASE_URL: http://localhost:8080
-        run: npm run e2e
+          CI: true
+        run: |
+          echo "Waiting for app to be ready..."
+          curl --retry 10 --retry-delay 2 -fsS -o /dev/null http://localhost:8080 || (docker compose logs app && exit 1)
+          npm run e2e
 
-      - name: Upload Playwright report
+      - name: Upload Playwright Report
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report-${{ github.run_attempt }}
           path: playwright-report
+          retention-days: 7
 
-      - name: Upload Playwright report
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: playwright-report
+      - name: Stop Services
+        if: always()
+        run: docker compose down

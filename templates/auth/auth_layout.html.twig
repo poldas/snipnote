@@ -1,15 +1,7 @@
-{% extends 'base.html.twig' %}
-
-{% block title %}{{ title ?? 'Snipnote' }}{% endblock %}
-
-{% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('styles/dist/auth.css') }}">
-{% endblock %}
-
-{% block javascripts %}{% endblock %}
+{% extends 'layout_auth.html.twig' %}
 
 {% block body %}
-    <div class="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-cyan-50 flex flex-col relative">
+    <div class="flex-1 flex flex-col relative">
         <!-- Navigation -->
         {% include 'auth/components/auth_nav.html.twig' with {isFixed: true} %}
 

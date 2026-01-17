@@ -1,9 +1,8 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout_dashboard.html.twig' %}
 
 {% block title %}Twoje notatki | Snipnote{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('styles/dist/notes.css') }}">
     <style>
         #toast-stack {
             top: 102px; /* 100px header height + 2px gap */
@@ -55,9 +54,8 @@
         {% include 'notes/components/confirm_modal.html.twig' %}
     {% endset %}
 
-    {% include 'notes/components/notes_layout.html.twig' with { content: content } + layoutData %}
-{% endblock %}
+        {% include 'notes/components/notes_layout.html.twig' with { content: content } + layoutData %}
 
-{% block javascripts %}
-    {{ parent() }}
-{% endblock %}
+    {% endblock %}
+
+    

@@ -2,10 +2,22 @@ framework:
   html_sanitizer:
     sanitizers:
       markdown:
+        max_input_length: 200000
         allow_safe_elements: true
+        allow_relative_links: true
+        allow_relative_medias: true
         allowed_link_schemes: ['http', 'https', 'mailto']
-        allow_elements: ['p', 'br', 'hr', 'strong', 'em', 'code', 'pre', 'blockquote', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'img', 'a']
+        allow_elements: ['p', 'br', 'hr', 'strong', 'em', 'code', 'pre', 'blockquote', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'img', 'a', 'span', 'input', 'iframe']
         allow_attributes:
-          'a': ['href', 'title']
-          'img': ['src', 'alt', 'title', 'width', 'height']
-
+          'a': ['href', 'title', 'target', 'rel', 'id']
+          'img': ['src', 'alt', 'title', 'width', 'height', 'loading']
+          'input': ['type', 'checked', 'disabled']
+          'iframe': ['src', 'width', 'height', 'frameborder', 'allow', 'allowfullscreen', 'title']
+          'h1': ['id']
+          'h2': ['id']
+          'h3': ['id']
+          'h4': ['id']
+          'h5': ['id']
+          'h6': ['id']
+          'td': ['align']
+          'th': ['align']

@@ -10,5 +10,6 @@ final readonly class AuthTokensDTO
         public string $accessToken,
         public ?string $refreshToken,
         public int $expiresIn,
-    ) {}
+    ) {
+    }
 }

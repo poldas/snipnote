@@ -6,7 +6,7 @@
 <div class="todo-header">
     <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
         <div class="flex-1">
-            <h1>📋 {{ note.title is not empty ? note.title : '(Bez tytułu)' }}</h1>
+            <h1 data-testid="public-note-title">📋 {{ note.title is not empty ? note.title : '(Bez tytułu)' }}</h1>
             <p>Zarządzaj swoją listą zadań lokalnie na tym urządzeniu</p>
         </div>
         <div class="flex flex-wrap gap-2">

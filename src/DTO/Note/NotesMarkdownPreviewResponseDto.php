@@ -6,5 +6,7 @@ namespace App\DTO\Note;
 
 final readonly class NotesMarkdownPreviewResponseDto
 {
-    public function __construct(public string $html) {}
+    public function __construct(public string $html)
+    {
+    }
 }

@@ -8,7 +8,6 @@ use App\DTO\Note\NoteSummaryDto;
 use App\DTO\Note\NotesListResponseDto;
 use App\DTO\Note\PaginationMetaDto;
 use App\Entity\User;
-use App\Query\Note\ListNotesQuery;
 use App\Repository\UserRepository;
 use App\Service\NotesQueryService;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -33,12 +32,12 @@ final class NoteControllerIntegrationTest extends WebTestCase
         $client->request('GET', '/api/notes', [
             'per_page' => 150,
         ], server: [
-            'HTTP_Authorization' => 'Bearer ' . $this->createJwtForUser($user, 'testsecret'),
+            'HTTP_Authorization' => 'Bearer '.$this->createJwtForUser($user),
         ]);
 
         $response = $client->getResponse();
         self::assertSame(Response::HTTP_BAD_REQUEST, $response->getStatusCode());
-        $payload = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $payload = json_decode((string) $response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
         self::assertSame('Validation failed', $payload['error']);
         self::assertArrayHasKey('perPage', $payload['details']);
     }
@@ -47,7 +46,7 @@ final class NoteControllerIntegrationTest extends WebTestCase
     {
         $user = new User('user@example.com', 'hash');
 
-        $notesService = $this->createStub(NotesQueryService::class);
+        $notesService = self::createStub(NotesQueryService::class);
         $notesService->method('listOwnedNotes')
             ->willReturn(new NotesListResponseDto(
                 data: [
@@ -73,12 +72,12 @@ final class NoteControllerIntegrationTest extends WebTestCase
             'q' => 'hello',
             'label' => ['work', 'dev'],
         ], server: [
-            'HTTP_Authorization' => 'Bearer ' . $this->createJwtForUser($user),
+            'HTTP_Authorization' => 'Bearer '.$this->createJwtForUser($user),
         ]);
 
         $response = $client->getResponse();
         self::assertSame(Response::HTTP_OK, $response->getStatusCode());
-        $payload = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $payload = json_decode((string) $response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
         self::assertSame(1, $payload['data'][0]['id']);
         self::assertSame(['work'], $payload['data'][0]['labels']);
         self::assertSame(2, $payload['meta']['page']);
@@ -86,16 +85,16 @@ final class NoteControllerIntegrationTest extends WebTestCase
         self::assertSame(10, $payload['meta']['total']);
     }
 
-    private function createAuthenticatedClient(User $user, ?NotesQueryService $notesQueryService = null)
+    private function createAuthenticatedClient(User $user, ?NotesQueryService $notesQueryService = null): \Symfony\Bundle\FrameworkBundle\KernelBrowser
     {
         $client = static::createClient();
         $container = static::getContainer();
 
-        $userRepository = $this->createStub(UserRepository::class);
+        $userRepository = self::createStub(UserRepository::class);
         $userRepository->method('findOneBy')->willReturn($user);
         $container->set(UserRepository::class, $userRepository);
 
-        if ($notesQueryService !== null) {
+        if (null !== $notesQueryService) {
             $container->set(NotesQueryService::class, $notesQueryService);
         }
 
@@ -105,19 +104,19 @@ final class NoteControllerIntegrationTest extends WebTestCase
     private function createJwtForUser(User $user): string
     {
         $secret = $_ENV['JWT_SECRET'] ?? 'test-jwt-secret';
-        $header = $this->base64UrlEncode(json_encode(['alg' => 'HS256', 'typ' => 'JWT'], JSON_THROW_ON_ERROR));
+        $header = $this->base64UrlEncode(json_encode(['alg' => 'HS256', 'typ' => 'JWT'], \JSON_THROW_ON_ERROR));
         $payload = $this->base64UrlEncode(json_encode([
             'sub' => $user->getUuid(),
             'exp' => time() + 3600,
-        ], JSON_THROW_ON_ERROR));
+        ], \JSON_THROW_ON_ERROR));
 
-        $signature = $this->base64UrlEncode(hash_hmac('sha256', $header . '.' . $payload, $secret, true));
+        $signature = $this->base64UrlEncode(hash_hmac('sha256', $header.'.'.$payload, $secret, true));
 
-        return sprintf('%s.%s.%s', $header, $payload, $signature);
+        return \sprintf('%s.%s.%s', $header, $payload, $signature);
     }
 
     private function base64UrlEncode(string $data): string
     {
-        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+        return mb_rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
 }

@@ -6,11 +6,13 @@
     - messages: array of strings
     - icon: raw html icon (optional)
     - class: extra classes (optional)
+    - dataTestId: string (optional)
 #}
 {% set type = type ?? 'error' %}
 {% set messages = messages ?? [] %}
 {% set title = title ?? null %}
 {% set icon = icon ?? null %}
+{% set dataTestId = dataTestId ?? null %}
 
 {% if messages is not empty %}
     {% set config = {
@@ -44,7 +46,9 @@
         }
     }[type] ?? config.error %}
 
-    <div class="rounded-xl border {{ config.bg }} {{ config.border }} px-4 py-3 {{ class ?? '' }}" role="alert">
+    <div class="rounded-xl border {{ config.bg }} {{ config.border }} px-4 py-3 {{ class ?? '' }}" 
+         role="alert" 
+         {% if dataTestId %}data-testid="{{ dataTestId }}"{% endif %}>
         <div class="flex items-start gap-3">
             {% if icon %}
                 <div class="{{ config.icon_color }} mt-0.5">{{ icon|raw }}</div>

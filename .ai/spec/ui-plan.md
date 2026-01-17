@@ -16,7 +16,6 @@
 * `GET /api/notes/{id}` — odczyt (właściciel/współedytor).
 * `PATCH /api/notes/{id}` — zapis edycji (tylko po kliknięciu „Zapisz”).
 * `DELETE /api/notes/{id}` — usunięcie (owner only).
-* `POST /api/notes/{id}/url/regenerate` — regeneracja URL (modal confirm → reload). NOT IN  MVP, make as last one.
 * `GET /api/public/notes/{url_token}` — publiczny odczyt po tokenie.
 * `GET /api/public/users/{user_uuid}/notes` — publiczny katalog użytkownika.
 * `POST /api/notes/preview` — server-side markdown preview (wywołanie HTMX).
@@ -68,17 +67,17 @@
   **Kluczowe komponenty:** formularz duży (accessible labels), toolbard minimalny markdown (wstawienia), tag-input z deduplikacją, alerty walidacji, sticky action bar (Save/Preview).
   **UX / dostępność / bezpieczeństwo:** aria-describedby dla błędów, ograniczenia długości inputów, serwerowa walidacja, CSRF, brak autosave.
 
-*Spełniane historyjki:* US-01, US-13 (po pierwszym zapisie generuje url_token po stronie serwera).
+*Spełniane historyjki:* US-01.
 
 ### Widok: Edycja notatki (pełna strona)
 
   **Ścieżka:** `/notes/{id}/edit`
   **Cel:** Edycja istniejącej notatki przez ownera lub collaborator.
-  **Kluczowe informacje:** prefill pól (title, description, labels, visibility), sekcja Collaborators, przycisk „Podgląd”, przycisk „Zapisz”, akcje: „Usuń notatkę” (owner only), „Generuj nowy URL” (modal → POST /url/regenerate).
-  **Kluczowe komponenty:** formularz edycyjny, collaborators panel (lista + input email + remove), modal confirm dla delete i regenerate, inline validation.
+  **Kluczowe informacje:** prefill pól (title, description, labels, visibility), sekcja Collaborators, przycisk „Podgląd”, przycisk „Zapisz”, akcje: „Usuń notatkę” (owner only).
+  **Kluczowe komponenty:** formularz edycyjny, collaborators panel (lista + input email + remove), modal confirm dla delete, inline validation.
   **UX / dostępność / bezpieczeństwo:** dostęp kontrolowany (jeśli brak uprawnień → czytelny komunikat/redirect), focus management w modalach, potwierdzenie krytycznych akcji, serwerowe mapowanie błędów.
 
-*Spełniane historyjki:* US-03, US-04, US-06, US-08, US-13, US-14.
+*Spełniane historyjki:* US-03, US-04, US-06, US-08, US-14.
 
 ### Widok: Publiczny odczyt notatki
 
@@ -93,10 +92,14 @@
 ### Widok: Publiczny katalog użytkownika
 
   **Ścieżka:** `/u/{uuid}`
-  **Cel:** Przegląd publicznych notatek danego użytkownika.
-  **Kluczowe informacje:** lista publicznych notatek (title, excerpt, labels, created_at), paginacja, wyszukiwarka (q + label:).
-  **Kluczowe komponenty:** list items, paginacja, search box, empty-state message („Nie ma takiego użytkownika”).
-  **UX / dostępność / bezpieczeństwo:** fallback 404 lub message, aria-labelledby listy, paginacja dostępna klawiaturowo.
+  **Cel:** Przegląd publicznych notatek danego użytkownika (podgląd profilu).
+  **Kluczowe informacje:** lista publicznych notatek (title, excerpt, labels, created_at), paginacja AJAX, wyszukiwarka (q + label:).
+  **Kluczowe komponenty:** list items (NoteCard), paginacja AJAX (hx-get), search box (hx-get + hx-push-url), empty-state message („Notatki niedostępne lub nieprawidłowy link”).
+  **UX / dostępność / bezpieczeństwo:** 
+    - Wyszukiwanie i paginacja realizowane przez **GET**, co umożliwia **Deep Linking** i łatwe udostępnianie przefiltrowanych list.
+    - Ochrona przed botami za pomocą pola **Honeypot**.
+    - Zalogowany właściciel widzi baner informacyjny o trybie podglądu profilu publicznego.
+    - Pusta galeria wizualnie spójna ze stroną błędu notatki (kontener `pn-error`).
 
 *Spełniane historyjki:* US-09, US-12 (wylogowanie wpływa na widoki).
 
@@ -113,7 +116,7 @@
 ### Widok: Modal potwierdzeń i toasty
 
   **Ścieżka:** globalne komponenty (używane wszędzie)
-  **Cel:** Potwierdzenia krytycznych akcji (usuń, regenerate), globalne powiadomienia.
+  **Cel:** Potwierdzenia krytycznych akcji (usuń), globalne powiadomienia.
   **Kluczowe informacje:** jasne komunikaty, konsekwencje akcji, przyciski Confirm/Cancel.
   **Kluczowe komponenty:** accessible modal (focus trap), toast system, inline error banners.
   **UX / dostępność / bezpieczeństwo:** aria-modal, keyboard support, focus return, CSRF protected actions.
@@ -131,7 +134,6 @@
 6. Po pierwszym zapisie: interfejs może pokazać link do publicznego widoku (jeśli public) lub informację, że notatka jest prywatna.
 7. Aby udostępnić: w edycji dodaj collaborator email → POST `/api/notes/{id}/collaborators` → zapis.
 8. Jeżeli visibility → public i url_token istnieje → odwiedzający może wejść na `/p/{url_token}` i czytać (GET `/api/public/notes/{url_token}`).
-9. Aby unieważnić link: owner/collab → „Generuj nowy URL” → modal confirm → POST `/api/notes/{id}/url/regenerate` → po sukcesie reload strony i nowy publiczny link.
 
 **Skrócone przejścia między widokami:**
 
@@ -155,7 +157,7 @@
 
 * Widoki chronione (Dashboard, Edit, Create) → jeśli brak sesji → redirect do `/login`.
 * Public views dostępne anonimowo.
-* Krytyczne operacje (delete, regenerate) dostępne w edycji z modalem confirm.
+* Krytyczne operacje (delete) dostępne w edycji z modalem confirm.
 
 ## 5. Kluczowe komponenty
 
@@ -179,7 +181,7 @@
    List of collaborator rows, add-email input (validation), remove buttons, indicator owner vs collaborator, self-remove confirmation.
 7. **Modal (Confirm)**
 
-   Reusable accessible modal with focus trap; used for delete/regenerate/self-removal.
+   Reusable accessible modal with focus trap; used for delete/self-removal.
 8. **Toasts & Global Alerts**
 
    For 409/500 and transient messages; accessible `role="status"`.
@@ -210,7 +212,6 @@
   **US-08 (Udostępnienie współedytorowi)** → Collaborators Panel w edycji.
   **US-09 (Publiczny katalog)** → `/u/{uuid}`, public list + search + pagination.
   **US-10/US-11/US-12 (Rejestracja, Logowanie, Wylogowanie)** → Landing/Login/Register flows + topbar user menu.
-  **US-13 (Regeneracja URL)** → Button w edycji → modal → POST `/url/regenerate` → reload.
   **US-14 (Usunięcie własnego dostępu)** → Collaborators Panel → remove self → redirect to dashboard on success.
   **US-16 (Przypomnienie hasła)** → link z login/register → `/forgot-password` → POST `/api/auth/forgot-password`.
   **US-17 (Reset hasła)** → `/reset-password?token=...` → POST `/api/auth/reset-password`.
@@ -228,16 +229,13 @@
 3. **Złożoność współdzielenia (kto ma dostęp):**
 
    Rozwiązanie: jasne oznaczenia w Collaborators Panel: owner vs collaborator; przy self-remove potwierdzenie konsekwencji.
-4. **Regeneracja URL i stary link nadal działa (oczekiwanie):**
-
-   Rozwiązanie: modal z ostrzeżeniem, natychmiastowy reload i jasny info „Poprzedni link unieważniony”.
-5. **Zła obsługa labeli (unicode, duplikaty):**
+4. **Zła obsługa labeli (unicode, duplikaty):**
 
    Rozwiązanie: tag-input z dedupe case-insensitive; walidacja i normalizacja przed wysłaniem.
-6. **Dostępność publicznej treści (XSS):**
+5. **Dostępność publicznej treści (XSS):**
 
    Rozwiązanie: server-side sanitization + whitelist; klient renderuje bez wykonania skryptów.
-7. **Słaba nawigacja na mobile:**
+6. **Słaba nawigacja na mobile:**
 
    Rozwiązanie: chowany sidebar, sticky topbar, duże CTA, touch-friendly elements.
 
@@ -245,7 +243,7 @@
 ## Zgodność z planem API — krótka kontrola zgodności
 
  Wszystkie widoki odczytów i zapisu odzwierciedlają endpoints z API planu.
- Operacje krytyczne (regenerate URL, delete, add collab) wywoływane przez dedykowane endpointy i zabezpieczone voterami/auth.
+ Operacje krytyczne (delete, add collab) wywoływane przez dedykowane endpointy i zabezpieczone voterami/auth.
  Wyszukiwanie `label:` i paginacja 10/strona zmapowane na UI i query params.
  Preview markdown używa `POST /api/notes/preview` przez HTMX, a public view używa `/api/public/notes/{url_token}`.
 

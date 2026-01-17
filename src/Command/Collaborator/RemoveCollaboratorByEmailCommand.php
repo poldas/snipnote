@@ -11,12 +11,10 @@ final readonly class RemoveCollaboratorByEmailCommand
     public function __construct(
         #[Assert\Positive]
         public int $noteId,
-
         #[Assert\NotBlank]
         #[Assert\Email]
         #[Assert\Length(max: 255)]
         public string $email,
-    ) {}
+    ) {
+    }
 }
-
-

@@ -1,36 +1,11 @@
-{% set errorTitle = errorCode == 403 ? 'Notatka niedostępna (prywatna)' : (errorCode == 404 ? 'Notatka niedostępna lub nieprawidłowy link' : 'Problem z połączeniem') %}
-{% set errorDesc = errorCode == 403 ? 'Właściciel ograniczył dostęp do tej notatki.' : (errorCode == 404 ? 'Sprawdź, czy adres URL jest poprawny lub zapytaj właściciela o nowy link.' : 'Nie udało się pobrać danych. Spróbuj ponownie za chwilę.') %}
+{% set isNotFound = errorCode == 403 or errorCode == 404 %}
+{% set errorTitle = isNotFound ? 'Notatka niedostępna lub nieprawidłowy link' : 'Wystąpił nieoczekiwany błąd' %}
+{% set errorDesc = isNotFound ? 'Sprawdź, czy adres URL jest poprawny lub zapytaj właściciela o nowy link.' : 'Nie udało się przetworzyć treści notatki. Spróbuj ponownie za chwilę.' %}
 
 <div id="public-note-shell" class="pn-error">
-    <div class="flex flex-col items-center justify-center text-center min-h-[240px] p-4 sm:p-8">
-        <div class="mb-6 text-indigo-500/80">
-            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="9" y1="15" x2="15" y2="15"></line>
-                <line x1="9" y1="11" x2="12" y2="11"></line>
-                <path d="M12 18l-3-3 3-3"></path>
-            </svg>
-        </div>
-        <div class="space-y-3">
-            <h2 class="text-xl sm:text-2xl font-bold text-indigo-950">{{ errorTitle }}</h2>
-            <p class="text-sm sm:text-base text-slate-600 max-w-sm mx-auto">{{ errorDesc }}</p>
-            <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
-                {% if errorCode == 0 %}
-                    <button
-                        type="button"
-                        hx-get="{{ app.request.pathinfo }}"
-                        hx-target="#public-note-shell"
-                        hx-swap="outerHTML"
-                        class="btn-auth-primary px-6 py-2.5 rounded-xl font-semibold shadow-lg transition-all">
-                        Spróbuj ponownie
-                    </button>
-                {% endif %}
-                <a href="/" class="px-6 py-2.5 rounded-xl border border-indigo-200 text-indigo-700 font-semibold hover:bg-indigo-50 transition-all text-sm">
-                    Wróć do strony głównej
-                </a>
-            </div>
-        </div>
-    </div>
+    {% include 'components/empty_state.html.twig' with {
+        title: errorTitle,
+        description: errorDesc
+    } %}
 </div>
 

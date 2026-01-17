@@ -6,7 +6,8 @@
         <title>{% block title %}Snipnote{% endblock %}</title>
         <link rel="icon" type="image/svg+xml" href="/favicon.svg">
         {% block stylesheets %}
-            <link rel="stylesheet" href="{{ asset('app.css') }}">
+            <link rel="stylesheet" href="{{ asset('styles/dist/common.css') }}">
+            <link rel="stylesheet" href="{{ asset('styles/dist/notes.css') }}">
         {% endblock %}
 
         {% block javascripts %}

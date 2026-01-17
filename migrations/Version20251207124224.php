@@ -8,7 +8,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Migration: Version20251205CreateCoreSchema
+ * Migration: Version20251205CreateCoreSchema.
  *
  * Cel:
  *  - Utworzyć podstawowy schemat dla aplikacji Notes:

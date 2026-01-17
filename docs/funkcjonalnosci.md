@@ -12,40 +12,82 @@ Snipnote to aplikacja MVP do tworzenia, organizowania i bezpiecznego udostępnia
 *   **Nawigacja**: Szybki dostęp do logowania i rejestracji.
 
 ### Strony Autoryzacji (Auth)
-*   **Rejestracja**: Zakładanie konta za pomocą adresu email i hasła (wymagana walidacja siły hasła).
-*   **Logowanie**: Autoryzacja użytkownika z obsługą błędów i przekierowaniem na docelową stronę (parametr `redirect`).
+*   **Polityka Zero JS**: Strony logowania, rejestracji i resetu hasła działają bez JavaScriptu (standardowe formularze HTML + POST) dla maksymalnej niezawodności i bezpieczeństwa.
+*   **Rejestracja**: Zakładanie konta za pomocą adresu email i hasła (min. 8 znaków).
+*   **Logowanie**: Autoryzacja użytkownika z obsługą błędów i automatycznym zapamiętywaniem ostatniego maila w sesji (prefill).
 *   **Odzyskiwanie Hasła**: Procedura resetowania zapomnianego hasła poprzez link wysyłany na email (token ważny 60 min).
-*   **Potwierdzenie Email**: Wymóg aktywacji konta przed pełnym dostępem do funkcji tworzenia (krok 2 z 2 procesu rejestracji).
+    *   **Bezpieczeństwo**: System zawsze wyświetla ten sam komunikat o wysłaniu wiadomości, aby zapobiec wyciekowi bazy maili (user enumeration).
+    *   **Obsługa Kont Niezweryfikowanych**: Jeśli użytkownik poda email do konta, które nie zostało jeszcze potwierdzone, zamiast linku do resetu hasła otrzyma **nowy link aktywacyjny**, aby umożliwić mu dokończenie rejestracji.
+    *   **Brak Konta**: Jeśli podany adres nie istnieje w bazie, system nie wysyła żadnej wiadomości.
+*   **Potwierdzenie Email**: Wymóg aktywacji konta przed pełnym dostępem do funkcji (krok 2 z 2 procesu rejestracji).
+*   **Rate Limiting (Ochrona przed spamem)**:
+    *   **Weryfikacja Email**: Limit **3 prób** ponownego wysłania linku na 15 minut. Po przekroczeniu, użytkownik widzi komunikat błędu i żądanie jest blokowane.
+    *   **Reset Hasła**: Limit **5 prób** wysłania żądania resetu na 15 minut dla danego adresu IP.
 
 ### Dashboard (Panel Użytkownika) - Zalogowany
-*   **Galeria Notatek**: Wyświetlanie notatek w formie kart (grid) z informacją o dacie utworzenia, widoczności i skrótem treści (excerpt).
-*   **Wyszukiwarka Globalna**: Główne pole wyszukiwania obsługujące tekst i etykiety.
+*   **Galeria Notatek**: Wyświetlanie notatek w formie kart (grid) z informacją o dacie modyfikacji, statusie i skrótem treści.
+*   **Wyszukiwarka Globalna**: Główne pole wyszukiwania obsługujące tekst (tytuł/opis) oraz etykiety. Limit zapytania: 200 znaków.
 *   **Panel Filtrów**: Szybki wybór zakresu widoczności (Wszystkie, Publiczne, Prywatne, Szkice, Udostępnione "For Me").
-*   **Paginacja**: Obsługa 10 elementów na stronę z nawigacją "Poprzednia/Następna".
+*   **Kopiowanie Linków**:
+    *   Dla notatek **Publicznych** i **Prywatnych**: kopiuje link do widoku publicznego (`/n/{token}`).
+    *   Dla **Szkiców (Draft)**: kopiuje link bezpośrednio do edytora (`/notes/{id}/edit`).
+*   **Paginacja**: Obsługa **50 elementów** na stronę z nawigacją "Poprzednia/Następna".
+
+### Publiczny Katalog Użytkownika - Anonimowy i Zalogowany
+*   **Profil Twórcy**: Dostępny pod adresem `/u/{uuid}`. Prezentuje wyłącznie notatki oznaczone jako **Publiczne**.
+*   **Bezpieczne Wyszukiwanie**: 
+    *   Wyszukiwarka działa w oparciu o **HTMX + GET**, co umożliwia **Deep Linking** i synchronizację adresu URL.
+    *   Ochrona przed botami realizowana przez pole typu **Honeypot**.
+    *   Wymagany nagłówek `X-Requested-With: XMLHttpRequest` dla ochrony przed prostymi botami przy żądaniach AJAX.
+*   **Pusta Galeria (Empty State)**: Gdy użytkownik nie posiada publicznych notatek, wyświetlany jest pełnoekranowy komunikat błędu (wizualnie spójny z brakiem notatki), informujący o niedostępności treści lub błędnym linku.
+*   **Paginacja AJAX**: Przechodzenie między stronami wyników (50 na stronę) odbywa się bez przeładowania całej strony i synchronizuje adres URL.
 
 ### Edycja i Dodawanie Notatki
 *   **Tworzenie**: Formularz nowej notatki (tytuł, edytor Markdown, tagi).
 *   **Edycja**: Aktualizacja treści notatek posiadanych lub udostępnionych.
+*   **Skróty Klawiszowe**:
+    *   `Ctrl+S` (lub `Cmd+S` na Mac): Szybki zapis notatki i powrót do Dashboardu.
+*   **Dynamiczne Tłumaczenia**: Opisy widoczności oraz pola formularza są zarządzane przez system tłumaczeń Symfony, co pozwala na łatwą lokalizację aplikacji.
+*   **Wzbogacony Markdown**: Wsparcie dla tabel, obrazków z zewnętrznych serwisów, list zadań oraz automatycznych linków do nagłówków (permalinki).
 *   **Zarządzanie Współedytorami**: Sekcja do dodawania/usuwania osób po adresie email.
-*   **Strefa Zagrożenia**: Osobna sekcja dla operacji nieodwracalnych (usuwanie, regeneracja URL).
+*   **Strefa Zagrożenia**: Sekcja dla operacji nieodwracalnych (usuwanie notatki). Zawiera wyraźne ostrzeżenia: "Operacje nieodwracalne. Używaj ostrożnie.".
+
+### Dostępność (Accessibility)
+*   **Automatyczny Fokus**: Po wejściu na stronę edycji/tworzenia notatki, kursor automatycznie ustawia się w polu **Tytuł**.
+*   **Logiczna Kolejność Tabulacji**:
+    1.  Tytuł (Start)
+    2.  Opis (Treść Markdown)
+    3.  Etykiety (Dodawanie tagów)
+    4.  Współpracownicy (Email input)
+    5.  Przycisk "Usuń notatkę" (tylko właściciel)
+    6.  Logo (Powrót do strony głównej)
+    7.  Dashboard (Powrót do listy)
+    8.  Mój Katalog
+    9.  Wyloguj
+*   **Skróty Klawiszowe**:
+    *   **Tab**: Nawigacja między polami.
+    *   **Ctrl+S / Cmd+S**: Zapis notatki.
+    *   **Enter** (w polu tagów): Dodanie etykiety.
+    *   **Ctrl+B / Ctrl+I**: Formatowanie tekstu (Pogrubienie/Kursywa).
+    *   **n** (Dashboard): Przejście do dodawania nowej notatki.
+    *   **/** (Dashboard): Aktywacja wyszukiwarki.
 
 ### Widok Publiczny Notatki - Anonimowy
 *   **Reader Mode**: Przejrzysty układ do odczytu z wyrenderowanym Markdownem.
-*   **Status Dostępności**: Automatyczne sprawdzanie, czy notatka nie zmieniła statusu na prywatną lub czy link nie został zregenerowany.
+*   **Interaktywne Listy zadań**: Publiczne notatki z tagiem `todo` pozwalają użytkownikom na lokalną interakcję (zapis w `localStorage`).
+*   **Status Dostępności**: Automatyczne sprawdzanie uprawnień (prywatne notatki wymagają zalogowania, szkice są niedostępne publicznie).
 
 ## 2. Szczegółowe Zasady Biznesowe (Business Rules)
 
 ### Zarządzanie Widocznością
-1.  **Prywatna (Private)**: Dostęp ma tylko właściciel oraz osoby na liście współedytorów.
-2.  **Publiczna (Public)**: Dostęp do odczytu ma każdy, kto posiada unikalny URL. Edycja zarezerwowana dla właściciela i współedytorów.
-3.  **Szkic (Draft)**: Notatka widoczna **wyłącznie** dla właściciela. Współedytorzy tracą do niej dostęp do czasu zmiany statusu na wyższy.
+1.  **Prywatna (Private)**: Dostęp do odczytu i edycji ma właściciel oraz osoby na liście współedytorów. Widok publiczny (`/n/`) dostępny tylko po zalogowaniu dla uprawnionych.
+2.  **Publiczna (Public)**: Dostęp do odczytu ma każdy (również niezalogowani). Edycja zarezerwowana dla właściciela i współedytorów.
+3.  **Szkic (Draft)**: Notatka widoczna **wyłącznie** dla właściciela. Współedytorzy tracą do niej dostęp do czasu zmiany statusu. Brak widoku publicznego.
 
 ### Logika Wyszukiwania i Sortowania
-1.  **Sortowanie Domyślne**: Wszystkie listy notatek (Dashboard, Katalog) są zawsze sortowane malejąco po dacie utworzenia (`createdAt DESC`).
-2.  **Wyszukiwanie Tekstowe**: Szuka podanej frazy w polach `title` oraz `description`.
+1.  **Sortowanie Domyślne**: Wszystkie listy notatek (Dashboard, Katalog, Udostępnione) są zawsze sortowane malejąco po dacie **ostatniej modyfikacji** (`updatedAt DESC`). Każda edycja treści powoduje przesunięcie notatki na górę listy.
 3.  **Wyszukiwanie po Etykietach**:
     *   Użycie prefiksu `label:`.
-    *   Wiele etykiet rozdzielonych przecinkiem (np. `label:kuchnia,przepis`).
     *   Logika **OR**: Notatka zostaje wyświetlona, jeśli posiada przynajmniej jedną z wymienionych etykiet.
 4.  **Łączenie**: Możliwe jest łączenie wyszukiwania tekstowego z etykietami.
 
@@ -58,33 +100,32 @@ Snipnote to aplikacja MVP do tworzenia, organizowania i bezpiecznego udostępnia
 | Edycja treści / tagów | TAK | TAK | NIE |
 | Zmiana statusu widoczności | TAK | TAK | NIE |
 | Zarządzanie współedytorami | TAK | TAK | NIE |
-| Regeneracja URL notatki | TAK | TAK | NIE |
 | Usuwanie notatki | TAK | NIE | NIE |
 | Samousunięcie z notatki | N/A | TAK | NIE |
 
 ### Zasady Techniczne
-1.  **Zapis Jawny**: Brak mechanizmu Auto-save. Każda zmiana wymaga kliknięcia "Zapisz".
-2.  **Unikalny URL**: Generowany przy pierwszym zapisie. Regeneracja natychmiast unieważnia poprzedni link (404/403 dla starego linku).
-3.  **Współpraca**: Dodanie adresu email, który nie istnieje w systemie, pozwala tej osobie na dostęp do notatki natychmiast po zarejestrowaniu konta na ten email.
-4.  **Tokeny**: Access Token (krótki), Refresh Token (długi, rotowany przy każdym użyciu).
+1.  **Limity Danych**: Tytuł do 255 znaków, Opis do **100 000 znaków** (Markdown).
+2.  **Zapis Jawny**: Brak mechanizmu Auto-save. Każda zmiana wymaga kliknięcia "Zapisz".
+3.  **Asset Security**: Wykorzystanie `importmap_safe` do ukrywania wewnętrznej struktury JavaScript przed użytkownikami niezalogowanymi.
+4.  **Współpraca**: Dodanie adresu email, który nie istnieje w systemie, pozwala tej osobie na dostęp do notatki natychmiast po zarejestrowaniu konta na ten email.
+5.  **Bezpieczeństwo**: Własna implementacja JWT (Access Token) z rotacją Refresh Tokenów.
 
 ## 3. Komponenty Systemowe
 
 ### Komponenty Globalne
-*   **Logo**: Zintegrowany element nawigacyjny z aurą hover.
+*   **Logo**: Zintegrowany element nawigacyjny z aurą hover i animacją skali.
 *   **Alert**: Uniwersalny banner (Error/Success/Warning/Info) z obsługą przycisków akcji.
 *   **Badge**: Statusy (Publiczne, Prywatne, Szkic, For Me).
-*   **ConfirmModal**: Systemowe okno potwierdzeń z efektem glass-morphism.
+*   **ConfirmModal**: Systemowe okno potwierdzeń (usuwanie notatek, usuwanie współpracowników).
 
 ### Komponenty Notatek
-*   **NotesNav**: Nagłówek z mailem użytkownika i menu mobilnym.
-*   **NoteCard / NoteRow**: Dwa tryby wyświetlania notatki na liście.
-*   **NoteForm**: Centralny komponent formularza (Tytuł, Toggle Widoczności, Edytor, Tagi).
-*   **PublicLink**: Sekcja zarządzania linkiem z funkcją "Kopiuj do schowka" (z fallbackiem).
-*   **CollaboratorsPanel**: Interaktywna lista współedytorów z potwierdzeniem usunięcia.
-*   **StickyActionBar**: Dolny pasek zapisu (Zapewnia dostępność przycisku Zapisz na długich notatkach).
+*   **NotesNav**: Nagłówek z mailem użytkownika, menu mobilnym i szybkim dodawaniem.
+*   **NoteCard**: Karta notatki w galerii (grid).
+*   **NoteForm**: Formularz z dynamicznym licznikiem znaków i tagami (Client-side validation).
+*   **TagInput**: Komponent z obsługą chipów, deduplikacją (case-insensitive) i specjalnymi motywami (`todo`, `recipe`).
+*   **PublicTodo**: Specjalistyczny kontroler JS do obsługi list zadań z mergowaniem stanu lokalnego i zdalnego.
+*   **StickyActionBar**: Pasek akcji przypięty do dołu ekranu dla wygody edycji długich treści.
 
 ### Formularze i Pola
-*   **FormField**: Uniwersalne pole z animacją cienia (focus/hover).
-*   **MarkdownToolbar**: Pasek narzędzi wspomagający formatowanie (Bold, Italic, Link, Code, Listy).
-*   **SmartAutofocus**: Mechanizm nadający fokus na pole tylko na urządzeniach Desktop.
+*   **FormField**: Uniwersalne pole wejściowe (modern-input) z animacją cienia.
+*   **MarkdownToolbar**: Wsparcie dla formatowania bezpośrednio nad polem tekstowym.

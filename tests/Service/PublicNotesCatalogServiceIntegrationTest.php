@@ -39,7 +39,7 @@ final class PublicNotesCatalogServiceIntegrationTest extends KernelTestCase
 
     public function testThrowsWhenUserNotFound(): void
     {
-        $this->expectException(NotFoundHttpException::class);
+        self::expectException(NotFoundHttpException::class);
 
         $this->service->getPublicNotes(new PublicNotesQueryDto(
             userUuid: '550e8400-e29b-41d4-a716-446655440000',
@@ -137,7 +137,7 @@ final class PublicNotesCatalogServiceIntegrationTest extends KernelTestCase
         array $labels,
         NoteVisibility $visibility,
         \DateTimeImmutable $createdAt,
-        string $urlToken
+        string $urlToken,
     ): Note {
         $note = new Note($owner, $title, $description, labels: $labels, visibility: $visibility);
         $note->setUrlToken($urlToken);
@@ -166,4 +166,3 @@ final class PublicNotesCatalogServiceIntegrationTest extends KernelTestCase
         $schemaTool->createSchema($metadata);
     }
 }
-

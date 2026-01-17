@@ -19,10 +19,10 @@ final class NoteVoterTest extends TestCase
         $owner = new User('owner@example.com', 'hash');
         $note = new Note($owner, 'title', 'body');
 
-        $token = $this->createStub(TokenInterface::class);
+        $token = self::createStub(TokenInterface::class);
         $token->method('getUser')->willReturn($owner);
 
-        $collaboratorRepository = $this->createStub(NoteCollaboratorRepository::class);
+        $collaboratorRepository = self::createStub(NoteCollaboratorRepository::class);
 
         $voter = new NoteVoter($collaboratorRepository);
 
@@ -37,10 +37,10 @@ final class NoteVoterTest extends TestCase
         $collaborator = new User('collab@example.com', 'hash');
         $note = new Note($owner, 'title', 'body');
 
-        $token = $this->createStub(TokenInterface::class);
+        $token = self::createStub(TokenInterface::class);
         $token->method('getUser')->willReturn($collaborator);
 
-        $collaboratorRepository = $this->createStub(NoteCollaboratorRepository::class);
+        $collaboratorRepository = self::createStub(NoteCollaboratorRepository::class);
         $collaboratorRepository->method('isCollaborator')->with($note, $collaborator)->willReturn(true);
 
         $voter = new NoteVoter($collaboratorRepository);

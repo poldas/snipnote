@@ -19,14 +19,14 @@ final class PublicNotesCatalogServiceTest extends TestCase
 {
     public function testThrowsWhenUserNotFound(): void
     {
-        $userRepository = $this->createStub(UserRepository::class);
+        $userRepository = self::createStub(UserRepository::class);
         $userRepository->method('findIdByUuid')->willReturn(null);
 
-        $noteRepository = $this->createStub(NoteRepository::class);
+        $noteRepository = self::createStub(NoteRepository::class);
 
         $service = new PublicNotesCatalogService($userRepository, $noteRepository);
 
-        $this->expectException(NotFoundHttpException::class);
+        self::expectException(NotFoundHttpException::class);
 
         $service->getPublicNotes(new PublicNotesQueryDto(userUuid: '550e8400-e29b-41d4-a716-446655440000'));
     }
@@ -39,7 +39,7 @@ final class PublicNotesCatalogServiceTest extends TestCase
         $note = new Note($user, 'Title', 'Long description text that will be trimmed for excerpt.', ['work']);
         $note->setUrlToken('uuid-123');
 
-        $userRepository = $this->createStub(UserRepository::class);
+        $userRepository = self::createStub(UserRepository::class);
         $userRepository->method('findIdByUuid')->willReturn(1);
 
         $noteRepository = $this->createMock(NoteRepository::class);
@@ -47,10 +47,10 @@ final class PublicNotesCatalogServiceTest extends TestCase
             ->expects(self::once())
             ->method('findPublicNotesForOwner')
             ->with(self::callback(static function (PublicNotesQuery $query): bool {
-                return $query->ownerId === 1
-                    && $query->page === 2
-                    && $query->perPage === 2
-                    && $query->search === 'hello'
+                return 1 === $query->ownerId
+                    && 2 === $query->page
+                    && 2 === $query->perPage
+                    && 'hello' === $query->search
                     && $query->labels === ['work', 'demo'];
             }))
             ->willReturn(new PaginatedResult([$note], 3));

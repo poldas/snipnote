@@ -61,7 +61,7 @@ The project is fully Dockerized. All backend commands should generally be run in
     *   `components/`: Reusable global components (`alert.html.twig`, `logo.html.twig`).
     *   `notes/components/`: Notes-specific components (`notes_nav.html.twig`, `public_link.html.twig`, `note_form.html.twig`).
 *   **`assets/`**: Frontend source (CSS, JS, Controllers).
-    *   `controllers/`: Stimulus controllers (`autofocus_controller.js`, `notes_dashboard_controller.js`).
+    *   `controllers/`: Stimulus controllers (`notes_dashboard_controller.js`, `note_form_controller.js`, etc.).
     *   `styles/src/`: Source CSS files (organized by `base`, `components`, and `pages`).
 *   **`migrations/`**: Database schema changes.
 *   **`tests/`**: PHPUnit backend/integration tests.
@@ -80,7 +80,6 @@ The project is fully Dockerized. All backend commands should generally be run in
     *   **Shared Components:** Use `alert` for all notifications and `notes_nav` for post-auth navigation.
     *   **Standard Inputs:** Use `.input-modern` class for consistent hover/focus shadow animations.
     *   **Responsiveness:** Always ensure views are mobile-friendly (e.g., date labels, feature cards).
-    *   **Smart Focus:** Use `autofocus_controller.js` to prevent mobile keyboard/scrolling issues on load.
 *   **Testing:**
     *   **E2E Selectors:** Use `data-testid` attribute and Playwright's `getByTestId()` locator. This ensures:
         *   **Separation of Concerns:** Changes in CSS classes (styling) or JS logic won't break tests.

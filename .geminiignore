@@ -1,0 +1,26 @@
+# Lock files
+composer.lock
+package-lock.json
+symfony.lock
+
+# Directories
+var/
+vendor/
+node_modules/
+public/assets/
+playwright-report/
+.phpunit.cache/
+.git/
+.idea/
+.vscode/
+
+# Assets
+*.min.js
+*.min.css
+*.map
+*.svg
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.ico

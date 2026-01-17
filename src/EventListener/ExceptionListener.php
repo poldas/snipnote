@@ -10,6 +10,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
@@ -20,7 +21,9 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 #[AsEventListener(event: KernelEvents::EXCEPTION)]
 final class ExceptionListener
 {
-    public function __construct(private readonly LoggerInterface $logger) {}
+    public function __construct(private readonly LoggerInterface $logger)
+    {
+    }
 
     public function onKernelException(ExceptionEvent $event): void
     {
@@ -37,11 +40,16 @@ final class ExceptionListener
                 ['error' => 'Validation failed', 'details' => $exception->getErrors()],
                 JsonResponse::HTTP_BAD_REQUEST
             ),
+            $exception instanceof \TypeError => new JsonResponse(
+                ['error' => 'Invalid data types in request'],
+                JsonResponse::HTTP_BAD_REQUEST
+            ),
             $exception instanceof AuthenticationException => new JsonResponse(
                 ['error' => 'Unauthorized'],
                 JsonResponse::HTTP_UNAUTHORIZED
             ),
-            $exception instanceof AccessDeniedException => new JsonResponse(
+            $exception instanceof AccessDeniedException,
+            $exception instanceof AccessDeniedHttpException => new JsonResponse(
                 ['error' => 'Forbidden'],
                 JsonResponse::HTTP_FORBIDDEN
             ),

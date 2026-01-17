@@ -37,9 +37,9 @@ final class NoteControllerTest extends TestCase
             ->with($user, self::isInstanceOf(CreateNoteCommand::class))
             ->willReturn($note);
 
-        $notesQueryService = $this->createStub(NotesQueryService::class);
+        $notesQueryService = self::createStub(NotesQueryService::class);
 
-        $validator = $this->createStub(ValidatorInterface::class);
+        $validator = self::createStub(ValidatorInterface::class);
         $validator->method('validate')->willReturn(new ConstraintViolationList());
 
         $controller = new NoteController($noteService, $notesQueryService, $validator);
@@ -53,7 +53,7 @@ final class NoteControllerTest extends TestCase
         $response = $controller->create($request, $user);
 
         self::assertSame(Response::HTTP_CREATED, $response->getStatusCode());
-        $data = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $data = json_decode((string) $response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
         self::assertSame('t', $data['data']['title']);
         self::assertSame(['x'], $data['data']['labels']);
     }
@@ -71,9 +71,9 @@ final class NoteControllerTest extends TestCase
             ->with(1, self::isInstanceOf(UpdateNoteCommand::class), $user)
             ->willReturn($note);
 
-        $notesQueryService = $this->createStub(NotesQueryService::class);
+        $notesQueryService = self::createStub(NotesQueryService::class);
 
-        $validator = $this->createStub(ValidatorInterface::class);
+        $validator = self::createStub(ValidatorInterface::class);
         $validator->method('validate')->willReturn(new ConstraintViolationList());
 
         $controller = new NoteController($noteService, $notesQueryService, $validator);
@@ -91,16 +91,16 @@ final class NoteControllerTest extends TestCase
     {
         $user = new User('user@example.com', 'hash');
 
-        $noteService = $this->createStub(NoteService::class);
-        $notesQueryService = $this->createStub(NotesQueryService::class);
-        $validator = $this->createStub(ValidatorInterface::class);
+        $noteService = self::createStub(NoteService::class);
+        $notesQueryService = self::createStub(NotesQueryService::class);
+        $validator = self::createStub(ValidatorInterface::class);
         $validator->method('validate')->willReturn(new ConstraintViolationList());
 
         $controller = new NoteController($noteService, $notesQueryService, $validator);
 
         $request = new Request(content: '{bad json');
 
-        $this->expectException(ValidationException::class);
+        self::expectException(ValidationException::class);
         $controller->create($request, $user);
     }
 
@@ -125,22 +125,22 @@ final class NoteControllerTest extends TestCase
             meta: new PaginationMetaDto(page: 2, perPage: 5, total: 10),
         );
 
-        $noteService = $this->createStub(NoteService::class);
+        $noteService = self::createStub(NoteService::class);
 
         $notesQueryService = $this->createMock(NotesQueryService::class);
         $notesQueryService
             ->expects(self::once())
             ->method('listOwnedNotes')
             ->with(self::callback(static function (ListNotesQuery $query): bool {
-                return $query->ownerId === 1
-                    && $query->page === 2
-                    && $query->perPage === 5
-                    && $query->q === 'hello'
+                return 1 === $query->ownerId
+                    && 2 === $query->page
+                    && 5 === $query->perPage
+                    && 'hello' === $query->q
                     && $query->labels === ['work', 'dev'];
             }))
             ->willReturn($responseDto);
 
-        $validator = $this->createStub(ValidatorInterface::class);
+        $validator = self::createStub(ValidatorInterface::class);
         $validator->method('validate')->willReturn(new ConstraintViolationList());
 
         $controller = new NoteController($noteService, $notesQueryService, $validator);
@@ -155,7 +155,7 @@ final class NoteControllerTest extends TestCase
         $response = $controller->list($request, $user);
 
         self::assertSame(Response::HTTP_OK, $response->getStatusCode());
-        $data = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $data = json_decode((string) $response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
         self::assertSame(1, $data['data'][0]['id']);
         self::assertSame('uuid-123', $data['data'][0]['url_token']);
         self::assertSame(['work'], $data['data'][0]['labels']);

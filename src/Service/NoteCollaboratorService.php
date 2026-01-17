@@ -28,14 +28,15 @@ final class NoteCollaboratorService
         private readonly NoteRepository $noteRepository,
         private readonly NoteCollaboratorRepository $collaboratorRepository,
         private readonly UserRepository $userRepository,
-    ) {}
+    ) {
+    }
 
     public function addCollaborator(AddCollaboratorCommand $command, User $currentUser): NoteCollaboratorDto
     {
         $note = $this->getNoteOrThrow($command->noteId);
         $this->assertCanAccessNote($note, $currentUser);
 
-        $normalizedEmail = trim($command->email);
+        $normalizedEmail = mb_trim($command->email);
 
         if ($this->collaboratorRepository->existsForNoteAndEmail($command->noteId, $normalizedEmail)) {
             throw new ConflictHttpException('Collaborator already exists for this note');
@@ -59,7 +60,7 @@ final class NoteCollaboratorService
         $note = $this->getNoteOrThrow($command->noteId);
         $collaborator = $this->collaboratorRepository->findByNoteAndId($command->noteId, $command->collaboratorId);
 
-        if ($collaborator === null) {
+        if (null === $collaborator) {
             throw new NotFoundHttpException('Collaborator not found for this note');
         }
 
@@ -74,7 +75,7 @@ final class NoteCollaboratorService
         $note = $this->getNoteOrThrow($command->noteId);
         $collaborator = $this->collaboratorRepository->findByNoteAndEmail($command->noteId, $command->email);
 
-        if ($collaborator === null) {
+        if (null === $collaborator) {
             throw new NotFoundHttpException('Collaborator not found for this note');
         }
 
@@ -93,14 +94,14 @@ final class NoteCollaboratorService
 
         return new CollaboratorCollectionDto(
             noteId: $noteId,
-            collaborators: array_map(fn(NoteCollaborator $collaborator): NoteCollaboratorDto => $this->toDto($collaborator), $collaborators),
+            collaborators: array_map(fn (NoteCollaborator $collaborator): NoteCollaboratorDto => $this->toDto($collaborator), $collaborators),
         );
     }
 
     private function getNoteOrThrow(int $noteId): Note
     {
         $note = $this->noteRepository->find($noteId);
-        if ($note === null) {
+        if (null === $note) {
             throw new NotFoundHttpException('Note not found');
         }
 
@@ -123,35 +124,36 @@ final class NoteCollaboratorService
     private function assertCanRemove(Note $note, NoteCollaborator $collaborator, User $currentUser): void
     {
         $owner = $note->getOwner();
+        $collabUser = $collaborator->getUser();
 
-        // 1. Protection for the owner
-        $isOwnerManaged = $collaborator->getUser() !== null && (
-            $collaborator->getUser() === $owner || 
-            ($collaborator->getUser()->getId() !== null && $collaborator->getUser()->getId() === $owner->getId())
-        );
-        $isOwnerEmail = strtolower($collaborator->getEmail()) === strtolower($owner->getUserIdentifier());
-        
-        if ($isOwnerManaged || $isOwnerEmail) {
+        // 1. Protection for the owner: cannot be removed as collaborator
+        if ((null !== $collabUser && $this->isSameUser($collabUser, $owner)) || mb_strtolower($collaborator->getEmail()) === mb_strtolower($owner->getUserIdentifier())) {
             throw new AccessDeniedException('Owner cannot be removed as collaborator');
         }
 
         // 2. Owner can remove anyone
-        if ($currentUser === $owner || ($owner->getId() !== null && $currentUser->getId() === $owner->getId())) {
+        if ($this->isSameUser($currentUser, $owner)) {
             return;
         }
 
         // 3. Collaborator can remove themselves
-        $isSelfManaged = $collaborator->getUser() !== null && (
-            $collaborator->getUser() === $currentUser || 
-            ($collaborator->getUser()->getId() !== null && $collaborator->getUser()->getId() === $currentUser->getId())
-        );
-        $isSelfEmail = strtolower($collaborator->getEmail()) === strtolower($currentUser->getUserIdentifier());
-
-        if ($isSelfManaged || $isSelfEmail) {
+        if ((null !== $collabUser && $this->isSameUser($collabUser, $currentUser)) || mb_strtolower($collaborator->getEmail()) === mb_strtolower($currentUser->getUserIdentifier())) {
             return;
         }
 
         throw new AccessDeniedException('You cannot remove this collaborator');
+    }
+
+    private function isSameUser(User $u1, User $u2): bool
+    {
+        if ($u1 === $u2) {
+            return true;
+        }
+
+        $id1 = $u1->getId();
+        $id2 = $u2->getId();
+
+        return null !== $id1 && $id1 === $id2;
     }
 
     private function toDto(NoteCollaborator $collaborator): NoteCollaboratorDto

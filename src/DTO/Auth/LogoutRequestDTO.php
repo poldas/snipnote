@@ -12,5 +12,6 @@ final readonly class LogoutRequestDTO
         #[Assert\NotBlank]
         #[Assert\Length(max: 512)]
         public string $refreshToken,
-    ) {}
+    ) {
+    }
 }

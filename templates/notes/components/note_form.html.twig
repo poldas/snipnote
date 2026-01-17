@@ -28,6 +28,11 @@
     data-controller="note-form"
     data-note-form
     data-note-config="{{ formConfig|json_encode|e('html_attr') }}"
+    data-note-form-visibility-descriptions-value="{{ {
+        'public': 'note.visibility.public_desc'|trans,
+        'private': 'note.visibility.private_desc'|trans,
+        'draft': 'note.visibility.draft_desc'|trans
+    }|json_encode|e('html_attr') }}"
     class="space-y-8"
     novalidate
 >
@@ -45,13 +50,6 @@
         } %}
     </div>
 
-    {# Visibility Toggle #}
-    <div data-field="visibility">
-        {% include 'notes/components/visibility_toggle.html.twig' with {
-            initialValue: formConfig.initialVisibility
-        } %}
-    </div>
-
     {# Public Link Section #}
     {% include 'notes/components/public_link.html.twig' with {
         publicUrl: publicUrl ?? null,
@@ -65,10 +63,20 @@
         } %}
     </div>
 
-    {# Tag Input #}
-    <div data-field="labels">
-        {% include 'notes/components/tag_input.html.twig' with {
-            initialLabels: formConfig.initialLabels
-        } %}
+    {# Responsive Grid for Visibility and Labels #}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {# Visibility Toggle #}
+        <div data-field="visibility">
+            {% include 'notes/components/visibility_toggle.html.twig' with {
+                initialValue: formConfig.initialVisibility
+            } %}
+        </div>
+
+        {# Tag Input #}
+        <div data-field="labels">
+            {% include 'notes/components/tag_input.html.twig' with {
+                initialLabels: formConfig.initialLabels
+            } %}
+        </div>
     </div>
 </form>

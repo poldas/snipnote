@@ -10,10 +10,13 @@ use App\DTO\Note\PublicNoteResponseDTO;
 
 final class PublicNoteJsonMapper
 {
+    /**
+     * @return array{data: list<array<string, mixed>>, meta: array<string, int>}
+     */
     public function mapResponse(PublicNoteListResponseDto $response): array
     {
         return [
-            'data' => array_map(fn(PublicNoteListItemDto $item): array => $this->mapItem($item), $response->data),
+            'data' => array_map(fn (PublicNoteListItemDto $item): array => $this->mapItem($item), $response->data),
             'meta' => [
                 'page' => $response->meta->page,
                 'per_page' => $response->meta->perPage,
@@ -23,6 +26,9 @@ final class PublicNoteJsonMapper
         ];
     }
 
+    /**
+     * @return array{title: string, description_excerpt: string, labels: list<string>, created_at: string, url_token: string}
+     */
     public function mapItem(PublicNoteListItemDto $item): array
     {
         return [
@@ -34,6 +40,9 @@ final class PublicNoteJsonMapper
         ];
     }
 
+    /**
+     * @return array{title: string, description: string, labels: list<string>, created_at: string}
+     */
     public function mapPublicNote(PublicNoteResponseDTO $dto): array
     {
         return [
@@ -44,4 +53,3 @@ final class PublicNoteJsonMapper
         ];
     }
 }
-

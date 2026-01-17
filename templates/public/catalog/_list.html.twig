@@ -1,0 +1,71 @@
+<div id="catalog-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+    {% for note in view.notes %}
+                      {{ include('notes/components/note_card.html.twig', {
+                          'note': {
+                              'id': note.id,
+                              'title': note.title,
+                              'excerpt': (note.description|striptags|slice(0, 255) ~ (note.description|length > 255 ? '...' : '')),
+                              'labels': note.labels,
+                              'visibility': note.visibility.value,
+                              'createdAt': note.createdAt,
+                              'editUrl': path('notes_edit', {'id': note.id}),
+                              'deleteUrl': '/api/notes/' ~ note.id,
+                              'publicUrl': path('public_notes_show', {'urlToken': note.urlToken})
+                          },
+                          'readonly': not view.isOwnerView,
+                          'isCatalog': true,
+                          'hideDelete': true,
+                          'hidePublicBadge': true
+                      }) }}    {% else %}
+                      <div class="col-span-full">
+                          {% if view.q is not empty %}
+                              <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-8 text-center space-y-4">
+                                  <p class="text-lg font-semibold text-slate-900">Brak wyników wyszukiwania</p>
+                                  <p class="text-sm text-slate-500">Nie znaleziono notatek pasujących do zapytania "{{ view.q }}". Spróbuj zmienić kryteria.</p>
+                                  <div class="flex items-center justify-center gap-3">
+                                      <button 
+                                          hx-get="{{ path('public_catalog_index', {'uuid': view.owner.uuid}) }}"
+                                          hx-target="#catalog-results"
+                                          hx-push-url="true"
+                                          onclick="const input = document.querySelector('input[name=\'q\']'); if(input) input.value = '';"
+                                          class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-colors shadow-sm">
+                                          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                          </svg>
+                                          Wyczyść filtry
+                                      </button>
+                                  </div>
+                              </div>
+                          {% else %}                {% include 'components/empty_state.html.twig' with {
+                    title: 'note.catalog.empty_title'|trans,
+                    description: 'note.catalog.empty_description'|trans
+                } %}
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+
+{% if view.meta.totalPages > 1 %}
+    <div class="flex justify-center mt-12">
+        <nav class="flex items-center gap-2" aria-label="Paginacja">
+            {% set startPage = max(1, view.meta.page - 2) %}
+            {% set endPage = min(view.meta.totalPages, startPage + 4) %}
+            {% if endPage - startPage < 4 %}{% set startPage = max(1, endPage - 4) %}{% endif %}
+
+            {% for p in startPage..endPage %}
+                <button 
+                    hx-get="{{ path('public_catalog_index', {'uuid': view.owner.uuid, 'page': p, 'q': view.q}) }}"
+                    hx-target="#catalog-results"
+                    hx-push-url="true"
+                    class="inline-flex items-center justify-center min-w-[42px] h-[42px] rounded-xl border font-bold transition-all
+                    {% if p == view.meta.page %}
+                        bg-indigo-600 text-white border-indigo-600 shadow-lg scale-110
+                    {% else %}
+                        bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:text-indigo-600 shadow-sm
+                    {% endif %}">
+                    {{ p }}
+                </button>
+            {% endfor %}
+        </nav>
+    </div>
+{% endif %}

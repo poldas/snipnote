@@ -76,6 +76,6 @@ class NoteCollaborator
 
     private function sanitizeEmail(string $email): string
     {
-        return trim($email);
+        return mb_trim($email);
     }
 }

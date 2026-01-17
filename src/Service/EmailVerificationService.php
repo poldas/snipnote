@@ -19,7 +19,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  * Generates HMAC-signed URLs and marks users verified on success.
  * In this MVP we log the link instead of sending real email.
  */
-final class EmailVerificationService
+class EmailVerificationService
 {
     private const LINK_TTL_SECONDS = 86400; // 24h
 
@@ -33,17 +33,18 @@ final class EmailVerificationService
         private readonly string $mailerFrom,
         #[Autowire('%env(VERIFY_EMAIL_SECRET)%')]
         private readonly string $verificationSecret,
-    ) {}
+    ) {
+    }
 
     public function sendForEmail(string $rawEmail): void
     {
-        $email = mb_strtolower(trim($rawEmail));
-        if ($email === '') {
+        $email = mb_strtolower(mb_trim($rawEmail));
+        if ('' === $email) {
             return;
         }
 
         $user = $this->userRepository->findOneByEmailCaseInsensitive($email);
-        if ($user === null || $user->isVerified()) {
+        if (null === $user || $user->isVerified()) {
             return;
         }
 
@@ -51,7 +52,7 @@ final class EmailVerificationService
         $signature = $this->sign($email, $expires);
 
         $url = $this->urlGenerator->generate(
-            'api_auth_verify_email',
+            'app_verify_email',
             ['email' => $email, 'expires' => (string) $expires, 'signature' => $signature],
             UrlGeneratorInterface::ABSOLUTE_URL
         );
@@ -61,10 +62,10 @@ final class EmailVerificationService
 
     public function handleVerification(string $rawEmail, string $signature, string $expires): void
     {
-        $email = mb_strtolower(trim($rawEmail));
+        $email = mb_strtolower(mb_trim($rawEmail));
         $expiresInt = ctype_digit($expires) ? (int) $expires : 0;
 
-        if ($email === '' || $signature === '' || $expiresInt <= 0) {
+        if ('' === $email || '' === $signature || $expiresInt <= 0) {
             throw new ValidationException(['token' => ['Invalid verification link']]);
         }
 
@@ -78,7 +79,7 @@ final class EmailVerificationService
         }
 
         $user = $this->userRepository->findOneByEmailCaseInsensitive($email);
-        if ($user === null) {
+        if (null === $user) {
             throw new ValidationException(['token' => ['Invalid verification link']]);
         }
 
@@ -92,7 +93,7 @@ final class EmailVerificationService
 
     private function sign(string $email, int $expires): string
     {
-        $payload = sprintf('%s|%d', $email, $expires);
+        $payload = \sprintf('%s|%d', $email, $expires);
 
         return hash_hmac('sha256', $payload, $this->verificationSecret);
     }
@@ -100,7 +101,7 @@ final class EmailVerificationService
     private function sendEmail(string $email, string $url): void
     {
         $message = (new TemplatedEmail())
-            ->from(new Address($this->mailerFrom ?: 'no-reply@example.com', 'Snipnote'))
+            ->from(new Address('' !== $this->mailerFrom ? $this->mailerFrom : 'no-reply@example.com', 'Snipnote'))
             ->to($email)
             ->subject('Potwierdź swój adres e-mail | Snipnote')
             ->htmlTemplate('emails/verify_email.html.twig')
@@ -115,7 +116,7 @@ final class EmailVerificationService
                 'message_id' => $message->getHeaders()->getHeaderBody('Message-ID'),
                 'to' => iterator_to_array($message->getTo()),
             ]);
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             // Fallback: log and continue (do not fail registration), but try sync send without messenger.
             $this->logger->error('Failed to send verification email', [
                 'email' => $email,

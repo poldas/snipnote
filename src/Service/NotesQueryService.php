@@ -13,7 +13,9 @@ use App\Repository\NoteRepository;
 
 class NotesQueryService
 {
-    public function __construct(private readonly NoteRepository $noteRepository) {}
+    public function __construct(private readonly NoteRepository $noteRepository)
+    {
+    }
 
     public function listOwnedNotes(ListNotesQuery $query): NotesListResponseDto
     {
@@ -43,4 +45,3 @@ class NotesQueryService
         );
     }
 }
-

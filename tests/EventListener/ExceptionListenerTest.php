@@ -8,6 +8,7 @@ use App\EventListener\ExceptionListener;
 use App\Exception\UuidCollisionException;
 use App\Exception\ValidationException;
 use Psr\Log\LoggerInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
@@ -20,12 +21,12 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 final class ExceptionListenerTest extends TestCase
 {
     private HttpKernelInterface $kernel;
-    private LoggerInterface $logger;
+    private LoggerInterface&MockObject $logger;
 
     protected function setUp(): void
     {
-        $this->kernel = $this->createStub(HttpKernelInterface::class);
-        $this->logger = $this->createMock(LoggerInterface::class);
+        $this->kernel = self::createStub(HttpKernelInterface::class);
+        $this->logger = self::createMock(LoggerInterface::class);
     }
 
     /**
@@ -95,7 +96,7 @@ final class ExceptionListenerTest extends TestCase
 
         self::assertNotNull($response);
         self::assertSame($expectedStatus, $response->getStatusCode());
-        $payload = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $payload = json_decode((string) $response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
         self::assertSame($expectedError, $payload['error']);
     }
 

@@ -13,5 +13,6 @@ final readonly class ResendVerifyRequestDTO
         #[Assert\Email(mode: Assert\Email::VALIDATION_MODE_STRICT)]
         #[Assert\Length(max: 255)]
         public string $email,
-    ) {}
+    ) {
+    }
 }

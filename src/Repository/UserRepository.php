@@ -12,10 +12,10 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<User>
  *
- * @method User|null find($id, $lockMode = null, $lockVersion = null)
- * @method User|null findOneBy(array $criteria, array $orderBy = null)
+ * @method User|null        find($id, $lockMode = null, $lockVersion = null)
+ * @method User|null        findOneBy(array<string, mixed> $criteria, array<string, string>|null $orderBy = null)
  * @method array<int, User> findAll()
- * @method array<int, User> findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method array<int, User> findBy(array<string, mixed> $criteria, array<string, string>|null $orderBy = null, $limit = null, $offset = null)
  */
 class UserRepository extends ServiceEntityRepository
 {
@@ -44,9 +44,8 @@ class UserRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('u')
             ->andWhere('LOWER(u.email) = LOWER(:email)')
-            ->setParameter('email', trim($email))
+            ->setParameter('email', mb_trim($email))
             ->getQuery()
             ->getOneOrNullResult();
     }
 }
-

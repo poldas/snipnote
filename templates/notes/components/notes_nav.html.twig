@@ -24,7 +24,7 @@
                 {% if backUrl is defined and backUrl %}
                     <a href="{{ backUrl }}" class="px-3 sm:px-4 py-2 rounded-xl bg-white/60 text-indigo-600 hover:bg-white/90 hover:-translate-y-0.5 hover:shadow-md hover:border-indigo-300 backdrop-blur-sm border border-indigo-200/50 transition-all text-xs sm:text-sm font-bold shadow-sm">
                         <span class="sm:hidden">←</span>
-                        <span class="hidden sm:inline">← Powrót</span>
+                        <span class="hidden sm:inline">← Dashboard</span>
                     </a>
                 {% endif %}
 
@@ -39,6 +39,11 @@
 
                 {# User Label & Logout (Desktop) #}
                 <div class="hidden md:flex items-center gap-3">
+                    <a href="{{ path('public_catalog_index', {'uuid': app.user.uuid}) }}" 
+                       class="text-xs sm:text-sm font-bold text-indigo-600 hover:text-indigo-800 transition-colors p-2"
+                       data-testid="nav-public-catalog-link">
+                        Mój Katalog
+                    </a>
                     <div class="px-4 py-2 rounded-xl bg-white/60 text-indigo-600 border border-indigo-200/50 shadow-sm text-xs sm:text-sm font-bold truncate max-w-[200px]">
                         {{ currentUserEmail ?? 'użytkownik' }}
                     </div>
@@ -63,7 +68,11 @@
         <div data-mobile-menu class="hidden md:hidden pt-4 pb-2 border-t border-indigo-50 mt-3 animate-fade-in">
             <div class="flex flex-col gap-4">
                 <div class="px-2">
-                    <p class="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-2">Zalogowany jako</p>
+                    <a href="{{ path('public_catalog_index', {'uuid': app.user.uuid}) }}" 
+                       class="w-full text-left px-2 py-3 text-sm font-black text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors flex items-center gap-2">
+                        <span>👤</span> Mój Katalog
+                    </a>
+                    <p class="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-2 mt-4">Zalogowany jako</p>
                     <div class="px-4 py-2 rounded-xl bg-white/60 text-indigo-600 border border-indigo-200/50 shadow-sm text-sm font-bold truncate">
                         {{ currentUserEmail ?? 'użytkownik' }}
                     </div>

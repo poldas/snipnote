@@ -33,7 +33,7 @@ final class PublicNoteControllerTest extends TestCase
         $response = $controller->getByToken('uuid');
 
         self::assertSame(Response::HTTP_OK, $response->getStatusCode());
-        $payload = json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $payload = json_decode((string) $response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
         self::assertSame('t', $payload['data']['title']);
         self::assertSame(['a'], $payload['data']['labels']);
         self::assertArrayHasKey('created_at', $payload['data']);

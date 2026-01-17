@@ -17,5 +17,6 @@ final readonly class NoteResponseDTO
         public string $visibility,
         public string $createdAt,
         public string $updatedAt,
-    ) {}
+    ) {
+    }
 }
