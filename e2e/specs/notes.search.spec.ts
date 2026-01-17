@@ -44,6 +44,7 @@ test.describe('Dashboard Search & Filtering', () => {
             await editorPage.addLabel(note.label);
             await editorPage.setVisibility(note.visibility as any);
             await editorPage.save();
+            await page.waitForTimeout(500);
         }
         await dashboardPage.clickLogout();
 

@@ -17,4 +17,10 @@ export class ToastComponent {
         const toast = this.page.locator('#toast-stack > .bg-red-50, #toast-stack > .toast-error').filter({ hasText: message }).first();
         await expect(toast).toBeVisible({ timeout: 10000 });
     }
+
+    async expectHidden() {
+        // Wait for all toasts in the stack to disappear
+        const toasts = this.page.locator('#toast-stack > div');
+        await expect(toasts).toHaveCount(0, { timeout: 15000 });
+    }
 }

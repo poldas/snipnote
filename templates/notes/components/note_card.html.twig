@@ -1,5 +1,6 @@
 {% set note = note ?? {} %}
 {% set readonly = readonly|default(false) %}
+{% set isCatalog = isCatalog|default(false) %}
 {% set hideDelete = hideDelete|default(false) %}
 {% set hidePublicBadge = hidePublicBadge|default(false) %}
 {% set editUrl = note.editUrl ?? '#' %}
@@ -55,6 +56,18 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
                 </a>
+
+                {% if not readonly and isCatalog %}
+                    <a href="{{ editUrl }}" 
+                       class="p-3 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all min-w-[44px] min-h-[44px] flex items-center justify-center"
+                       data-testid="note-edit-btn"
+                       title="Edytuj">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                    </a>
+                {% endif %}
+
                 <button type="button"
                         data-copy-public-link
                         data-testid="note-copy-link-btn"
@@ -68,14 +81,16 @@
             </div>
             {% if not readonly %}
                 <div class="flex items-center gap-1 flex-shrink-0">
-                    <a href="{{ editUrl }}" 
-                       class="p-3 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all min-w-[44px] min-h-[44px] flex items-center justify-center"
-                       data-testid="note-edit-btn"
-                       title="Edytuj">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                        </svg>
-                    </a>
+                    {% if not isCatalog %}
+                        <a href="{{ editUrl }}" 
+                           class="p-3 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all min-w-[44px] min-h-[44px] flex items-center justify-center"
+                           data-testid="note-edit-btn"
+                           title="Edytuj">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                        </a>
+                    {% endif %}
                     {% if not hideDelete %}
                         <button type="button"
                                 data-delete-note

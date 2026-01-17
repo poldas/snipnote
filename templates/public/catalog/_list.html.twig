@@ -13,6 +13,7 @@
                               'publicUrl': path('public_notes_show', {'urlToken': note.urlToken})
                           },
                           'readonly': not view.isOwnerView,
+                          'isCatalog': true,
                           'hideDelete': true,
                           'hidePublicBadge': true
                       }) }}    {% else %}

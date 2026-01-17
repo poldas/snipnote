@@ -38,6 +38,9 @@ export class DashboardPage {
     }
 
     async clickAddNote() {
+        // Wait for any success toasts from previous actions to disappear
+        // because they might overlap the layout and cause click issues
+        await this.toast.expectHidden();
         await this.page.locator('button').filter({ hasText: /Dodaj/ }).filter({ visible: true }).first().click();
     }
 

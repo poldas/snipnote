@@ -3,7 +3,7 @@
 # Usage: ./localbin/lint-style.sh [extra-args]
 # Set USE_DOCKER=false to run locally (e.g. in CI)
 
-echo "🎨 Checking Code Style (Dry Run)..."
+echo "🎨 Checking Code Style (Dry Run)..." >&2
 
 # Pass additional args (like --format=checkstyle) if provided
 CMD="vendor/bin/php-cs-fixer fix --dry-run --diff $@"

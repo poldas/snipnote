@@ -2,7 +2,7 @@
 # Usage: ./localbin/phpstan.sh [args]
 # Set USE_DOCKER=false to run locally (e.g. in CI)
 
-echo "🔍 Running PHPStan (Level 6)..."
+echo "🔍 Running PHPStan (Level 6)..." >&2
 
 CMD="vendor/bin/phpstan analyse -c phpstan.dist.neon --memory-limit=1G $@"
 

@@ -52,9 +52,17 @@
 - **Test Infrastructure**: Przy mockowaniu repozytoriów w `WebTestCase`, używaj refleksji, aby ustawić ID dla encji stworzonych w pamięci (zapobieganie `ORMInvalidArgumentException`).
 - **PHPStan (Level 6)**: Zawsze specyfikuj typy zawartości tablic (np. `array<int, Note>`).
 
+### E2E Testing Best Practices (Playwright)
+- **Zero Masking**: Nigdy nie używaj `try-catch` ani `console.log/warn` w PageObjects/Testach. Pozwól Playwrightowi zgłosić błąd (Timeout/Actionability) — to pomaga wykryć błędy UI (np. zasłaniające elementy).
+- **Overlay Management**: Zawsze upewnij się, że UI jest czyste przed interakcją. Jeśli aplikacja używa Toastów/Modali, czekaj na ich zniknięcie (`toast.expectHidden()`) przed kliknięciem w elementy, które mogą być nimi zasłonięte.
+- **Robust Interactions**: Używaj `scrollIntoViewIfNeeded()` dla przycisków akcji (szczególnie w Sticky Barach) i czekaj na gotowość kontrolerów JS (`data-form-ready`).
+- **Deterministic State**: W testach zależnych od czasu (np. sortowanie po dacie), dodaj `waitForTimeout(500-1000)` między operacjami zapisu, aby zagwarantować unikalne timestampy w bazie.
+- **Data Persistence Verification**: Po dodaniu elementu (np. współpracownika), czekaj na jego fizyczną obecność na liście UI przed wysłaniem formularza.
+
 ### Frontend (UI) — Twig + HTMX 2+ + Tailwind + Fluent 2 UI
 - Komponenty: małe partiale Twig (max ~200 LOC).
 - Interakcje: HTMX dla prostych fragmentów. Złożone interakcje -> Stimulus controller.
+- **Defensywne UI**: W kontrolerach Stimulus, zawsze używaj `event.preventDefault()` w handlerach zdarzeń (np. `click`, `keydown`) dla elementów wewnątrz formularzy (np. dodawanie tagów, współedytorów), aby zapobiec przypadkowemu wysłaniu formularza (form submission) lub niepożądanemu bąbelkowaniu zdarzeń.
 - Styling: Tailwind utility-first; jednostki `rem`. Unikaj `!important`.
 - Nie generuj nadmiarowych klas Tailwind — preferuj zwięzłe klasy i tokeny w `tailwind.config`.
 - Markdown: renderowanie po stronie serwera + rygorystyczna sanitizacja (HtmlSanitizer).
@@ -66,3 +74,9 @@
 - Używaj Symfony Security (Voters, Passport, Authenticator).
 - JWT: Rygorystyczna weryfikacja (algorytmy, exp, sub).
 - XSS: Zawsze sanitizuj HTML generowany z Markdown przed wysłaniem do klienta.
+
+### CI/CD & Shell Scripts
+- **Output Streams**: W skryptach shell używanych w CI/CD, wszelkie komunikaty informacyjne, logi i debugowanie (`echo`) muszą być kierowane na **STDERR** (`>&2`).
+- **Piping**: **STDOUT** jest zarezerwowane WYŁĄCZNIE dla ustrukturyzowanych danych wyjściowych (XML, JSON, kod), które mogą być przekazywane rurą (pipe) do innych narzędzi (np. `cs2pr`, `jq`).
+- **Fail Fast**: Skrypty powinny kończyć się błędem natychmiast po wystąpieniu problemu (`set -e`).
+- **No Localbin in CI**: Workflow CI/CD (`.github/workflows/*.yml`) powinien uruchamiać natywne komendy (`php`, `vendor/bin/...`) bezpośrednio. Skrypty z katalogu `localbin/` służą wyłącznie jako skróty dla dewelopera w środowisku lokalnym/Docker.

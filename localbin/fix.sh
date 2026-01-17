@@ -3,7 +3,7 @@
 # Usage: ./localbin/fix.sh [path]
 # Set USE_DOCKER=false to run locally (e.g. in CI)
 
-echo "🛠️  Running PHP CS Fixer..."
+echo "🛠️  Running PHP CS Fixer..." >&2
 
 CMD="vendor/bin/php-cs-fixer fix $@"
 

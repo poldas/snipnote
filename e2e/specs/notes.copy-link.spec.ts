@@ -24,6 +24,7 @@ test.describe('Note Copy Link Functionality', () => {
         await editorPage.fillDescription('Public content');
         await editorPage.setVisibility('public');
         await editorPage.save();
+        await page.waitForTimeout(500);
 
         // 2. Private Note
         await dashboardPage.clickAddNote();
@@ -32,6 +33,7 @@ test.describe('Note Copy Link Functionality', () => {
         await editorPage.fillDescription('Private content');
         await editorPage.setVisibility('private');
         await editorPage.save();
+        await page.waitForTimeout(500);
 
         // 3. Draft Note
         await dashboardPage.clickAddNote();

@@ -61,21 +61,16 @@ jobs:
         run: composer validate --strict
 
       - name: PHP Syntax Lint
-        env:
-          USE_DOCKER: false
-        run: ./localbin/lint-syntax.sh
+        run: find src tests -name '*.php' -print0 | xargs -0 -n1 php -l
 
       - name: PHP CS Fixer (Dry Run)
-        env:
-          USE_DOCKER: false
         # Uses cs2pr to annotate PR with coding standard violations
-        run: ./localbin/lint-style.sh --format=checkstyle | cs2pr
+        # Direct execution to avoid output pollution from shell scripts
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff --format=checkstyle | cs2pr
 
       - name: PHPStan
-        env:
-          USE_DOCKER: false
         # Uses github error format to annotate PR directly
-        run: ./localbin/phpstan.sh --error-format=github
+        run: vendor/bin/phpstan analyse --error-format=github --memory-limit=1G
 
   # -----------------------------------------------------------------------------
   # Job 2: Backend Tests & Coverage

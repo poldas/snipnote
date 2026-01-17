@@ -20,6 +20,9 @@ test.describe('Dashboard Sorting Logic', () => {
         await editorPage.fillDescription('Content A');
         await editorPage.save();
 
+        // Wait to ensure distinct createdAt/updatedAt (Postgres precision)
+        await page.waitForTimeout(1000);
+
         // 2. Create second note (should be at the top now)
         await dashboardPage.clickAddNote();
         await editorPage.waitForReady();

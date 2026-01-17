@@ -73,6 +73,8 @@ test.describe('Public Catalog', () => {
         await editorPage.setVisibility('public');
         await editorPage.save();
 
+        await page.waitForTimeout(500);
+
         await dashboardPage.clickAddNote();
         await editorPage.fillTitle(title2);
         await editorPage.fillDescription('Content with nothing special');
@@ -96,6 +98,13 @@ test.describe('Public Catalog', () => {
 
         // Verify URL updates (Deep Linking / URL Sync)
         expect(page.url()).toContain('q=SQL');
+        
+        // 1b. Clear search and verify q is removed from URL (Requirement check)
+        await searchInput.fill('');
+        // Trigger HTMX if fill('') didn't
+        await searchInput.press('Enter');
+        await expect(page.getByText(title2)).toBeVisible();
+        expect(page.url()).not.toContain('q=');
         
         // 2. Security: XSS Attempt (Red Path)
         await searchInput.fill('<script>alert(1)</script>');

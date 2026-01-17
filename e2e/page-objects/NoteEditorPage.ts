@@ -12,6 +12,9 @@ export class NoteEditorPage {
     }
 
     async waitForReady() {
+        // Wait for any previous toasts to disappear
+        await this.toast.expectHidden();
+
         // Wait for the form element to be visible and initialized by Stimulus
         // The attribute is set specifically on the element with data-controller="note-form"
         const form = this.page.locator('[data-controller="note-form"]').first();
@@ -31,8 +34,15 @@ export class NoteEditorPage {
     }
 
     async addLabel(label: string) {
-        await this.page.getByTestId('tag-input').fill(label);
-        await this.page.getByTestId('tag-add-btn').click();
+        const input = this.page.getByTestId('tag-input');
+        const btn = this.page.getByTestId('tag-add-btn');
+
+        await expect(input).toBeVisible();
+        await input.fill(label);
+        // Trigger blur to add the tag (as per controller logic)
+        // We focus the title input which is always present
+        await this.page.getByTestId('note-title-input').focus();
+        
         // Wait for the chip to appear in the container
         await expect(this.page.locator('[data-testid="tag-chip"]').filter({ hasText: label })).toBeVisible();
     }
@@ -40,7 +50,8 @@ export class NoteEditorPage {
     async removeLabel(label: string) {
         // Find the remove button that is a child of a chip containing the label text
         const chip = this.page.locator('[data-testid="tag-chip"]').filter({ hasText: label }).first();
-        await chip.getByTestId('tag-remove-btn').click({ force: true });
+        await expect(chip).toBeVisible();
+        await chip.getByTestId('tag-remove-btn').click();
         // Wait for the chip to disappear
         await expect(chip).not.toBeVisible();
     }
@@ -63,24 +74,53 @@ export class NoteEditorPage {
     async addCollaborator(email: string) {
         await this.page.getByTestId('collaborator-email-input').fill(email);
         await this.page.getByTestId('collaborator-add-btn').click();
+        
+        // Wait for the new collaborator to appear in the list
+        await expect(this.page.locator('[data-collaborator-row]').filter({ hasText: email })).toBeVisible({ timeout: 10000 });
     }
 
     async save() {
         const submitBtn = this.page.locator('button[data-submit-btn]');
-        await expect(submitBtn).toBeVisible();
         
-        // Small delay to ensure Stimulus has processed all events
-        await this.page.waitForTimeout(500);
+        // Ensure not currently saving (spinner should be hidden/transparent)
+        const spinner = this.page.locator('[data-saving-spinner]');
+        if (await spinner.count() > 0) {
+             await expect(spinner).toHaveClass(/opacity-0/);
+        }
 
-        // Click and wait for both potential outcomes (toast and/or redirect)
-        // In some environments, the redirect is so fast the toast might not be easily locatable
-        await Promise.all([
-            this.toast.expectSuccess(/Zapisano|Notatka utworzona/i).catch(() => {
-                // If toast check fails, we still want to proceed if redirect happened
-                console.warn('Toast not detected during save, checking redirect...');
-            }),
-            this.page.waitForURL(/\/notes(?:\?|$)/, { timeout: 30000 }),
-            submitBtn.click({ force: true })
+        await expect(submitBtn).toBeVisible();
+        await expect(submitBtn).toBeEnabled();
+        
+        // Ensure button is in view
+        await submitBtn.scrollIntoViewIfNeeded();
+
+        // Small delay to ensure Stimulus has processed all events
+        await this.page.waitForTimeout(300);
+
+        // Setup response listener
+        const responsePromise = this.page.waitForResponse(response => 
+            response.url().includes('/api/notes') && 
+            response.request().method() !== 'OPTIONS',
+            { timeout: 30000 }
+        );
+
+        // Attempt click
+        await submitBtn.click({ force: true });
+
+        const response = await responsePromise;
+
+        // 1. Check API Response first
+        if (!response.ok()) {
+            const errorText = await response.text();
+            throw new Error(`Failed to save note. Status: ${response.status()}. Response: ${errorText}`);
+        }
+
+        // 2. If API was OK, then wait for navigation or toast
+        // We use a race here: either we redirect OR we see a success toast (for edit mode stay)
+        await Promise.race([
+            this.page.waitForURL(/\/notes(?:\?|$)/, { timeout: 20000 }), // Redirect to list
+            this.page.waitForURL(/\/edit/, { timeout: 20000 }),          // Stay on edit page (if logic changes)
+            this.toast.expectSuccess(/Zapisano|Notatka utworzona/i)      // Toast appearance
         ]);
     }
 

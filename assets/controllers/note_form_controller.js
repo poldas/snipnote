@@ -135,7 +135,8 @@ export default class extends Controller {
         }
 
         if (this.elements.addTagBtn) {
-            this.on(this.elements.addTagBtn, 'click', () => {
+            this.on(this.elements.addTagBtn, 'click', (event) => {
+                event.preventDefault();
                 if (this.elements.tagInput?.value.trim()) {
                     this.addLabel(this.elements.tagInput.value);
                 }
