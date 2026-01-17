@@ -18,4 +18,7 @@
     - Add small intentional delays (500ms) between write operations in sorting tests to ensure unique `updatedAt` values.
     - Avoid JS-click fallbacks; if Playwright can't click it, find out why (is it visible? is it stable?).
 - **Defensive UI Implementation**: Always use `event.preventDefault()` in JavaScript handlers for components inside forms (like tag inputs) to prevent accidental trigger of the main form submission, which is a common cause of flaky E2E tests (detached elements).
+- **Visual & Interaction Stability**: 
+    - Verify brand-critical elements use shared components/classes (e.g. `btn-gradient`) to prevent "design drift".
+    - Test interactive states (hover/focus) explicitly, ensuring transitions complete before assertions.
 - **Outcome**: Deterministic tests that fail only when there is a real bug, with clear error logs.

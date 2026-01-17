@@ -16,14 +16,13 @@
             <div class="flex items-center gap-4">
                 {% include 'components/logo.html.twig' with {
                     subtitle: subtitle,
-                    href: '/notes',
-                    tabIndex: "6"
+                    href: '/notes'
                 } %}
             </div>
             
             <div class="flex items-center gap-2 sm:gap-4">
                 {% if backUrl is defined and backUrl %}
-                    <a href="{{ backUrl }}" tabindex="7" class="px-3 sm:px-4 py-2 rounded-xl bg-white/60 text-indigo-600 hover:bg-white/90 hover:-translate-y-0.5 hover:shadow-md hover:border-indigo-300 backdrop-blur-sm border border-indigo-200/50 transition-all text-xs sm:text-sm font-bold shadow-sm">
+                    <a href="{{ backUrl }}" class="px-3 sm:px-4 py-2 rounded-xl bg-white/60 text-indigo-600 hover:bg-white/90 hover:-translate-y-0.5 hover:shadow-md hover:border-indigo-300 backdrop-blur-sm border border-indigo-200/50 transition-all text-xs sm:text-sm font-bold shadow-sm">
                         <span class="sm:hidden">←</span>
                         <span class="hidden sm:inline">← Dashboard</span>
                     </a>
@@ -42,7 +41,7 @@
                 <div class="hidden md:flex items-center gap-3">
                     <a href="{{ path('public_catalog_index', {'uuid': app.user.uuid}) }}" 
                        class="text-xs sm:text-sm font-bold text-indigo-600 hover:text-indigo-800 transition-colors p-2"
-                       data-testid="nav-public-catalog-link" tabindex="8">
+                       data-testid="nav-public-catalog-link">
                         Mój Katalog
                     </a>
                     <div class="px-4 py-2 rounded-xl bg-white/60 text-indigo-600 border border-indigo-200/50 shadow-sm text-xs sm:text-sm font-bold truncate max-w-[200px]">
@@ -50,7 +49,7 @@
                     </div>
                     <form action="/logout" method="post" class="inline">
                         <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
-                        <button type="submit" tabindex="9" class="text-xs sm:text-sm font-bold text-indigo-600 hover:text-indigo-800 transition-colors p-2">
+                        <button type="submit" class="text-xs sm:text-sm font-bold text-indigo-600 hover:text-indigo-800 transition-colors p-2">
                             Wyloguj
                         </button>
                     </form>

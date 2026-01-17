@@ -55,6 +55,7 @@
 ### E2E Testing Best Practices (Playwright)
 - **Zero Masking**: Nigdy nie używaj `try-catch` ani `console.log/warn` w PageObjects/Testach. Pozwól Playwrightowi zgłosić błąd (Timeout/Actionability) — to pomaga wykryć błędy UI (np. zasłaniające elementy).
 - **Overlay Management**: Zawsze upewnij się, że UI jest czyste przed interakcją. Jeśli aplikacja używa Toastów/Modali, czekaj na ich zniknięcie (`toast.expectHidden()`) przed kliknięciem w elementy, które mogą być nimi zasłonięte.
+- **Visual & Interaction Consistency**: Testy E2E powinny weryfikować spójność wizualną (użycie klas brandingowych jak `btn-gradient`) oraz poprawność stanów interaktywnych (hover, focus). Przy testowaniu przejść CSS (transitions), dodawaj opóźnienia (np. `350ms`), aby pozwolić przeglądarce na wyrenderowanie końcowego stanu przed asercją.
 - **Robust Interactions**: Używaj `scrollIntoViewIfNeeded()` dla przycisków akcji (szczególnie w Sticky Barach) i czekaj na gotowość kontrolerów JS (`data-form-ready`).
 - **Deterministic State**: W testach zależnych od czasu (np. sortowanie po dacie), dodaj `waitForTimeout(500-1000)` między operacjami zapisu, aby zagwarantować unikalne timestampy w bazie.
 - **Data Persistence Verification**: Po dodaniu elementu (np. współpracownika), czekaj na jego fizyczną obecność na liście UI przed wysłaniem formularza.

@@ -108,7 +108,7 @@ export default defineConfig({
         },
         {
             name: 'stateful-ui-logic',
-            testMatch: '**/ui.interaction.spec.ts',
+            testMatch: '**/ui.interaction*.spec.ts',
             workers: 1, // Sequential - UI interactions may have side effects (4 tests)
             use: {
                 ...devices['Desktop Chrome'],

@@ -42,7 +42,7 @@ test.describe('Note Form Copy', () => {
         await dashboardPage.clickAddNote();
 
         await expect(page.getByText('Etykiety', { exact: true })).toBeVisible();
-        await expect(page.getByText('Oddziel etykiety naciskając Enter lub przecinek')).toBeVisible();
+        await expect(page.getByText('Oddziel etykiety naciskając klawisz ENTER, TAB lub przecinek ","')).toBeVisible();
         await expect(page.getByText('Użyj etykiet recipe lub todo, aby zmienić wygląd notatki')).toBeVisible();
     });
 

@@ -30,6 +30,8 @@ Na koniec zawsze uruchamiaj testy: unit, e2e, phpstan, cs-fixer.
 ZASADY:
 Musisz zachować wszystkie aktualne funkcjonalności i architekturę strony i aplikacji.
 
+Sprawdzaj jak zmiany wpływają na zależne, albo wspólne komponenty.
+
 Najpierw przygotuj szczegółowy plan implementacji analizując wymagany codebase. 
 
 Po przygotowaniu planu zaimplementuj dozgodnie z najlepszymi zasadami programowania i wytycznymi projektu.

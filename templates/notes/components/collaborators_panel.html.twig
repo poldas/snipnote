@@ -18,18 +18,16 @@
 
     </div>
 
-    <form class="flex flex-col sm:flex-row gap-3 mb-5" data-collaborator-add-form>
+    <form data-collaborator-add-form class="flex flex-col sm:flex-row gap-3 mb-6">
         <input type="email" id="collaborator-email" name="email" required 
                data-collaborator-email 
                data-testid="collaborator-email-input"
-               tabindex="4"
+               tabindex="5"
                class="input-modern flex-1 px-4 sm:px-6 py-2.5 sm:py-3 border-2 border-indigo-200 rounded-xl bg-white text-gray-900 placeholder-gray-400 shadow-md hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-indigo-300 focus:border-indigo-400 font-medium text-sm sm:text-base" placeholder="email@przyklad.com">
         <button type="submit" data-collaborator-add 
                 data-testid="collaborator-add-btn"
-                class="btn-gradient inline-flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 text-white rounded-xl font-bold text-xs sm:text-sm shadow-lg hover:shadow-2xl">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" class="h-4 w-4 sm:h-5 sm:w-5" stroke="currentColor" stroke-width="2">
-                <path d="M10 4v12M4 10h12" stroke-linecap="round" />
-            </svg>
+                tabindex="-1"
+                class="btn-gradient px-6 py-2.5 sm:py-3 text-white rounded-xl font-bold shadow-md hover:shadow-xl transition-all text-sm sm:text-base min-w-[120px]">
             Dodaj
         </button>
     </form>
