@@ -21,6 +21,12 @@ export class NoteEditorPage {
         await form.waitFor({ state: 'visible', timeout: 15000 });
         // Use the attribute set by note_form_controller.js
         await expect(form).toHaveAttribute('data-note-form-ready', 'true', { timeout: 10000 });
+
+        // If edit-note controller is present, wait for it too
+        const editController = this.page.locator('[data-controller="edit-note"]');
+        if (await editController.count() > 0) {
+            await expect(editController).toHaveAttribute('data-edit-note-ready', 'true', { timeout: 10000 });
+        }
     }
 
     async fillTitle(title: string) {

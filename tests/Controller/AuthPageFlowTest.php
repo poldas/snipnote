@@ -101,13 +101,15 @@ class AuthPageFlowTest extends WebTestCase
             'passwordConfirm' => 'password123',
         ]);
 
-        self::assertResponseIsSuccessful();
-        // Check for generic validation error text (Symfony default or translated)
-        // Since we didn't add specific translation for UniqueEntity, it might be English or default Polish
-        // Let's check if we are still on register page, implying failure
-        self::assertSelectorTextContains('h1', 'Załóż konto');
-        // And maybe check if email value is preserved
-        self::assertInputValueSame('email', 'existing@example.com');
+        // Account Enumeration Protection:
+        // Should redirect to success page even if email is taken
+        self::assertResponseRedirects('/verify/email/notice?state=registered&email=existing@example.com');
+
+        // Should send Password Reset email because account is verified
+        self::assertEmailCount(1);
+        $email = self::getMailerMessage(0);
+        self::assertEmailHeaderSame($email, 'To', 'existing@example.com');
+        self::assertEmailHeaderSame($email, 'Subject', 'Zresetuj swoje hasło | Snipnote');
     }
 
     // --- LOGIN TESTS ---

@@ -127,7 +127,26 @@ final class AuthPageController extends AbstractController
                         'email' => $email,
                     ]);
                 } catch (ValidationException $e) {
-                    foreach ($e->getErrors() as $field => $messages) {
+                    $validationErrors = $e->getErrors();
+                    if (isset($validationErrors['email']) && \in_array('Email jest już w użyciu', $validationErrors['email'], true)) {
+                        // Account Enumeration Protection:
+                        // If user exists, send either verification or password reset email, but show success.
+                        $user = $this->userRepository->findOneByEmailCaseInsensitive($email);
+                        if (null !== $user) {
+                            if (!$user->isVerified()) {
+                                $this->emailVerificationService->sendForEmail($email);
+                            } else {
+                                $this->passwordResetService->requestPasswordReset($email);
+                            }
+                        }
+
+                        return $this->redirectToRoute('app_verify_notice_page', [
+                            'state' => 'registered',
+                            'email' => $email,
+                        ]);
+                    }
+
+                    foreach ($validationErrors as $field => $messages) {
                         foreach ($messages as $msg) {
                             $errors[] = ['field' => $field, 'message' => $msg];
                         }

@@ -9,6 +9,7 @@ export default class extends Controller {
         this.setupCopyPublicLink();
         this.setupCollaborators();
         this.setupDangerZone();
+        this.element.setAttribute('data-edit-note-ready', 'true');
     }
 
     disconnect() {
@@ -437,21 +438,21 @@ export default class extends Controller {
         listEl.querySelector('[data-collaborators-empty]')?.remove();
 
         const row = document.createElement('div');
-        row.className = 'px-4 py-3 flex flex-wrap items-center justify-between gap-3';
+        row.className = 'px-4 sm:px-5 py-3 sm:py-4 flex items-center justify-between gap-3';
         row.setAttribute('data-collaborator-row', 'true');
         row.setAttribute('data-collaborator-id', (collaborator.id ?? 'new').toString());
         row.setAttribute('data-collaborator-email', (collaborator.email || '').toLowerCase());
 
         const infoDiv = document.createElement('div');
-        infoDiv.className = 'space-y-0.5';
+        infoDiv.className = 'space-y-0.5 min-w-0';
 
         const emailP = document.createElement('p');
-        emailP.className = 'font-semibold text-slate-900';
+        emailP.className = 'font-bold text-gray-900 text-sm sm:text-base truncate';
         emailP.textContent = collaborator.email || '';
 
         const roleP = document.createElement('p');
-        roleP.className = 'text-xs text-slate-500';
-        roleP.textContent = collaborator.isOwner ? 'Właściciel' : collaborator.isSelf ? 'Ty' : 'Współedytor';
+        roleP.className = 'text-xs sm:text-sm text-indigo-600 font-semibold';
+        roleP.textContent = collaborator.isOwner ? '👑 Właściciel' : collaborator.isSelf ? '👤 Ty' : '👥 Współpracownik';
 
         infoDiv.appendChild(emailP);
         infoDiv.appendChild(roleP);
@@ -460,11 +461,11 @@ export default class extends Controller {
         const canRemove = ctx.canEdit && !collaborator.isOwner;
         if (canRemove) {
             const btnDiv = document.createElement('div');
-            btnDiv.className = 'flex items-center gap-2';
+            btnDiv.className = 'flex-shrink-0';
 
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = 'text-sm text-red-600 hover:text-red-800 font-semibold';
+            btn.className = 'text-xs sm:text-sm text-red-600 hover:text-red-800 font-semibold';
             btn.setAttribute('data-remove-collaborator', '');
             btn.setAttribute('data-remove-url', collaborator.removeUrl || '');
             if (collaborator.isSelf) btn.setAttribute('data-self-remove', 'true');

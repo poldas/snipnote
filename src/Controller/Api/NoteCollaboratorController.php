@@ -146,16 +146,16 @@ final class NoteCollaboratorController extends AbstractController
     }
 
     /**
-     * @return array{id: int, note_id: int, email: string, user_id: int|null, created_at: string}
+     * @return array{id: int, noteId: int, email: string, userId: int|null, createdAt: string}
      */
     private function collaboratorToArray(NoteCollaboratorDto $dto): array
     {
         return [
             'id' => $dto->id,
-            'note_id' => $dto->noteId,
+            'noteId' => $dto->noteId,
             'email' => $dto->email,
-            'user_id' => $dto->userId,
-            'created_at' => $dto->createdAt->format(\DateTimeInterface::ATOM),
+            'userId' => $dto->userId,
+            'createdAt' => $dto->createdAt->format(\DateTimeInterface::ATOM),
         ];
     }
 }
